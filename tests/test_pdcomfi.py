@@ -107,3 +107,46 @@ class TestSeriesAccessors(unittest.TestCase):
         self.model.update()
         assert_series_equal(df["x"].grb.lb, df["a"], check_names=False)
         assert_series_equal(df["x"].grb.ub, df["b"], check_names=False)
+
+
+class TestDataFrameAddLConstrs(unittest.TestCase):
+    def setUp(self):
+        self.env = gp.Env()
+        self.model = gp.Model(env=self.env)
+        self.df = pd.DataFrame(
+            data=[
+                {"a": 1, "b": 2},
+                {"a": 3, "b": 4},
+                {"a": 5, "b": 6},
+            ],
+        )
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+    def test_scalar_rhs(self):
+        df = self.df.grb.addVars(self.model, "x")
+        result = df.grb.addLConstrs(self.model, "x", GRB.EQUAL, 1.0, name="constr")
+        self.model.update()
+        for entry in result.itertuples():
+            self.assertEqual(entry.constr.sense, GRB.EQUAL)
+            self.assertEqual(entry.constr.rhs, 1.0)
+            self.assertEqual(entry.constr.ConstrName, f"constr[{entry.Index}]")
+            row = self.model.getRow(entry.constr)
+            self.assertEqual(row.size(), 1)
+            self.assertIs(row.getVar(0), entry.x)
+            self.assertEqual(row.getCoeff(0), 1.0)
+
+    def test_series_rhs(self):
+        df = self.df.grb.addVars(self.model, "x")
+        result = df.grb.addLConstrs(self.model, "x", GRB.LESS_EQUAL, "b", name="constr")
+        self.model.update()
+        for entry in result.itertuples():
+            self.assertEqual(entry.constr.sense, GRB.LESS_EQUAL),
+            self.assertEqual(entry.constr.rhs, entry.b)
+            self.assertEqual(entry.constr.ConstrName, f"constr[{entry.Index}]")
+            row = self.model.getRow(entry.constr)
+            self.assertEqual(row.size(), 1)
+            self.assertIs(row.getVar(0), entry.x)
+            self.assertEqual(row.getCoeff(0), 1.0)
