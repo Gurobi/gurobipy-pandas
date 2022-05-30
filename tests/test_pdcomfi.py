@@ -21,6 +21,10 @@ class TestDataFrameAddVars(unittest.TestCase):
             ],
         )
 
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
     def test_add_vars_no_args(self):
         """Adds a series of gp.Var as named column. This should be the
         simplest test we can have; the new column must have a name so
@@ -65,3 +69,10 @@ class TestDataFrameAddVars(unittest.TestCase):
         self.assertEqual(list(result.columns), ["a", "b", "z"])
         for row in result.itertuples():
             self.assertEqual(row.z.VarName, f"z[{row.b},{row.a}]")
+
+    def test_add_vars_set_bounds_by_column(self):
+        result = self.df.grb.addVars(self.model, name="x", lb="a", ub="b")
+        self.model.update()
+        for row in result.itertuples():
+            self.assertEqual(row.x.lb, row.a)
+            self.assertEqual(row.x.ub, row.b)
