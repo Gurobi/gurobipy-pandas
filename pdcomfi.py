@@ -32,6 +32,20 @@ class GRBDataFrameAccessor:
         xs = pd.Series(data=x.values(), index=self._obj.index, name=name)
         return self._obj.join(xs)
 
+    def addLConstrs(self, model, lhs, sense, rhs, name):
+        """lhs must be a column name, rhs can be a scalar or column"""
+        c = [
+            model.addLConstr(
+                lhs=getattr(row, lhs),
+                sense=sense,
+                rhs=getattr(row, rhs) if rhs in self._obj.columns else rhs,
+                name=f"{name}[{row.Index}]",
+            )
+            for row in self._obj.itertuples()
+        ]
+        cs = pd.Series(c, index=self._obj.index, name=name)
+        return self._obj.join(cs)
+
 
 @pd.api.extensions.register_series_accessor("grb")
 class GRBSeriesAccessor:
