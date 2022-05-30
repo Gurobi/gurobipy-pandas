@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 
 from gurobipy import GRB
@@ -45,6 +47,15 @@ class GRBDataFrameAccessor:
         ]
         cs = pd.Series(c, index=self._obj.index, name=name)
         return self._obj.join(cs)
+
+    def addConstrs(self, model, expr, name):
+        """Parse an expression (like DataFrame.query) to build constraints
+        from data."""
+        # TODO: use pandas' implementation for .query()
+        match = re.match("([a-z0-9]+) +([=><]+) +([a-z0-9]+)", expr)
+        assert match
+        lhs, sense, rhs = match.groups()
+        return self.addLConstrs(model, lhs, sense, rhs, name)
 
 
 @pd.api.extensions.register_series_accessor("grb")

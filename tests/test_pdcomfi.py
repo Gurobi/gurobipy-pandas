@@ -150,3 +150,46 @@ class TestDataFrameAddLConstrs(unittest.TestCase):
             self.assertEqual(row.size(), 1)
             self.assertIs(row.getVar(0), entry.x)
             self.assertEqual(row.getCoeff(0), 1.0)
+
+
+class TestDataFrameAddConstrs(unittest.TestCase):
+    def setUp(self):
+        self.env = gp.Env()
+        self.model = gp.Model(env=self.env)
+        self.df = pd.DataFrame(
+            data=[
+                {"a": 1, "b": 2},
+                {"a": 3, "b": 4},
+                {"a": 5, "b": 6},
+            ],
+        )
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+    def test_scalar_rhs(self):
+        df = self.df.grb.addVars(self.model, "x")
+        result = df.grb.addConstrs(self.model, "x == 1", name="constr")
+        self.model.update()
+        for entry in result.itertuples():
+            self.assertEqual(entry.constr.sense, GRB.EQUAL)
+            self.assertEqual(entry.constr.rhs, 1.0)
+            self.assertEqual(entry.constr.ConstrName, f"constr[{entry.Index}]")
+            row = self.model.getRow(entry.constr)
+            self.assertEqual(row.size(), 1)
+            self.assertIs(row.getVar(0), entry.x)
+            self.assertEqual(row.getCoeff(0), 1.0)
+
+    def test_series_rhs(self):
+        df = self.df.grb.addVars(self.model, "x")
+        result = df.grb.addConstrs(self.model, "x <= b", name="constr")
+        self.model.update()
+        for entry in result.itertuples():
+            self.assertEqual(entry.constr.sense, GRB.LESS_EQUAL),
+            self.assertEqual(entry.constr.rhs, entry.b)
+            self.assertEqual(entry.constr.ConstrName, f"constr[{entry.Index}]")
+            row = self.model.getRow(entry.constr)
+            self.assertEqual(row.size(), 1)
+            self.assertIs(row.getVar(0), entry.x)
+            self.assertEqual(row.getCoeff(0), 1.0)
