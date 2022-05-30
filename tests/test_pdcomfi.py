@@ -3,7 +3,7 @@ import unittest
 import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
-from pandas.testing import assert_index_equal
+from pandas.testing import assert_index_equal, assert_series_equal
 
 import pdcomfi  # import registers the accessors
 
@@ -76,3 +76,24 @@ class TestDataFrameAddVars(unittest.TestCase):
         for row in result.itertuples():
             self.assertEqual(row.x.lb, row.a)
             self.assertEqual(row.x.ub, row.b)
+
+
+class TestSeriesAccessors(unittest.TestCase):
+    def setUp(self):
+        self.env = gp.Env()
+        self.model = gp.Model(env=self.env)
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+    def test_var_X(self):
+        """Map Var -> X in a series. Use the same name in the result."""
+        series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype('float')
+        df = series.to_frame(name="value").grb.addVars(
+            self.model, name="x", lb="value", ub="value"
+        )
+        self.model.optimize()
+        solution = df["x"].grb.X
+        assert_series_equal(solution, series, check_names=False)
+        self.assertEqual(solution.name, "x")
