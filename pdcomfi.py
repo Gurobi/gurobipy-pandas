@@ -38,10 +38,11 @@ class GRBSeriesAccessor:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
-    @property
-    def X(self):
+    def __getattr__(self, attr):
+        """Use Gurobi getAttr (not builtin) to access Var.X, Var.lb,
+        Constr.Slack , etc attribute values series-wise."""
         return pd.Series(
             index=self._obj.index,
-            data=[v.X for v in self._obj],
+            data=[v.getAttr(attr) for v in self._obj],
             name=self._obj.name,
         )
