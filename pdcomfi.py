@@ -38,7 +38,7 @@ class GRBDataFrameAccessor:
         """lhs must be a column name, rhs can be a scalar or column"""
         c = [
             model.addLConstr(
-                lhs=getattr(row, lhs),
+                lhs=getattr(row, lhs) if lhs in self._obj.columns else lhs,
                 sense=sense,
                 rhs=getattr(row, rhs) if rhs in self._obj.columns else rhs,
                 name=f"{name}[{row.Index}]",
@@ -51,7 +51,12 @@ class GRBDataFrameAccessor:
     def addConstrs(self, model, expr, name):
         """Parse an expression (like DataFrame.query) to build constraints
         from data."""
-        # TODO: use pandas' implementation for .query()
+        # DataFrame.eval() is one option to help generalise the expression
+        # parsing for this. But for a dtype='object' series it seems to only
+        # ever use operators implemented on 'object' (which is essentially
+        # none??) so isn't that helpful.
+        # Another option: use iterrows and use python's eval with the row as
+        # locals on each pass.
         match = re.match("([a-z0-9]+) +([=><]+) +([a-z0-9]+)", expr)
         assert match
         lhs, sense, rhs = match.groups()

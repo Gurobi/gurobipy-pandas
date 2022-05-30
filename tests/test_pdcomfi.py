@@ -138,6 +138,19 @@ class TestDataFrameAddLConstrs(unittest.TestCase):
             self.assertIs(row.getVar(0), entry.x)
             self.assertEqual(row.getCoeff(0), 1.0)
 
+    def test_scalar_lhs(self):
+        df = self.df.grb.addVars(self.model, "x")
+        result = df.grb.addLConstrs(self.model, 1.0, GRB.EQUAL, "x", name="constr")
+        self.model.update()
+        for entry in result.itertuples():
+            self.assertEqual(entry.constr.sense, GRB.EQUAL)
+            self.assertEqual(entry.constr.rhs, -1.0)
+            self.assertEqual(entry.constr.ConstrName, f"constr[{entry.Index}]")
+            row = self.model.getRow(entry.constr)
+            self.assertEqual(row.size(), 1)
+            self.assertIs(row.getVar(0), entry.x)
+            self.assertEqual(row.getCoeff(0), -1.0)
+
     def test_series_rhs(self):
         df = self.df.grb.addVars(self.model, "x")
         result = df.grb.addLConstrs(self.model, "x", GRB.LESS_EQUAL, "b", name="constr")
@@ -181,12 +194,25 @@ class TestDataFrameAddConstrs(unittest.TestCase):
             self.assertIs(row.getVar(0), entry.x)
             self.assertEqual(row.getCoeff(0), 1.0)
 
+    def test_scalar_lhs(self):
+        df = self.df.grb.addVars(self.model, "x")
+        result = df.grb.addConstrs(self.model, "1 == x", name="constr")
+        self.model.update()
+        for entry in result.itertuples():
+            self.assertEqual(entry.constr.sense, GRB.EQUAL)
+            self.assertEqual(entry.constr.rhs, -1.0)
+            self.assertEqual(entry.constr.ConstrName, f"constr[{entry.Index}]")
+            row = self.model.getRow(entry.constr)
+            self.assertEqual(row.size(), 1)
+            self.assertIs(row.getVar(0), entry.x)
+            self.assertEqual(row.getCoeff(0), -1.0)
+
     def test_series_rhs(self):
         df = self.df.grb.addVars(self.model, "x")
         result = df.grb.addConstrs(self.model, "x <= b", name="constr")
         self.model.update()
         for entry in result.itertuples():
-            self.assertEqual(entry.constr.sense, GRB.LESS_EQUAL),
+            self.assertEqual(entry.constr.sense, GRB.LESS_EQUAL)
             self.assertEqual(entry.constr.rhs, entry.b)
             self.assertEqual(entry.constr.ConstrName, f"constr[{entry.Index}]")
             row = self.model.getRow(entry.constr)
