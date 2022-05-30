@@ -102,8 +102,8 @@ class TestSeriesAccessors(unittest.TestCase):
     def test_var_bounds(self):
         df = pd.DataFrame(
             data=np.random.randint(0, 10, size=(100, 5)).astype(float),
-            columns=list('abcde'),
-        ).grb.addVars(self.model, name='x', lb='a', ub='b')
+            columns=list("abcde"),
+        ).grb.addVars(self.model, name="x", lb="a", ub="b")
         self.model.update()
-        assert_series_equal(df['x'].grb.lb, df['a'], check_names=False)
-        assert_series_equal(df['x'].grb.ub, df['b'], check_names=False)
+        assert_series_equal(df["x"].grb.lb, df["a"], check_names=False)
+        assert_series_equal(df["x"].grb.ub, df["b"], check_names=False)
