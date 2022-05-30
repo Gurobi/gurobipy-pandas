@@ -51,3 +51,17 @@ class TestDataFrameAddVars(unittest.TestCase):
             self.assertEqual(v.lb, -10.0)
             self.assertEqual(v.ub, 10.0)
             self.assertEqual(v.VType, GRB.INTEGER)
+
+    def test_add_vars_single_index_col(self):
+        result = self.df.grb.addVars(self.model, name="y", index="a")
+        self.model.update()
+        self.assertEqual(list(result.columns), ["a", "b", "y"])
+        for row in result.itertuples():
+            self.assertEqual(row.y.VarName, f"y[{row.a}]")
+
+    def test_add_vars_multiple_index_cols(self):
+        result = self.df.grb.addVars(self.model, name="z", index=["b", "a"])
+        self.model.update()
+        self.assertEqual(list(result.columns), ["a", "b", "z"])
+        for row in result.itertuples():
+            self.assertEqual(row.z.VarName, f"z[{row.b},{row.a}]")
