@@ -76,3 +76,9 @@ class GRBSeriesAccessor:
             data=[v.getAttr(attr) for v in self._obj],
             name=self._obj.name,
         )
+
+    def getValue(self):
+        return pd.Series(
+            index=self._obj.index,
+            data=[le.getValue() for le in self._obj],
+        )
