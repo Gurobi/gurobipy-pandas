@@ -31,3 +31,17 @@ class GRBDataFrameAccessor:
         x = model.addVars(indices, name=name, lb=lb, ub=ub, vtype=vtype)
         xs = pd.Series(data=x.values(), index=self._obj.index, name=name)
         return self._obj.join(xs)
+
+
+@pd.api.extensions.register_series_accessor("grb")
+class GRBSeriesAccessor:
+    def __init__(self, pandas_obj):
+        self._obj = pandas_obj
+
+    @property
+    def X(self):
+        return pd.Series(
+            index=self._obj.index,
+            data=[v.X for v in self._obj],
+            name=self._obj.name,
+        )
