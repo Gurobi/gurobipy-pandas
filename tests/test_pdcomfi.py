@@ -228,3 +228,52 @@ class TestDataFrameAddConstrs(unittest.TestCase):
             self.assertEqual(row.size(), 1)
             self.assertIs(row.getVar(0), entry.x)
             self.assertEqual(row.getCoeff(0), 1.0)
+
+
+class TestSeriesAddVars(unittest.TestCase):
+    # TODO: Test string indexes (and string columns)
+
+    def setUp(self):
+        self.env = gp.Env()
+        self.model = gp.Model(env=self.env)
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+    def test_no_args(self):
+        """Create a series of gp.Var with the given index."""
+        index = pd.RangeIndex(0, 10, 2)
+        x = index.grb.addVars(self.model)
+        self.model.update()
+        self.assertIsInstance(x, pd.Series)
+        assert_index_equal(x.index, index)
+        for i in range(5):
+            self.assertIsInstance(x.loc[i * 2], gp.Var)
+            self.assertEqual(x.loc[i * 2].VarName, f"C{i}")
+            self.assertEqual(x.loc[i * 2].lb, 0.0)
+            self.assertGreaterEqual(x.loc[i * 2].ub, GRB.INFINITY)
+            self.assertEqual(x.loc[i * 2].VType, GRB.CONTINUOUS)
+
+    def test_single_index_named(self):
+        """Use the index for naming if a name is given."""
+        index = pd.RangeIndex(0, 10, 2)
+        x = index.grb.addVars(self.model, name="x")
+        self.model.update()
+        assert_index_equal(x.index, index)
+        for i in range(0, 10, 2):
+            self.assertEqual(x.loc[i].VarName, f"x[{i}]")
+            self.assertEqual(x.loc[i].lb, 0.0)
+            self.assertGreaterEqual(x.loc[i].ub, GRB.INFINITY)
+            self.assertEqual(x.loc[i].VType, GRB.CONTINUOUS)
+
+    def test_add_vars_scalar_attrs(self):
+        index = pd.RangeIndex(0, 10)
+        x = index.grb.addVars(self.model, lb=-10, ub=10, vtype=GRB.INTEGER)
+        self.model.update()
+        assert_index_equal(x.index, index)
+        for i in range(0, 10):
+            self.assertEqual(x.loc[i].VarName, f"C{i}")
+            self.assertEqual(x.loc[i].lb, -10.0)
+            self.assertGreaterEqual(x.loc[i].ub, 10.0)
+            self.assertEqual(x.loc[i].VType, GRB.INTEGER)

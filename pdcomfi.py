@@ -82,3 +82,17 @@ class GRBSeriesAccessor:
             index=self._obj.index,
             data=[le.getValue() for le in self._obj],
         )
+
+
+@pd.api.extensions.register_index_accessor("grb")
+class GRBIndexAccessor:
+    def __init__(self, pandas_obj):
+        self._obj = pandas_obj
+
+    def addVars(self, model, lb=0.0, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name=None):
+        if name is None:
+            indices = len(self._obj)
+        else:
+            indices = self._obj
+        x = model.addVars(indices, lb=lb, ub=ub, vtype=vtype, name=name)
+        return pd.Series(index=self._obj, data=x.values(), name=name)
