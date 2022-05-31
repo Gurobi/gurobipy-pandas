@@ -229,6 +229,23 @@ class TestDataFrameAddConstrs(unittest.TestCase):
             self.assertIs(row.getVar(0), entry.x)
             self.assertEqual(row.getCoeff(0), 1.0)
 
+    def test_expressions(self):
+        df = self.df.grb.addVars(self.model, "x").grb.addVars(self.model, "y")
+        result = df.grb.addConstrs(self.model, "x + b <= 1 - 2*y", name="constr")
+        self.model.update()
+        self.assertEqual(df.shape, (3, 4))
+        self.assertEqual(result.shape, (3, 5))
+        for entry in result.itertuples():
+            self.assertEqual(entry.constr.sense, GRB.LESS_EQUAL)
+            self.assertEqual(entry.constr.rhs, 1 - entry.b)
+            self.assertEqual(entry.constr.ConstrName, f"constr[{entry.Index}]")
+            row = self.model.getRow(entry.constr)
+            self.assertEqual(row.size(), 2)
+            self.assertIs(row.getVar(0), entry.x)
+            self.assertIs(row.getVar(1), entry.y)
+            self.assertEqual(row.getCoeff(0), 1.0)
+            self.assertEqual(row.getCoeff(1), 2.0)
+
 
 class TestSeriesAddVars(unittest.TestCase):
     # TODO: Test string indexes (and string columns)

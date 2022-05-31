@@ -55,12 +55,19 @@ class GRBDataFrameAccessor:
         # parsing for this. But for a dtype='object' series it seems to only
         # ever use operators implemented on 'object' (which is essentially
         # none??) so isn't that helpful.
-        # Another option: use iterrows and use python's eval with the row as
-        # locals on each pass.
-        match = re.match("([a-z0-9]+) +([=><]+) +([a-z0-9]+)", expr)
-        assert match
-        lhs, sense, rhs = match.groups()
-        return self.addLConstrs(model, lhs, sense, rhs, name)
+        lhs, rhs = re.split("[<>=]+", expr)
+        sense = expr.replace(lhs, "").replace(rhs, "")
+        return self._obj.join(
+            pd.DataFrame(
+                index=self._obj.index,
+                data={
+                    "lhs": eval(lhs, None, self._obj),
+                    "rhs": eval(rhs, None, self._obj),
+                },
+            )
+            .grb.addLConstrs(model, "lhs", sense, "rhs", name)
+            .drop(columns=["lhs", "rhs"])
+        )
 
 
 @pd.api.extensions.register_series_accessor("grb")
