@@ -84,6 +84,19 @@ class GRBSeriesAccessor:
             name=self._obj.name,
         )
 
+    def __setattr__(self, attr, value):
+        if attr == "_obj":
+            super().__setattr__(attr, value)
+        elif isinstance(value, pd.Series):
+            df = self._obj.to_frame(name="x").join(
+                value.to_frame(name="v"), how="inner"
+            )
+            for entry in df.itertuples(index=False):
+                entry.x.setAttr(attr, entry.v)
+        else:
+            for v in self._obj:
+                v.setAttr(attr, value)
+
     def getValue(self):
         return pd.Series(
             index=self._obj.index,

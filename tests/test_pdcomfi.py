@@ -114,6 +114,23 @@ class TestSeriesAttributes(TestBase):
         solution = (df["x"] * 2.0).grb.getValue()
         assert_series_equal(solution, series * 2.0, check_names=False)
 
+    def test_var_set_ub_scalar(self):
+        x = pd.RangeIndex(0, 10).grb.addVars(self.model, name="x")
+        x.grb.ub = 1
+        self.model.update()
+        for i in range(10):
+            self.assertEqual(x.loc[i].ub, 1.0)
+
+    def test_var_set_start_series(self):
+        x = pd.RangeIndex(0, 10).grb.addVars(self.model, name="x")
+        x.grb.Start = pd.Series(
+            index=pd.RangeIndex(5, 10), data=[1, 2, 3, 0, 1]
+        ).astype(float)
+        self.model.update()
+        expected = [GRB.UNDEFINED] * 5 + [1, 2, 3, 0, 1]
+        for i, start in enumerate(expected):
+            self.assertEqual(x.loc[i].Start, start)
+
 
 class TestDataFrameAddLConstrs(TestBase):
     def setUp(self):
