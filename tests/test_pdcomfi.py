@@ -9,10 +9,19 @@ from pandas.testing import assert_index_equal, assert_series_equal
 import pdcomfi  # import registers the accessors
 
 
-class TestDataFrameAddVars(unittest.TestCase):
+class TestBase(unittest.TestCase):
     def setUp(self):
-        self.env = gp.Env()
+        self.env = gp.Env(params={"LogToConsole": 0})
         self.model = gp.Model(env=self.env)
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+
+class TestDataFrameAddVars(TestBase):
+    def setUp(self):
+        super().setUp()
         self.df = pd.DataFrame(
             index=[0, 2, 3],
             data=[
@@ -21,10 +30,6 @@ class TestDataFrameAddVars(unittest.TestCase):
                 {"a": 5, "b": 6},
             ],
         )
-
-    def tearDown(self):
-        self.model.close()
-        self.env.close()
 
     def test_add_vars_no_args(self):
         """Adds a series of gp.Var as named column. This should be the
@@ -79,15 +84,7 @@ class TestDataFrameAddVars(unittest.TestCase):
             self.assertEqual(row.x.ub, row.b)
 
 
-class TestSeriesAccessors(unittest.TestCase):
-    def setUp(self):
-        self.env = gp.Env()
-        self.model = gp.Model(env=self.env)
-
-    def tearDown(self):
-        self.model.close()
-        self.env.close()
-
+class TestSeriesAccessors(TestBase):
     def test_var_X(self):
         """Map Var -> X in a series. Use the same name in the result."""
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
@@ -118,10 +115,9 @@ class TestSeriesAccessors(unittest.TestCase):
         assert_series_equal(solution, series * 2.0, check_names=False)
 
 
-class TestDataFrameAddLConstrs(unittest.TestCase):
+class TestDataFrameAddLConstrs(TestBase):
     def setUp(self):
-        self.env = gp.Env()
-        self.model = gp.Model(env=self.env)
+        super().setUp()
         self.df = pd.DataFrame(
             data=[
                 {"a": 1, "b": 2},
@@ -129,10 +125,6 @@ class TestDataFrameAddLConstrs(unittest.TestCase):
                 {"a": 5, "b": 6},
             ],
         )
-
-    def tearDown(self):
-        self.model.close()
-        self.env.close()
 
     def test_scalar_rhs(self):
         df = self.df.grb.addVars(self.model, "x")
@@ -174,10 +166,9 @@ class TestDataFrameAddLConstrs(unittest.TestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
 
-class TestDataFrameAddConstrs(unittest.TestCase):
+class TestDataFrameAddConstrs(TestBase):
     def setUp(self):
-        self.env = gp.Env()
-        self.model = gp.Model(env=self.env)
+        super().setUp()
         self.df = pd.DataFrame(
             data=[
                 {"a": 1, "b": 2},
@@ -185,10 +176,6 @@ class TestDataFrameAddConstrs(unittest.TestCase):
                 {"a": 5, "b": 6},
             ],
         )
-
-    def tearDown(self):
-        self.model.close()
-        self.env.close()
 
     def test_scalar_rhs(self):
         df = self.df.grb.addVars(self.model, "x")
@@ -247,16 +234,8 @@ class TestDataFrameAddConstrs(unittest.TestCase):
             self.assertEqual(row.getCoeff(1), 2.0)
 
 
-class TestSeriesAddVars(unittest.TestCase):
+class TestSeriesAddVars(TestBase):
     # TODO: Test string indexes (and string columns)
-
-    def setUp(self):
-        self.env = gp.Env()
-        self.model = gp.Model(env=self.env)
-
-    def tearDown(self):
-        self.model.close()
-        self.env.close()
 
     def test_no_args(self):
         """Create a series of gp.Var with the given index."""
