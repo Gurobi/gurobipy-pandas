@@ -31,7 +31,7 @@ class TestDataFrameAddVars(TestBase):
             ],
         )
 
-    def test_add_vars_no_args(self):
+    def test_no_args(self):
         """Adds a series of gp.Var as named column. This should be the
         simplest test we can have; the new column must have a name so
         we always use that + the index for variable naming."""
@@ -48,7 +48,7 @@ class TestDataFrameAddVars(TestBase):
             self.assertGreaterEqual(v.ub, GRB.INFINITY)
             self.assertEqual(v.VType, GRB.CONTINUOUS)
 
-    def test_add_vars_scalar_args(self):
+    def test_scalar_args(self):
         result = self.df.grb.addVars(self.model, "x", lb=-10, ub=10, vtype=GRB.INTEGER)
         self.model.update()
         assert_index_equal(result.index, self.df.index)
@@ -62,21 +62,21 @@ class TestDataFrameAddVars(TestBase):
             self.assertEqual(v.ub, 10.0)
             self.assertEqual(v.VType, GRB.INTEGER)
 
-    def test_add_vars_single_index_col(self):
+    def test_single_index_col(self):
         result = self.df.grb.addVars(self.model, name="y", index="a")
         self.model.update()
         self.assertEqual(list(result.columns), ["a", "b", "y"])
         for row in result.itertuples():
             self.assertEqual(row.y.VarName, f"y[{row.a}]")
 
-    def test_add_vars_multiple_index_cols(self):
+    def test_multiple_index_cols(self):
         result = self.df.grb.addVars(self.model, name="z", index=["b", "a"])
         self.model.update()
         self.assertEqual(list(result.columns), ["a", "b", "z"])
         for row in result.itertuples():
             self.assertEqual(row.z.VarName, f"z[{row.b},{row.a}]")
 
-    def test_add_vars_set_bounds_by_column(self):
+    def test_set_bounds_by_column(self):
         result = self.df.grb.addVars(self.model, name="x", lb="a", ub="b")
         self.model.update()
         for row in result.itertuples():
@@ -84,8 +84,8 @@ class TestDataFrameAddVars(TestBase):
             self.assertEqual(row.x.ub, row.b)
 
 
-class TestSeriesAccessors(TestBase):
-    def test_var_X(self):
+class TestSeriesAttributes(TestBase):
+    def test_var_get_X(self):
         """Map Var -> X in a series. Use the same name in the result."""
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
         df = series.to_frame(name="value").grb.addVars(
@@ -96,7 +96,7 @@ class TestSeriesAccessors(TestBase):
         assert_series_equal(solution, series, check_names=False)
         self.assertEqual(solution.name, "x")
 
-    def test_var_bounds(self):
+    def test_var_get_bounds(self):
         df = pd.DataFrame(
             data=np.random.randint(0, 10, size=(100, 5)).astype(float),
             columns=list("abcde"),
@@ -105,7 +105,7 @@ class TestSeriesAccessors(TestBase):
         assert_series_equal(df["x"].grb.lb, df["a"], check_names=False)
         assert_series_equal(df["x"].grb.ub, df["b"], check_names=False)
 
-    def test_getValue(self):
+    def test_linexpr_getValue(self):
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
         df = series.to_frame(name="value").grb.addVars(
             self.model, name="x", lb="value", ub="value"
@@ -234,7 +234,7 @@ class TestDataFrameAddConstrs(TestBase):
             self.assertEqual(row.getCoeff(1), 2.0)
 
 
-class TestSeriesAddVars(TestBase):
+class TestIndexAddVars(TestBase):
     # TODO: Test string indexes (and string columns)
 
     def test_no_args(self):
