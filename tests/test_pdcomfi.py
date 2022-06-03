@@ -83,6 +83,15 @@ class TestDataFrameAddVars(TestBase):
             self.assertEqual(row.x.lb, row.a)
             self.assertEqual(row.x.ub, row.b)
 
+    def test_multiindex(self):
+        df = self.df.assign(c=1).set_index(['b', 'a'])
+        result = df.grb.addVars(self.model, name="z")
+        self.model.update()
+        self.assertEqual(list(result.columns), ["c", "z"])
+        for row in result.itertuples():
+            ind = ",".join(map(str, row.Index))
+            self.assertEqual(row.z.VarName, f"z[{ind}]")
+
 
 class TestSeriesAttributes(TestBase):
     def test_var_get_X(self):
@@ -328,3 +337,12 @@ class TestIndexAddVars(TestBase):
             self.assertEqual(x.loc[i].lb, -10.0)
             self.assertGreaterEqual(x.loc[i].ub, 10.0)
             self.assertEqual(x.loc[i].VType, GRB.INTEGER)
+
+    def test_add_vars_multiindex(self):
+        index = pd.MultiIndex.from_tuples([(0, 1), (1, 0), (2, 2)])
+        x = index.grb.addVars(self.model, name="y")
+        self.model.update()
+        assert_index_equal(x.index, index)
+        self.assertEqual(x.loc[0, 1].VarName, "y[0,1]")
+        self.assertEqual(x.loc[1, 0].VarName, "y[1,0]")
+        self.assertEqual(x.loc[2, 2].VarName, "y[2,2]")
