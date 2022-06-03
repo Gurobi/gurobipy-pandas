@@ -34,7 +34,13 @@ class GRBDataFrameAccessor:
         xs = pd.Series(data=x.values(), index=self._obj.index, name=name)
         return self._obj.join(xs)
 
-    def addLConstrs(self, model, lhs, sense, rhs, name):
+    def addConstrs(self, model, lhs, sense=None, rhs=None, name=None):
+        if sense is None:
+            return self._addConstrsByExpression(model, lhs, name=name)
+        else:
+            return self._addLConstrsByArgs(model, lhs, sense, rhs, name=name)
+
+    def _addLConstrsByArgs(self, model, lhs, sense, rhs, name):
         """lhs must be a column name, rhs can be a scalar or column"""
         c = [
             model.addLConstr(
@@ -48,7 +54,7 @@ class GRBDataFrameAccessor:
         cs = pd.Series(c, index=self._obj.index, name=name)
         return self._obj.join(cs)
 
-    def addConstrs(self, model, expr, name):
+    def _addConstrsByExpression(self, model, expr, *, name):
         """Parse an expression (like DataFrame.query) to build constraints
         from data."""
         # DataFrame.eval() is one option to help generalise the expression
@@ -65,7 +71,7 @@ class GRBDataFrameAccessor:
                     "rhs": eval(rhs, None, self._obj),
                 },
             )
-            .grb.addLConstrs(model, "lhs", sense, "rhs", name)
+            .grb._addLConstrsByArgs(model, "lhs", sense, "rhs", name)
             .drop(columns=["lhs", "rhs"])
         )
 

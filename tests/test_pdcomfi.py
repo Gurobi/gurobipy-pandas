@@ -132,7 +132,7 @@ class TestSeriesAttributes(TestBase):
             self.assertEqual(x.loc[i].Start, start)
 
 
-class TestDataFrameAddLConstrs(TestBase):
+class TestDataFrameAddConstrsByArgs(TestBase):
     def setUp(self):
         super().setUp()
         self.df = pd.DataFrame(
@@ -145,7 +145,7 @@ class TestDataFrameAddLConstrs(TestBase):
 
     def test_scalar_rhs(self):
         df = self.df.grb.addVars(self.model, "x")
-        result = df.grb.addLConstrs(self.model, "x", GRB.EQUAL, 1.0, name="constr")
+        result = df.grb.addConstrs(self.model, "x", GRB.EQUAL, 1.0, name="constr")
         self.model.update()
         for entry in result.itertuples():
             self.assertEqual(entry.constr.sense, GRB.EQUAL)
@@ -158,7 +158,7 @@ class TestDataFrameAddLConstrs(TestBase):
 
     def test_scalar_lhs(self):
         df = self.df.grb.addVars(self.model, "x")
-        result = df.grb.addLConstrs(self.model, 1.0, GRB.EQUAL, "x", name="constr")
+        result = df.grb.addConstrs(self.model, 1.0, GRB.EQUAL, "x", name="constr")
         self.model.update()
         for entry in result.itertuples():
             self.assertEqual(entry.constr.sense, GRB.EQUAL)
@@ -171,7 +171,7 @@ class TestDataFrameAddLConstrs(TestBase):
 
     def test_series_rhs(self):
         df = self.df.grb.addVars(self.model, "x")
-        result = df.grb.addLConstrs(self.model, "x", GRB.LESS_EQUAL, "b", name="constr")
+        result = df.grb.addConstrs(self.model, "x", GRB.LESS_EQUAL, "b", name="constr")
         self.model.update()
         for entry in result.itertuples():
             self.assertEqual(entry.constr.sense, GRB.LESS_EQUAL),
@@ -183,7 +183,7 @@ class TestDataFrameAddLConstrs(TestBase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
 
-class TestDataFrameAddConstrs(TestBase):
+class TestDataFrameAddConstrsByExpression(TestBase):
     def setUp(self):
         super().setUp()
         self.df = pd.DataFrame(

@@ -23,7 +23,7 @@ shift_cover = (
     df.groupby("Shift")[["assign"]]
     .sum()
     .join(shift_req)
-    .grb.addLConstrs(m, "assign", GRB.EQUAL, "Req", name="shift_cover")
+    .grb.addConstrs(m, "assign", GRB.EQUAL, "Req", name="shift_cover")
 )
 
 # Single expressions can be constructed using element-wise operations and
