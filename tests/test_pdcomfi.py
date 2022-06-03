@@ -174,13 +174,33 @@ class TestDataFrameAddConstrsByArgs(TestBase):
         result = df.grb.addConstrs(self.model, "x", GRB.LESS_EQUAL, "b", name="constr")
         self.model.update()
         for entry in result.itertuples():
-            self.assertEqual(entry.constr.sense, GRB.LESS_EQUAL),
+            self.assertIsInstance(entry.constr, gp.Constr)
+            self.assertEqual(entry.constr.sense, GRB.LESS_EQUAL)
             self.assertEqual(entry.constr.rhs, entry.b)
             self.assertEqual(entry.constr.ConstrName, f"constr[{entry.Index}]")
             row = self.model.getRow(entry.constr)
             self.assertEqual(row.size(), 1)
             self.assertIs(row.getVar(0), entry.x)
             self.assertEqual(row.getCoeff(0), 1.0)
+
+    def test_quadratic(self):
+        df = self.df.grb.addVars(self.model, "x")
+        df["x2"] = df["x"] * df["x"] + 1
+        result = df.grb.addConstrs(self.model, "x", GRB.LESS_EQUAL, "x2", name="constr")
+        self.model.update()
+        for entry in result.itertuples():
+            self.assertIsInstance(entry.constr, gp.QConstr)
+            self.assertEqual(entry.constr.QCsense, GRB.LESS_EQUAL)
+            self.assertEqual(entry.constr.QCrhs, 1.0)
+            qcrow = self.model.getQCRow(entry.constr)
+            self.assertEqual(qcrow.size(), 1)
+            self.assertIs(qcrow.getVar1(0), entry.x)
+            self.assertIs(qcrow.getVar2(0), entry.x)
+            self.assertEqual(qcrow.getCoeff(0), -1.0)
+            le = qcrow.getLinExpr()
+            self.assertEqual(le.size(), 1)
+            self.assertIs(le.getVar(0), entry.x)
+            self.assertEqual(le.getCoeff(0), 1.0)
 
 
 class TestDataFrameAddConstrsByExpression(TestBase):
@@ -249,6 +269,24 @@ class TestDataFrameAddConstrsByExpression(TestBase):
             self.assertIs(row.getVar(1), entry.y)
             self.assertEqual(row.getCoeff(0), 1.0)
             self.assertEqual(row.getCoeff(1), 2.0)
+
+    def test_quadratic(self):
+        df = self.df.grb.addVars(self.model, "x")
+        result = df.grb.addConstrs(self.model, "x <= x**2 + 1", name="constr")
+        self.model.update()
+        for entry in result.itertuples():
+            self.assertIsInstance(entry.constr, gp.QConstr)
+            self.assertEqual(entry.constr.QCsense, GRB.LESS_EQUAL)
+            self.assertEqual(entry.constr.QCrhs, 1.0)
+            qcrow = self.model.getQCRow(entry.constr)
+            self.assertEqual(qcrow.size(), 1)
+            self.assertIs(qcrow.getVar1(0), entry.x)
+            self.assertIs(qcrow.getVar2(0), entry.x)
+            self.assertEqual(qcrow.getCoeff(0), -1.0)
+            le = qcrow.getLinExpr()
+            self.assertEqual(le.size(), 1)
+            self.assertIs(le.getVar(0), entry.x)
+            self.assertEqual(le.getCoeff(0), 1.0)
 
 
 class TestIndexAddVars(TestBase):

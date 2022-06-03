@@ -38,12 +38,13 @@ class GRBDataFrameAccessor:
         if sense is None:
             return self._addConstrsByExpression(model, lhs, name=name)
         else:
-            return self._addLConstrsByArgs(model, lhs, sense, rhs, name=name)
+            return self._addConstrsByArgs(model, lhs, sense, rhs, name=name)
 
-    def _addLConstrsByArgs(self, model, lhs, sense, rhs, name):
+    def _addConstrsByArgs(self, model, lhs, sense, rhs, name):
         """lhs must be a column name, rhs can be a scalar or column"""
         c = [
-            model.addLConstr(
+            # Use QConstr here for generalisability
+            model.addQConstr(
                 lhs=getattr(row, lhs) if lhs in self._obj.columns else lhs,
                 sense=sense,
                 rhs=getattr(row, rhs) if rhs in self._obj.columns else rhs,
@@ -71,7 +72,7 @@ class GRBDataFrameAccessor:
                     "rhs": eval(rhs, None, self._obj),
                 },
             )
-            .grb._addLConstrsByArgs(model, "lhs", sense, "rhs", name)
+            .grb._addConstrsByArgs(model, "lhs", sense, "rhs", name)
             .drop(columns=["lhs", "rhs"])
         )
 
