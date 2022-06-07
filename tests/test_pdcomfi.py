@@ -84,7 +84,7 @@ class TestDataFrameAddVars(TestBase):
             self.assertEqual(row.x.ub, row.b)
 
     def test_multiindex(self):
-        df = self.df.assign(c=1).set_index(['b', 'a'])
+        df = self.df.assign(c=1).set_index(["b", "a"])
         result = df.grb.addVars(self.model, name="z")
         self.model.update()
         self.assertEqual(list(result.columns), ["c", "z"])
