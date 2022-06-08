@@ -1,3 +1,4 @@
+import gurobipy as gp
 import numpy as np
 
 from pandas.api.extensions import (
@@ -45,9 +46,17 @@ class GurobipyArray(ExtensionArray):
         return len(self._array)
 
     @classmethod
-    def _from_sequence(cls, scalars, dtype=None):
+    def _from_sequence(cls, scalars, dtype=None, copy=False):
         assert dtype is None or isinstance(dtype, GurobipyDtype)
+        if copy:
+            scalars = [
+                obj if isinstance(obj, gp.Var) else obj.copy() for obj in scalars
+            ]
         return cls(np.array(scalars))
+
+    def copy(self):
+        # TODO inefficient (but just getting the interface correct for now)
+        return GurobipyArray._from_sequence(self._array, dtype=self.dtype, copy=True)
 
     def __getitem__(self, item):
         """

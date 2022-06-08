@@ -49,4 +49,6 @@ class TestGurobipyArrayConstructors(base.BaseConstructorsTests):
     #
     # Possibly a deeply embedded issue ... comparison operators are too
     # fundamental in pandas, perhaps we should not be hacking around them.
+    #
+    # TODO: override assert_series_equal to see where we land
     pass
