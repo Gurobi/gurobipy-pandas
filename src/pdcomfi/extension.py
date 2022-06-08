@@ -1,6 +1,9 @@
+import operator
+
 import gurobipy as gp
 import numpy as np
 
+from pandas.api.types import is_numeric_dtype, is_scalar
 from pandas.api.extensions import (
     ExtensionDtype,
     ExtensionArray,
@@ -80,6 +83,27 @@ class GurobipyArray(ExtensionArray, ExtensionScalarOpsMixin):
         # Assumption is we always have a dense array (_can_hold_na = False)
         # Not really sure what role nan's would play anyway; to investigate
         return np.ones(self.shape).astype(bool)
+
+    def _comparison_operator(self, op, other):
+        # Note that __iter__ uses __getitem__ so we can implement __iter__
+        # on the internal array to get some speedup
+        if isinstance(other, GurobipyArray) or is_numeric_dtype(other):
+            tempconstrs = [op(lhs, rhs) for lhs, rhs in zip(self._array, other)]
+            return GurobipyArray(np.array(tempconstrs))
+        elif is_scalar(other):
+            tempconstrs = [op(lhs, other) for lhs in self._array]
+            return GurobipyArray(np.array(tempconstrs))
+        else:
+            return NotImplemented
+
+    def __le__(self, other):
+        return self._comparison_operator(operator.__le__, other)
+
+    def __ge__(self, other):
+        return self._comparison_operator(operator.__ge__, other)
+
+    def __eq__(self, other):
+        return self._comparison_operator(operator.__eq__, other)
 
 
 GurobipyArray._add_arithmetic_ops()

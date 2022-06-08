@@ -3,6 +3,7 @@ import unittest
 import gurobipy as gp
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_object_dtype
 
 from pdcomfi.extension import GurobipyArray, GurobipyDtype
 
@@ -128,7 +129,9 @@ class TestGurobipyArray(unittest.TestCase):
         self.assertIs(series.loc[5], x[5])
 
 
-class TestScalarOps(unittest.TestCase):
+class TestArithmenticOps(unittest.TestCase):
+    """Not so thorough; these ops are installed for free."""
+
     def setUp(self):
         self.env = gp.Env()
         self.model = gp.Model(env=self.env)
@@ -212,3 +215,93 @@ class TestScalarOps(unittest.TestCase):
             self.assertIs(qe.getVar1(0), x[i])
             self.assertIs(qe.getVar2(0), y[i])
             self.assertEqual(qe.getCoeff(0), 1.0)
+
+
+class TestComparisonOps(unittest.TestCase):
+    def setUp(self):
+        self.env = gp.Env()
+        self.model = gp.Model(env=self.env)
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+    def test_var_eq_var(self):
+        x = pd.Series(self.model.addVars(10)).astype("gpobj")
+        y = pd.Series(self.model.addVars(10)).astype("gpobj")
+        self.model.update()
+        result = x == y
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            tc = result[i]
+            self.assertIsInstance(tc, gp.TempConstr)
+
+    def test_var_le_var(self):
+        x = pd.Series(self.model.addVars(10, name="x")).astype("gpobj")
+        y = pd.Series(self.model.addVars(10, name="y")).astype("gpobj")
+        self.model.update()
+        result = x <= y
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            tc = result[i]
+            self.assertIsInstance(tc, gp.TempConstr)
+
+    def test_var_le_numeric(self):
+        x = pd.Series(self.model.addVars(10, name="x")).astype("gpobj")
+        self.model.update()
+        a = pd.Series(np.arange(10))
+        result = x <= a
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            tc = result[i]
+            self.assertIsInstance(tc, gp.TempConstr)
+
+    def test_numeric_le_var(self):
+        x = pd.Series(self.model.addVars(10, name="x")).astype("gpobj")
+        self.model.update()
+        a = pd.Series(np.arange(10))
+        result = a <= x
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            tc = result[i]
+            self.assertIsInstance(tc, gp.TempConstr)
+
+    def test_var_ge_scalar(self):
+        x = pd.Series(self.model.addVars(10, name="x")).astype("gpobj")
+        self.model.update()
+        result = x >= 1
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            tc = result[i]
+            self.assertIsInstance(tc, gp.TempConstr)
+
+    @unittest.expectedFailure
+    def test_series_ge_linexpr(self):
+        x = pd.Series(self.model.addVars(10, name="x")).astype("gpobj")
+        self.model.update()
+        result = x >= x[0]
+        self.assertIsInstance(result, pd.Series)
+        # Object dtype, not quite sure why but can work with that.
+        # For arithmetic ops it will be an issue.
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            tc = result[i]
+            self.assertIsInstance(tc, gp.TempConstr)
+
+    @unittest.expectedFailure
+    def test_linexpr_ge_series(self):
+        x = pd.Series(self.model.addVars(10, name="x")).astype("gpobj")
+        self.model.update()
+        result = x[0] >= x
+        self.assertIsInstance(result, pd.Series)
+        # TempConstr with a series on the right!!!!
+        # LinExpr/Var should return NotImplemented in this case.
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            tc = result[i]
+            self.assertIsInstance(tc, gp.TempConstr)
