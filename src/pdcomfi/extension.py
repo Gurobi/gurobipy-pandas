@@ -4,6 +4,7 @@ import numpy as np
 from pandas.api.extensions import (
     ExtensionDtype,
     ExtensionArray,
+    ExtensionScalarOpsMixin,
     register_extension_dtype,
 )
 
@@ -27,7 +28,7 @@ class GurobipyDtype(ExtensionDtype):
         return GurobipyArray
 
 
-class GurobipyArray(ExtensionArray):
+class GurobipyArray(ExtensionArray, ExtensionScalarOpsMixin):
     """Could probably leverage some pandas internals such as
     NDBackedExtensionArray, but for now going with what's explicitly documented.
     """
@@ -79,3 +80,6 @@ class GurobipyArray(ExtensionArray):
         # Assumption is we always have a dense array (_can_hold_na = False)
         # Not really sure what role nan's would play anyway; to investigate
         return np.ones(self.shape).astype(bool)
+
+
+GurobipyArray._add_arithmetic_ops()

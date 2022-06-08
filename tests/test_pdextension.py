@@ -4,8 +4,6 @@ Pandas automatic test suite for extensions. Needs some fixing.
 Uses pytest fixtures, so cannot be run using unittest alone.
 """
 
-from unittest import mock
-
 import gurobipy as gp
 import numpy as np
 import pytest
@@ -33,6 +31,26 @@ def data():
         yield GurobipyArray(np.array(x.values()))
 
 
+# rops don't work, LinExpr/Var would need to understand what to do
+# with a Series
+# division operator would need to be tested manually, only scalars ok
+supported_operators = [
+    "__add__",
+    "__radd__",
+    "__sub__",
+    "__rsub__",
+    "__mul__",
+    "__rmul__",
+    "__truediv__",
+    "__rtruediv__",
+]
+
+
+@pytest.fixture(params=supported_operators)
+def all_arithmetic_operators(request):
+    return request.param
+
+
 class TestGurobipyDtype(base.BaseDtypeTests):
     # These tests are **very** broken. construct_from_string makes the
     # wrong distinction between the dtype class and the type of the dtype
@@ -50,5 +68,12 @@ class TestGurobipyArrayConstructors(base.BaseConstructorsTests):
     # Possibly a deeply embedded issue ... comparison operators are too
     # fundamental in pandas, perhaps we should not be hacking around them.
     #
-    # TODO: override assert_series_equal to see where we land
+    # Correctly overriding assert_series_equal to compare expressions
+    # instead of relying on __eq__ looks really problematic.
     pass
+
+
+class TestGurobipyArithmeticOps(base.BaseArithmeticOpsTests):
+    series_scalar_exc = None
+    frame_scalar_exc = None
+    series_array_exc = None

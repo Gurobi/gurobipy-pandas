@@ -126,3 +126,89 @@ class TestGurobipyArray(unittest.TestCase):
         self.model.update()
         series = pd.Series(x).astype("gpobj")
         self.assertIs(series.loc[5], x[5])
+
+
+class TestScalarOps(unittest.TestCase):
+    def setUp(self):
+        self.env = gp.Env()
+        self.model = gp.Model(env=self.env)
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+    def test_add_var_var(self):
+        x = pd.Series(self.model.addVars(10)).astype("gpobj")
+        y = pd.Series(self.model.addVars(10)).astype("gpobj")
+        self.model.update()
+        result = x + y
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            le = result[i]
+            self.assertIsInstance(le, gp.LinExpr)
+            self.assertEqual(le.size(), 2)
+            self.assertIs(le.getVar(0), x[i])
+            self.assertEqual(le.getCoeff(0), 1.0)
+            self.assertIs(le.getVar(1), y[i])
+            self.assertEqual(le.getCoeff(1), 1.0)
+
+    def test_add_var_scalar(self):
+        x = pd.Series(self.model.addVars(10)).astype("gpobj")
+        self.model.update()
+        a = pd.Series(np.arange(10))
+        result = x + a
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            le = result[i]
+            self.assertIsInstance(le, gp.LinExpr)
+            self.assertEqual(le.size(), 1)
+            self.assertEqual(le.getConstant(), float(i))
+            self.assertIs(le.getVar(0), x[i])
+            self.assertEqual(le.getCoeff(0), 1.0)
+
+    def test_add_scalar_var(self):
+        x = pd.Series(self.model.addVars(10)).astype("gpobj")
+        self.model.update()
+        a = pd.Series(np.arange(10))
+        result = a + x
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            le = result[i]
+            self.assertIsInstance(le, gp.LinExpr)
+            self.assertEqual(le.size(), 1)
+            self.assertEqual(le.getConstant(), float(i))
+            self.assertIs(le.getVar(0), x[i])
+            self.assertEqual(le.getCoeff(0), 1.0)
+
+    def test_mul_scalar_var(self):
+        x = pd.Series(self.model.addVars(10)).astype("gpobj")
+        self.model.update()
+        a = pd.Series(np.arange(10))
+        result = a * x
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            le = result[i]
+            self.assertIsInstance(le, gp.LinExpr)
+            self.assertEqual(le.size(), 1)
+            self.assertIs(le.getVar(0), x[i])
+            self.assertEqual(le.getCoeff(0), float(i))
+            self.assertEqual(le.getConstant(), 0.0)
+
+    def test_mul_var_var(self):
+        x = pd.Series(self.model.addVars(10)).astype("gpobj")
+        y = pd.Series(self.model.addVars(10)).astype("gpobj")
+        self.model.update()
+        result = x * y
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            qe = result[i]
+            self.assertIsInstance(qe, gp.QuadExpr)
+            self.assertEqual(qe.size(), 1)
+            self.assertIs(qe.getVar1(0), x[i])
+            self.assertIs(qe.getVar2(0), y[i])
+            self.assertEqual(qe.getCoeff(0), 1.0)
