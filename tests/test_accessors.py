@@ -6,7 +6,8 @@ from gurobipy import GRB
 import pandas as pd
 from pandas.testing import assert_index_equal, assert_series_equal
 
-import pdcomfi  # import registers the accessors
+# import registers the accessors
+import pdcomfi.accessors  # noqa
 
 
 class TestBase(unittest.TestCase):

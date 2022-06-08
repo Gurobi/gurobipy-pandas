@@ -3,7 +3,6 @@ import unittest
 import gurobipy as gp
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_object_dtype
 
 from pdcomfi.extension import GurobipyArray, GurobipyDtype
 
