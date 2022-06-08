@@ -156,7 +156,7 @@ class TestArithmenticOps(unittest.TestCase):
             self.assertIs(le.getVar(1), y[i])
             self.assertEqual(le.getCoeff(1), 1.0)
 
-    def test_add_var_scalar(self):
+    def test_add_var_numeric(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
         self.model.update()
         a = pd.Series(np.arange(10))
@@ -171,7 +171,55 @@ class TestArithmenticOps(unittest.TestCase):
             self.assertIs(le.getVar(0), x[i])
             self.assertEqual(le.getCoeff(0), 1.0)
 
+    def test_add_var_scalarvar(self):
+        x = pd.Series(self.model.addVars(10)).astype("gpobj")
+        self.model.update()
+        result = x + x[0]
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            le = result[i]
+            self.assertIsInstance(le, gp.LinExpr)
+            self.assertEqual(le.size(), 2)
+            self.assertEqual(le.getConstant(), 0)
+            self.assertIs(le.getVar(0), x[i])
+            self.assertEqual(le.getCoeff(0), 1.0)
+            self.assertIs(le.getVar(1), x[0])
+            self.assertEqual(le.getCoeff(1), 1.0)
+
     def test_add_scalar_var(self):
+        x = pd.Series(self.model.addVars(10)).astype("gpobj")
+        self.model.update()
+        result = 2.0 + x
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            le = result[i]
+            self.assertIsInstance(le, gp.LinExpr)
+            self.assertEqual(le.size(), 1)
+            self.assertEqual(le.getConstant(), 2.0)
+            self.assertIs(le.getVar(0), x[i])
+            self.assertEqual(le.getCoeff(0), 1.0)
+
+    @unittest.expectedFailure
+    def test_add_scalarvar_var(self):
+        x = pd.Series(self.model.addVars(10)).astype("gpobj")
+        self.model.update()
+        result = x[0] + x
+        # LinExpr raises GurobiError when it should return NotImplemented
+        self.assertIsInstance(result, pd.Series)
+        self.assertIsInstance(result.dtype, GurobipyDtype)
+        for i in range(10):
+            le = result[i]
+            self.assertIsInstance(le, gp.LinExpr)
+            self.assertEqual(le.size(), 2)
+            self.assertEqual(le.getConstant(), 0)
+            self.assertIs(le.getVar(0), x[0])
+            self.assertEqual(le.getCoeff(0), 1.0)
+            self.assertIs(le.getVar(1), x[i])
+            self.assertEqual(le.getCoeff(1), 1.0)
+
+    def test_add_numeric_var(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
         self.model.update()
         a = pd.Series(np.arange(10))
@@ -186,7 +234,7 @@ class TestArithmenticOps(unittest.TestCase):
             self.assertIs(le.getVar(0), x[i])
             self.assertEqual(le.getCoeff(0), 1.0)
 
-    def test_mul_scalar_var(self):
+    def test_mul_numeric_var(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
         self.model.update()
         a = pd.Series(np.arange(10))
@@ -287,7 +335,6 @@ class TestComparisonOps(unittest.TestCase):
         result = x >= x[0]
         self.assertIsInstance(result, pd.Series)
         # Object dtype, not quite sure why but can work with that.
-        # For arithmetic ops it will be an issue.
         self.assertIsInstance(result.dtype, GurobipyDtype)
         for i in range(10):
             tc = result[i]
