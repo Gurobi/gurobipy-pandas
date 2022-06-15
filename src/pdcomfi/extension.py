@@ -11,6 +11,7 @@ from pandas.api.extensions import (
     ExtensionScalarOpsMixin,
     register_extension_dtype,
 )
+from pandas.core.algorithms import take
 
 
 @register_extension_dtype
@@ -26,6 +27,7 @@ class GurobipyDtype(ExtensionDtype):
     _is_numeric = False  # this might disallow groupby?
     _is_boolean = False  # don't want this used for indexing
     _can_hold_na = False  # expect dense?
+    na_value = None
 
     @classmethod
     def construct_array_type(cls):
@@ -108,6 +110,22 @@ class GurobipyArray(ExtensionArray, ExtensionScalarOpsMixin):
 
     def __eq__(self, other):
         return self._comparison_operator(operator.__eq__, other)
+
+    def take(self, indices, allow_fill=False, fill_value=None):
+        # Verbatim from
+        # https://github.com/pandas-dev/pandas/blob/main/pandas/core/arrays/base.py
+        data = self.astype(object)
+        if allow_fill and fill_value is None:
+            fill_value = self.dtype.na_value
+
+        result = take(data, indices, fill_value=fill_value, allow_fill=allow_fill)
+
+        return self._from_sequence(result, dtype=self.dtype)
+
+    def _reduce(self, name, *, skipna=True, **kwargs):
+        # Call down: this will always return a scalar?
+        meth = getattr(self._array, name)
+        return meth()
 
 
 GurobipyArray._add_arithmetic_ops()

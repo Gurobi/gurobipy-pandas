@@ -401,3 +401,40 @@ class TestModel(unittest.TestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
             self.assertIs(row.getVar(1), ys[i])
             self.assertEqual(row.getCoeff(1), -1.0)
+
+
+class TestCommonOps(unittest.TestCase):
+    def setUp(self):
+        self.env = gp.Env()
+        self.model = gp.Model(env=self.env)
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+    def test_sum(self):
+        xs = pd.Series(self.model.addVars(3)).astype("gpobj")
+        result = xs.sum()
+        self.assertIsInstance(result, gp.LinExpr)
+        self.assertEqual(result.size(), 3)
+        for i in range(3):
+            self.assertIs(result.getVar(i), xs[i])
+            self.assertEqual(result.getCoeff(i), 1.0)
+
+    def test_groupby(self):
+        df = pd.DataFrame(
+            {
+                "group": [1, 2, 1],
+                "x": pd.Series(self.model.addVars(3)).astype("gpobj"),
+            }
+        )
+        result = df.groupby("group")["x"].sum()
+
+        le1 = result[1]
+        self.assertEqual(le1.size(), 2)
+        self.assertIs(le1.getVar(0), df["x"][0])
+        self.assertEqual(le1.getCoeff(0), 1.0)
+        self.assertIs(le1.getVar(1), df["x"][2])
+        self.assertEqual(le1.getCoeff(1), 1.0)
+
+        self.assertIs(result[2], df["x"][1])
