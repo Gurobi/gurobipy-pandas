@@ -4,7 +4,7 @@ import gurobipy as gp
 import numpy as np
 import pandas as pd
 
-from pdcomfi.extension import GurobipyArray, GurobipyDtype
+from pdcomfi.extension import GurobipyArray, GurobipyDtype, Model
 
 
 class TestGurobipyDtype(unittest.TestCase):
@@ -354,3 +354,28 @@ class TestComparisonOps(unittest.TestCase):
         for i in range(10):
             tc = result[i]
             self.assertIsInstance(tc, gp.TempConstr)
+
+
+class TestModel(unittest.TestCase):
+    """Tests using the model subclass which adds addSeriesVars/addSeriesConstrs
+    capabilities."""
+
+    def setUp(self):
+        self.env = gp.Env()
+        self.model = Model(env=self.env)  # use model subclass
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+    def test_add_series_vars(self):
+        index = pd.Index(["a", "b", "c"])
+        xs = self.model.addSeriesVars(index, name="x")
+        self.model.update()
+        self.assertIsInstance(xs, pd.Series)
+        self.assertEqual(xs.name, "x")
+        self.assertIsInstance(xs.dtype, GurobipyDtype)
+        for i, name in enumerate(["x[a]", "x[b]", "x[c]"]):
+            x = xs[i]
+            self.assertIsInstance(x, gp.Var)
+            self.assertEqual(x.VarName, name)

@@ -2,6 +2,7 @@ import operator
 
 import gurobipy as gp
 import numpy as np
+import pandas as pd
 
 from pandas.api.types import is_numeric_dtype, is_scalar
 from pandas.api.extensions import (
@@ -110,3 +111,8 @@ class GurobipyArray(ExtensionArray, ExtensionScalarOpsMixin):
 
 
 GurobipyArray._add_arithmetic_ops()
+
+
+class Model(gp.Model):
+    def addSeriesVars(self, index, name):
+        return pd.Series(self.addVars(index, name=name), name=name).astype("gpobj")
