@@ -1,5 +1,7 @@
 """
 sklearn style implementation of L1 regression with Lasso regularization
+
+Uses only the accessor implementation
 """
 
 import gurobipy as gp
@@ -10,7 +12,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
-import pdcomfi
+import pdcomfi.accessors
 
 
 class GurobiL1Regression:

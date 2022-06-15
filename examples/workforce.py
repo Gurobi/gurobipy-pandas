@@ -1,9 +1,13 @@
+"""
+Workforce model using only the accessor implementation
+"""
+
 import pathlib
 
 import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
-import pdcomfi
+import pdcomfi.accessors
 
 
 # Load data (multiple frames for different model components).
@@ -44,6 +48,6 @@ print(df[df["assign"].grb.X > 0.9].groupby("Shift")["Workers"].agg(list))
 
 # Shift assignments table.
 print(
-    (df.set_index(['Shift', 'Workers'])['assign'].grb.X.unstack() > 0.9)
+    (df.set_index(["Shift", "Workers"])["assign"].grb.X.unstack() > 0.9)
     .replace({True: "Y", False: "-"})
 )
