@@ -310,6 +310,8 @@ class TestComparisonOps(unittest.TestCase):
         x = pd.Series(self.model.addVars(10, name="x")).astype("gpobj")
         self.model.update()
         a = pd.Series(np.arange(10))
+        # TODO pandas seems to resolve the operation to the extension
+        # array, should confirm if this is a consistent rule.
         result = a <= x
         self.assertIsInstance(result, pd.Series)
         self.assertIsInstance(result.dtype, GurobipyDtype)
@@ -333,7 +335,8 @@ class TestComparisonOps(unittest.TestCase):
         self.model.update()
         result = x >= x[0]
         self.assertIsInstance(result, pd.Series)
-        # Object dtype, not quite sure why but can work with that.
+        # Object dtype, not quite sure why. Problematic since we then leave
+        # our dtyped universe.
         self.assertIsInstance(result.dtype, GurobipyDtype)
         for i in range(10):
             tc = result[i]

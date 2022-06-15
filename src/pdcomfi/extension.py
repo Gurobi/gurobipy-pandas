@@ -88,6 +88,9 @@ class GurobipyArray(ExtensionArray, ExtensionScalarOpsMixin):
         # Note that __iter__ uses __getitem__ so we can implement __iter__
         # on the internal array to get some speedup
         if isinstance(other, GurobipyArray) or is_numeric_dtype(other):
+            # #TODO When we iterate, we get python numeric objects from a numeric
+            # dtyped array (essential for element-level comparisons). Is this
+            # always the case? Also applies to arithmetic.
             tempconstrs = [op(lhs, rhs) for lhs, rhs in zip(self._array, other)]
             return GurobipyArray(np.array(tempconstrs))
         elif is_scalar(other):
