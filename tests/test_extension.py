@@ -379,3 +379,25 @@ class TestModel(unittest.TestCase):
             x = xs[i]
             self.assertIsInstance(x, gp.Var)
             self.assertEqual(x.VarName, name)
+
+    def test_add_constrs(self):
+        index = pd.Index(["a", "b", "c"])
+        xs = self.model.addSeriesVars(index, name="x")
+        ys = self.model.addSeriesVars(index, name="y")
+        constrs = self.model.addSeriesConstrs(xs <= ys, name="c")
+        self.model.update()
+        self.assertIsInstance(constrs, pd.Series)
+        self.assertEqual(constrs.name, "c")
+        self.assertIsInstance(constrs.dtype, GurobipyDtype)
+        for i, name in enumerate(["c[a]", "c[b]", "c[c]"]):
+            constr = constrs[i]
+            self.assertIsInstance(constr, gp.Constr)
+            self.assertEqual(constr.ConstrName, name)
+            self.assertEqual(constr.RHS, 0.0)
+            self.assertEqual(constr.Sense, gp.GRB.LESS_EQUAL)
+            row = self.model.getRow(constr)
+            self.assertEqual(row.size(), 2)
+            self.assertIs(row.getVar(0), xs[i])
+            self.assertEqual(row.getCoeff(0), 1.0)
+            self.assertIs(row.getVar(1), ys[i])
+            self.assertEqual(row.getCoeff(1), -1.0)

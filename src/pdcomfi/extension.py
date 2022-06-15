@@ -114,5 +114,20 @@ GurobipyArray._add_arithmetic_ops()
 
 
 class Model(gp.Model):
+    """Entry point for creating and using extension arrays. Ideally the
+    user shouldn't call .astype('gpobj') but series should be returned
+    from the methods below with the typing already active."""
+
     def addSeriesVars(self, index, name):
+        """Return a series with one Var per index entry."""
         return pd.Series(self.addVars(index, name=name), name=name).astype("gpobj")
+
+    def addSeriesConstrs(self, series, name):
+        """Pass a series of TempConstrs created via operator overloading,
+        return a series of Constrs on the same index."""
+        # Lookup is inefficient, but it makes it easy to use addConstrs
+        # generator magic to create names from the index.
+        return pd.Series(
+            self.addConstrs((series[entry] for entry in series.index), name=name),
+            name=name,
+        ).astype("gpobj", copy=False)
