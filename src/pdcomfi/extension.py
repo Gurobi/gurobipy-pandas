@@ -1,6 +1,7 @@
 import operator
 
 import gurobipy as gp
+from gurobipy import GRB
 import numpy as np
 import pandas as pd
 
@@ -136,9 +137,13 @@ class Model(gp.Model):
     user shouldn't call .astype('gpobj') but series should be returned
     from the methods below with the typing already active."""
 
-    def addSeriesVars(self, index, name):
+    def addSeriesVars(
+        self, index, name, lb=0.0, ub=gp.GRB.INFINITY, vtype=GRB.CONTINUOUS
+    ):
         """Return a series with one Var per index entry."""
-        return pd.Series(self.addVars(index, name=name), name=name).astype("gpobj")
+        return pd.Series(
+            self.addVars(index, name=name, lb=lb, ub=ub, vtype=vtype), name=name
+        ).astype("gpobj")
 
     def addSeriesConstrs(self, series, name):
         """Pass a series of TempConstrs created via operator overloading,

@@ -379,6 +379,26 @@ class TestModel(unittest.TestCase):
             x = xs[i]
             self.assertIsInstance(x, gp.Var)
             self.assertEqual(x.VarName, name)
+            self.assertEqual(x.lb, 0.0)
+            self.assertGreaterEqual(x.ub, gp.GRB.INFINITY)
+            self.assertEqual(x.VType, gp.GRB.CONTINUOUS)
+
+    def test_add_series_vars_scalar_info(self):
+        index = pd.Index(["a", "b", "c"])
+        xs = self.model.addSeriesVars(
+            index, name="x", lb=-1, ub=1, vtype=gp.GRB.INTEGER
+        )
+        self.model.update()
+        self.assertIsInstance(xs, pd.Series)
+        self.assertEqual(xs.name, "x")
+        self.assertIsInstance(xs.dtype, GurobipyDtype)
+        for i, name in enumerate(["x[a]", "x[b]", "x[c]"]):
+            x = xs[i]
+            self.assertIsInstance(x, gp.Var)
+            self.assertEqual(x.VarName, name)
+            self.assertEqual(x.lb, -1.0)
+            self.assertEqual(x.ub, 1.0)
+            self.assertEqual(x.VType, gp.GRB.INTEGER)
 
     def test_add_constrs(self):
         index = pd.Index(["a", "b", "c"])
