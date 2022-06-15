@@ -141,16 +141,15 @@ class Model(gp.Model):
         self, index, name, lb=0.0, ub=gp.GRB.INFINITY, vtype=GRB.CONTINUOUS
     ):
         """Return a series with one Var per index entry."""
-        return pd.Series(
-            self.addVars(index, name=name, lb=lb, ub=ub, vtype=vtype), name=name
-        ).astype("gpobj")
+        variables = self.addVars(index, name=name, lb=lb, ub=ub, vtype=vtype)
+        series = pd.Series(data=variables.values(), index=index, name=name)
+        return series.astype("gpobj", copy=False)
 
     def addSeriesConstrs(self, series, name):
         """Pass a series of TempConstrs created via operator overloading,
         return a series of Constrs on the same index."""
         # Lookup is inefficient, but it makes it easy to use addConstrs
         # generator magic to create names from the index.
-        return pd.Series(
-            self.addConstrs((series[entry] for entry in series.index), name=name),
-            name=name,
-        ).astype("gpobj", copy=False)
+        constrs = self.addConstrs((series[entry] for entry in series.index), name=name)
+        series = pd.Series(data=constrs.values(), index=series.index, name=name)
+        return series.astype("gpobj", copy=False)

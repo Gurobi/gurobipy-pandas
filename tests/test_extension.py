@@ -369,9 +369,10 @@ class TestModel(unittest.TestCase):
         self.env.close()
 
     def test_add_series_vars(self):
-        index = pd.Index(["a", "b", "c"])
+        index = pd.Index(["a", "b", "c"], name="myindex")
         xs = self.model.addSeriesVars(index, name="x")
         self.model.update()
+        self.assertEqual(xs.index.name, "myindex")
         self.assertIsInstance(xs, pd.Series)
         self.assertEqual(xs.name, "x")
         self.assertIsInstance(xs.dtype, GurobipyDtype)
@@ -401,11 +402,12 @@ class TestModel(unittest.TestCase):
             self.assertEqual(x.VType, gp.GRB.INTEGER)
 
     def test_add_constrs(self):
-        index = pd.Index(["a", "b", "c"])
+        index = pd.Index(["a", "b", "c"], name="myindex")
         xs = self.model.addSeriesVars(index, name="x")
         ys = self.model.addSeriesVars(index, name="y")
         constrs = self.model.addSeriesConstrs(xs <= ys, name="c")
         self.model.update()
+        self.assertEqual(constrs.index.name, "myindex")
         self.assertIsInstance(constrs, pd.Series)
         self.assertEqual(constrs.name, "c")
         self.assertIsInstance(constrs.dtype, GurobipyDtype)
