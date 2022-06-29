@@ -11,7 +11,14 @@ class GRBDataFrameAccessor:
         self._obj = pandas_obj
 
     def addVars(
-        self, model, name, index=None, lb=0.0, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS
+        self,
+        model,
+        name,
+        index=None,
+        lb=0.0,
+        ub=GRB.INFINITY,
+        obj=0.0,
+        vtype=GRB.CONTINUOUS,
     ):
         """
         Create a Var for each row in the dataframe, appending those Vars as a
@@ -36,7 +43,9 @@ class GRBDataFrameAccessor:
             lb = self._obj[lb]
         if ub in self._obj.columns:
             ub = self._obj[ub]
-        x = model.addVars(indices, name=name, lb=lb, ub=ub, vtype=vtype)
+        if obj in self._obj.columns:
+            obj = self._obj[obj]
+        x = model.addVars(indices, name=name, lb=lb, ub=ub, obj=obj, vtype=vtype)
         xs = pd.Series(data=x.values(), index=self._obj.index, name=name)
         return self._obj.join(xs)
 

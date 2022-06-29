@@ -46,11 +46,14 @@ class TestDataFrameAddVars(TestBase):
             self.assertIsInstance(v, gp.Var)
             self.assertEqual(v.VarName, f"x[{i}]")
             self.assertEqual(v.lb, 0.0)
+            self.assertEqual(v.obj, 0.0)
             self.assertGreaterEqual(v.ub, GRB.INFINITY)
             self.assertEqual(v.VType, GRB.CONTINUOUS)
 
     def test_scalar_args(self):
-        result = self.df.grb.addVars(self.model, "x", lb=-10, ub=10, vtype=GRB.INTEGER)
+        result = self.df.grb.addVars(
+            self.model, "x", lb=-10, ub=10, obj=2, vtype=GRB.INTEGER
+        )
         self.model.update()
         assert_index_equal(result.index, self.df.index)
         self.assertEqual(list(result.columns), ["a", "b", "x"])
@@ -61,6 +64,7 @@ class TestDataFrameAddVars(TestBase):
             self.assertEqual(v.VarName, f"x[{i}]")
             self.assertEqual(v.lb, -10.0)
             self.assertEqual(v.ub, 10.0)
+            self.assertEqual(v.obj, 2.0)
             self.assertEqual(v.VType, GRB.INTEGER)
 
     def test_single_index_col(self):
@@ -83,6 +87,12 @@ class TestDataFrameAddVars(TestBase):
         for row in result.itertuples():
             self.assertEqual(row.x.lb, row.a)
             self.assertEqual(row.x.ub, row.b)
+
+    def test_set_objective_by_column(self):
+        result = self.df.grb.addVars(self.model, name="x", obj="a")
+        self.model.update()
+        for row in result.itertuples():
+            self.assertEqual(row.x.obj, row.a)
 
     def test_multiindex(self):
         df = self.df.assign(c=1).set_index(["b", "a"])
