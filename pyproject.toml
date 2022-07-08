@@ -1,3 +1,26 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "gurobipy-pandas"
+dynamic = ["version"]
+authors = [
+  { name="Simon Bowly", email="bowly@gurobi.com" },
+  { name="Robert Luce", email="luce@gurobi.com" },
+]
+description = "Pandas accessors for gurobipy interaction"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+keywords = ["optimization", "gurobipy", "pandas"]
+dependencies = [
+    "gurobipy",
+    "pandas",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "gurobipy_pandas.__version__"}
