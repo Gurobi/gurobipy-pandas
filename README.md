@@ -1,2 +1,3 @@
-# pdcomfi
-Comfi wrappers and extensions for gurobipy/pandas interaction
+# gurobipy-pandas
+
+Accessors and extensions for gurobipy/pandas interaction

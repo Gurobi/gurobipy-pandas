@@ -10,7 +10,7 @@ import pytest
 
 from pandas.tests.extension import base
 
-from pdcomfi.extension import GurobipyArray, GurobipyDtype
+from gurobipy_pandas.extension import GurobipyArray, GurobipyDtype
 
 
 @pytest.fixture

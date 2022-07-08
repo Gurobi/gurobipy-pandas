@@ -4,7 +4,7 @@ import gurobipy as gp
 import numpy as np
 import pandas as pd
 
-from pdcomfi.extension import GurobipyArray, GurobipyDtype, Model
+from gurobipy_pandas.extension import GurobipyArray, GurobipyDtype, Model
 
 
 class TestGurobipyDtype(unittest.TestCase):

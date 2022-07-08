@@ -7,7 +7,7 @@ import pathlib
 import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
-import pdcomfi.accessors
+import gurobipy_pandas.accessors
 
 
 # Load data (multiple frames for different model components).

@@ -7,8 +7,8 @@ for attribute access in order to query the solution.
 import pathlib
 
 import pandas as pd
-import pdcomfi.accessors
-from pdcomfi.extension import Model
+import gurobipy_pandas.accessors
+from gurobipy_pandas.extension import Model
 
 
 # Load data (multiple frames for different model components).
