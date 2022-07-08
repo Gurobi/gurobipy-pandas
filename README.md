@@ -1,3 +1,3 @@
 # gurobipy-pandas
 
-Accessors and extensions for gurobipy/pandas interaction
+Pandas accessors for gurobipy interaction
