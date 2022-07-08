@@ -2,11 +2,14 @@
 
 # -- Project information -----------------------------------------------------
 
+import gurobipy_pandas
+
 project = 'gurobipy-pandas'
 copyright = '2022, Gurobi Optimization'
 author = 'Gurobi Optimization'
-release = '0.0.1a0'
-version = release
+
+version = gurobipy_pandas.__version__
+release = version
 
 # -- General configuration ---------------------------------------------------
 
