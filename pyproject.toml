@@ -1,26 +1,29 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "gurobipy-pandas"
-dynamic = ["version"]
-authors = [
-  { name="Simon Bowly", email="bowly@gurobi.com" },
-  { name="Robert Luce", email="luce@gurobi.com" },
-]
 description = "Pandas accessors for gurobipy interaction"
 readme = "README.md"
 requires-python = ">=3.7"
+license = "MIT"
+keywords = ["optimization", "gurobipy", "pandas"]
+authors = [
+    { name = "Simon Bowly", email = "bowly@gurobi.com" },
+    { name = "Robert Luce", email = "luce@gurobi.com" },
+]
 classifiers = [
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: Implementation :: CPython",
 ]
-keywords = ["optimization", "gurobipy", "pandas"]
 dependencies = [
     "gurobipy",
     "pandas",
 ]
+dynamic = ["version"]
 
-[tool.setuptools.dynamic]
-version = {attr = "gurobipy_pandas.__version__"}
+[tool.hatch.version]
+path = "src/gurobipy_pandas/__init__.py"
