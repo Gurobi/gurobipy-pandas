@@ -7,7 +7,7 @@ import pandas as pd
 from pandas.testing import assert_index_equal, assert_series_equal
 
 # import registers the accessors
-import gurobipy_pandas.accessors  # noqa
+import gurobipy_pandas  # noqa
 
 
 class TestBase(unittest.TestCase):
