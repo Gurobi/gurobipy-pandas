@@ -10,7 +10,7 @@ class GRBDataFrameAccessor:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
-    def addVars(
+    def pdAddVars(
         self,
         model,
         name,
@@ -49,7 +49,7 @@ class GRBDataFrameAccessor:
         xs = pd.Series(data=x.values(), index=self._obj.index, name=name)
         return self._obj.join(xs)
 
-    def addConstrs(self, model, lhs, sense=None, rhs=None, name=None):
+    def pdAddConstrs(self, model, lhs, sense=None, rhs=None, name=None):
         """
         Add constraints row-wise, specifying a relationship between two columns:
 
@@ -151,7 +151,9 @@ class GRBIndexAccessor:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
-    def addVars(self, model, lb=0.0, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name=None):
+    def pdAddVars(
+        self, model, lb=0.0, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name=None
+    ):
         """Given an index, return a series of Vars with that index."""
         if name is None:
             indices = len(self._obj)
