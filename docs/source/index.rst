@@ -7,9 +7,8 @@ Welcome to gurobipy-pandas's documentation!
 ===========================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
+   examples
 
 
 Indices and tables
