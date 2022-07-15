@@ -22,9 +22,16 @@ extensions = [
     'sphinx_tabs.tabs',
     'sphinx_toolbox.collapse',
     'sphinx_toolbox.code',
+    'nbsphinx',
 ]
 
 pygments_style = "vs"
+docutils_tab_width = 4
+nbsphinx_custom_formats = {
+    '.md': ['jupytext.reads', {'fmt': 'myst'}],
+}
+
+nbsphinx_kernel_name = "python3"
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
