@@ -36,5 +36,5 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install .
-      - name: Run unittest 
+      - name: Run unittest
         run: python -m unittest -b
