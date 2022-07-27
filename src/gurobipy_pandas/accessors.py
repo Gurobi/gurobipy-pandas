@@ -10,7 +10,7 @@ class GRBDataFrameAccessor:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
-    def pdAddVars(
+    def pd_add_vars(
         self,
         model,
         name,
@@ -49,7 +49,7 @@ class GRBDataFrameAccessor:
         xs = pd.Series(data=x.values(), index=self._obj.index, name=name)
         return self._obj.join(xs)
 
-    def pdAddConstrs(self, model, lhs, sense=None, rhs=None, name=None):
+    def pd_add_constrs(self, model, lhs, sense=None, rhs=None, name=None):
         """
         Add constraints row-wise, specifying a relationship between two columns:
 
@@ -67,11 +67,11 @@ class GRBDataFrameAccessor:
         returned dataframe.
         """
         if sense is None:
-            return self._addConstrsByExpression(model, lhs, name=name)
+            return self._add_constrs_by_expression(model, lhs, name=name)
         else:
-            return self._addConstrsByArgs(model, lhs, sense, rhs, name=name)
+            return self._add_constrs_by_args(model, lhs, sense, rhs, name=name)
 
-    def _addConstrsByArgs(self, model, lhs, sense, rhs, name):
+    def _add_constrs_by_args(self, model, lhs, sense, rhs, name):
         """lhs, rhs can be scalars or columns"""
         c = [
             # Use QConstr here for generalisability
@@ -86,7 +86,7 @@ class GRBDataFrameAccessor:
         cs = pd.Series(c, index=self._obj.index, name=name)
         return self._obj.join(cs)
 
-    def _addConstrsByExpression(self, model, expr, *, name):
+    def _add_constrs_by_expression(self, model, expr, *, name):
         """Parse an expression (like DataFrame.query) to build constraints
         from data.
 
@@ -107,7 +107,7 @@ class GRBDataFrameAccessor:
                     "rhs": eval(rhs, None, self._obj),
                 },
             )
-            .grb._addConstrsByArgs(model, "lhs", sense, "rhs", name)
+            .grb._add_constrs_by_args(model, "lhs", sense, "rhs", name)
             .drop(columns=["lhs", "rhs"])
         )
 
@@ -151,7 +151,7 @@ class GRBIndexAccessor:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
-    def pdAddVars(
+    def pd_add_vars(
         self, model, lb=0.0, ub=GRB.INFINITY, vtype=GRB.CONTINUOUS, name=None
     ):
         """Given an index, return a series of Vars with that index."""
