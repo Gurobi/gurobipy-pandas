@@ -12,3 +12,4 @@ develop:
 
 test:
 	python -m unittest
+	cd docs && make html
