@@ -8,6 +8,7 @@ sdist:
 
 develop:
 	python -m pip install -e .
+	python -m pip install -r docs/requirements.txt
 
 test:
 	python -m unittest
