@@ -7,7 +7,7 @@ name = "gurobipy-pandas"
 description = "Pandas accessors for gurobipy interaction"
 readme = "README.md"
 requires-python = ">=3.7"
-license = "MIT"
+license = { text = "MIT" }
 keywords = ["optimization", "gurobipy", "pandas"]
 authors = [
     { name = "Simon Bowly", email = "bowly@gurobi.com" },
