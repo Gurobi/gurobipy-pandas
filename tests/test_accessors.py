@@ -278,7 +278,7 @@ class TestDataFrameAddConstrsByExpression(TestBase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
     def test_expressions(self):
-        df = self.df.grb.pd_add_vars(self.model, "x").grb.pdAddVars(self.model, "y")
+        df = self.df.grb.pd_add_vars(self.model, "x").grb.pd_add_vars(self.model, "y")
         result = df.grb.pd_add_constrs(self.model, "x + b <= 1 - 2*y", name="constr")
         self.model.update()
         self.assertEqual(df.shape, (3, 4))
