@@ -11,5 +11,5 @@ develop:
 	python -m pip install -r docs/requirements.txt
 
 test:
-	python -m unittest
+	python -m unittest -b
 	cd docs && make html

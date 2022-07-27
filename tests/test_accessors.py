@@ -12,7 +12,7 @@ import gurobipy_pandas  # noqa
 
 class TestBase(unittest.TestCase):
     def setUp(self):
-        self.env = gp.Env(params={"LogToConsole": 0})
+        self.env = gp.Env()
         self.model = gp.Model(env=self.env)
 
     def tearDown(self):
