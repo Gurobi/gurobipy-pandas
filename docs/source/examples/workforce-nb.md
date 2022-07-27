@@ -96,6 +96,20 @@ assigned_shifts
 ```
 
 ```{code-cell} ipython3
+shift_table = solution.unstack(0).fillna("-").replace({0.0: "-", 1.0: "Y"})
 pd.options.display.max_rows = 15
-solution.unstack(0).fillna("-").replace({0.0: "-", 1.0: "Y"})
+shift_table
+```
+
+```{code-cell} ipython3
+:nbsphinx: hidden
+
+# Tests
+assert isinstance(solution, pd.Series)
+assert isinstance(assigned_shifts, pd.DataFrame)
+assert isinstance(shift_table, pd.DataFrame)
+assigned = len(assigned_shifts)
+free = shift_table.shape[0] * shift_table.shape[1] - assigned
+assert shift_table.stack().value_counts().to_dict() == {'Y': assigned, '-': free}
+assert m.ObjVal == 96.0
 ```
