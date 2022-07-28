@@ -53,7 +53,7 @@ m = gp.Model()
 df = (
     preferences
     .set_index(["Worker", "Shift"])
-    .grb.pd_add_1vars(m, name="assign", vtype=GRB.BINARY, obj="Preference")
+    .grb.pd_add_vars(m, name="assign", vtype=GRB.BINARY, obj="Preference")
 )
 m.update()
 df
@@ -107,5 +107,5 @@ assert isinstance(shift_table, pd.DataFrame)
 assigned = len(assigned_shifts)
 free = shift_table.shape[0] * shift_table.shape[1] - assigned
 assert shift_table.stack().value_counts().to_dict() == {'Y': assigned, '-': free}
-assert m.ObjVal == 96.0
+assert m.ObjVal == 95.0
 ```
