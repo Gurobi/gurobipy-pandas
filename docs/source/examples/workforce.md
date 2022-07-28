@@ -53,7 +53,7 @@ m = gp.Model()
 df = (
     preferences
     .set_index(["Worker", "Shift"])
-    .grb.pd_add_vars(m, name="assign", vtype=GRB.BINARY, obj="Preference")
+    .grb.pd_add_1vars(m, name="assign", vtype=GRB.BINARY, obj="Preference")
 )
 m.update()
 df
