@@ -139,7 +139,7 @@ class GRBSeriesAccessor:
             for v in self._obj:
                 v.setAttr(attr, value)
 
-    def getValue(self):
+    def get_value(self):
         return pd.Series(
             index=self._obj.index,
             data=[le.getValue() for le in self._obj],

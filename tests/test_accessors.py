@@ -125,13 +125,13 @@ class TestSeriesAttributes(TestBase):
         assert_series_equal(df["x"].grb.lb, df["a"], check_names=False)
         assert_series_equal(df["x"].grb.ub, df["b"], check_names=False)
 
-    def test_linexpr_getValue(self):
+    def test_linexpr_get_value(self):
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
         df = series.to_frame(name="value").grb.pd_add_vars(
             self.model, name="x", lb="value", ub="value"
         )
         self.model.optimize()
-        solution = (df["x"] * 2.0).grb.getValue()
+        solution = (df["x"] * 2.0).grb.get_value()
         assert_series_equal(solution, series * 2.0, check_names=False)
 
     def test_var_set_ub_scalar(self):
