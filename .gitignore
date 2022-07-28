@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Ignore jupyter notebook examples, these should be committed as MyST markdown
+docs/source/examples/*.ipynb

@@ -13,7 +13,7 @@ develop:
 
 test:
 	python -m unittest -b
-	cd docs && make html
+	python -m jupytext --set-kernel python3 --execute --to ipynb docs/source/examples/*.md
 
 format:
 	python -m black src/ tests/
