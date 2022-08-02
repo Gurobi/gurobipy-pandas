@@ -22,9 +22,8 @@ class GRBDataFrameAccessor:
         vtype: str = GRB.CONTINUOUS,
         index: Optional[Union[str, List[str]]] = None,
     ):
-        """Add a variable to the model for each row in the dataframe
-        referenced by this accessor. Return a new DataFrame with the
-        corresponding Vars appended as a new column
+        """Add a variable to the given model for each row in the dataframe
+        referenced by this accessor.
 
         :param model: A Gurobi model to which new variables will be added
         :type model: :class:`gurobipy.Model`
@@ -44,9 +43,12 @@ class GRBDataFrameAccessor:
         :type obj: float or str, optional
         :param vtype: Gurobi variable type for created variables, defaults
             to :code:`GRB.CONTINUOUS`
+        :type vtype: str, optional
         :param index: If provided, use the name column(s) for variable name
             suffixes. If :code:`None`, use the index
         :type index: str or list, optional
+        :return: A new DataFrame with new Vars appended as a column
+        :rtype: :class:`pd.DataFrame`
         """
         if index is None:
             indices = self._obj.index
@@ -77,8 +79,7 @@ class GRBDataFrameAccessor:
         name: Optional[str] = None,
     ):
         """Add a constraint to the model for each row in the dataframe
-        referenced by this accessor. A new dataframe is returned, with
-        constraint objects appended as an additional column.
+        referenced by this accessor.
 
         :param model: A Gurobi model to which new constraints will be added
         :type model: :class:`gurobipy.Model`
@@ -96,6 +97,8 @@ class GRBDataFrameAccessor:
             name for added Gurobi constraints. Constraint name suffixes
             come from the dataframe index.
         :type name: str
+        :return: A new DataFrame with new Constrs appended as a column
+        :rtype: :class:`pd.DataFrame`
 
         Using some simple example data and variables to demo:
 
