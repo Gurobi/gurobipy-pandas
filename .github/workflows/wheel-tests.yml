@@ -42,4 +42,4 @@ jobs:
           python -c "import gurobipy_pandas"
       - name: Run unittest
         run: |
-          python -m unittest -b
+          python -m unittest discover -b

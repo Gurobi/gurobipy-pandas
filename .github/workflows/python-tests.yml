@@ -37,7 +37,7 @@ jobs:
         run: |
           python -m pip install .
       - name: Run unittest
-        run: python -m unittest -b
+        run: python -m unittest discover -b
       - name: Install jupytext dependencies
         run: |
           python -m pip install -r docs/requirements-examples.txt

@@ -12,7 +12,7 @@ develop:
 	python -m pip install black==22.6.0
 
 test:
-	python -m unittest -b
+	python -m unittest discover -b
 	python -m jupytext --set-kernel python3 --execute --to ipynb docs/source/examples/*.md
 
 format:
