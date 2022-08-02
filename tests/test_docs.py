@@ -13,4 +13,5 @@ def setup(arg):
 # Load doctests as unittest, see https://docs.python.org/3/library/doctest.html#unittest-api
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(gurobipy_pandas.accessors, setUp=setup))
+    tests.addTests(doctest.DocFileSuite("../docs/source/walkthrough.rst"))
     return tests
