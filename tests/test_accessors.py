@@ -33,9 +33,9 @@ class TestDataFrameAddVars(TestBase):
         )
 
     def test_no_args(self):
-        """Adds a series of gp.Var as named column. This should be the
-        simplest test we can have; the new column must have a name so
-        we always use that + the index for variable naming."""
+        # Adds a series of gp.Var as named column. This should be the
+        # simplest test we can have; the new column must have a name so
+        # we always use that + the index for variable naming.
         result = self.df.grb.pd_add_vars(self.model, "x")
         self.model.update()
         assert_index_equal(result.index, self.df.index)
@@ -106,7 +106,7 @@ class TestDataFrameAddVars(TestBase):
 
 class TestSeriesAttributes(TestBase):
     def test_var_get_X(self):
-        """Map Var -> X in a series. Use the same name in the result."""
+        # Map Var -> X in a series. Use the same name in the result.
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
         df = series.to_frame(name="value").grb.pd_add_vars(
             self.model, name="x", lb="value", ub="value"
@@ -317,7 +317,7 @@ class TestIndexAddVars(TestBase):
     # TODO: Test string indexes (and string columns)
 
     def test_no_args(self):
-        """Create a series of gp.Var with the given index."""
+        # Create a series of gp.Var with the given index.
         index = pd.RangeIndex(0, 10, 2)
         x = index.grb.pd_add_vars(self.model)
         self.model.update()
@@ -331,7 +331,7 @@ class TestIndexAddVars(TestBase):
             self.assertEqual(x.loc[i * 2].VType, GRB.CONTINUOUS)
 
     def test_single_index_named(self):
-        """Use the index for naming if a name is given."""
+        # Use the index for naming if a name is given.
         index = pd.RangeIndex(0, 10, 2)
         x = index.grb.pd_add_vars(self.model, name="x")
         self.model.update()
