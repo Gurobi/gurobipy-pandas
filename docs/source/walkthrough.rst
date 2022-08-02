@@ -169,3 +169,13 @@ Finally, we use the series accessor :code:`.grb.X` to retrieve solution values. 
     3         0.0  0.0
     4         1.0  0.0
     5         1.0  0.0
+
+We can also use the series access :code:`.grb.Slack` on constraint series to determine constraint slacks. For example, the following shows spare capacity in each knapsack based on the capacity constraint.
+
+.. doctest:: [knapsack]
+
+    >>> constrs["capconstr"].grb.Slack
+    knapsack
+    1    0.0
+    2    0.5
+    Name: capconstr, dtype: float64
