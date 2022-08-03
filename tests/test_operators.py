@@ -191,3 +191,76 @@ class TestIadd(GurobiTestCase):
         self.assertIsInstance(qe, pd.Series)
         for i in range(3):
             self.assert_expression_equal(qe[i], y * y + x[i])
+
+
+class TestMul(GurobiTestCase):
+    def test_varseries_var(self):
+        x = pd.RangeIndex(5).grb.pd_add_vars(self.model, name="x")
+        y = self.model.addVar(name="y")
+        self.model.update()
+        result = x * y
+        self.assertIsInstance(result, pd.Series)
+        for i in range(5):
+            self.assert_expression_equal(result[i], x[i] * y)
+
+    @unittest.expectedFailure
+    def test_var_varseries(self):
+        x = pd.RangeIndex(5).grb.pd_add_vars(self.model, name="x")
+        y = self.model.addVar(name="y")
+        self.model.update()
+        result = y * x
+        self.assertIsInstance(result, pd.Series)
+        for i in range(5):
+            self.assert_expression_equal(result[i], y * x[i])
+
+    def test_varseries_linexpr(self):
+        x = pd.RangeIndex(5).grb.pd_add_vars(self.model, name="x")
+        y = self.model.addVar(name="y")
+        le = 2 * y
+        self.model.update()
+        result = x * le
+        self.assertIsInstance(result, pd.Series)
+        for i in range(5):
+            self.assert_expression_equal(result[i], x[i] * 2 * y)
+
+    @unittest.expectedFailure
+    def test_linexpr_varseries(self):
+        x = pd.RangeIndex(5).grb.pd_add_vars(self.model, name="x")
+        y = self.model.addVar(name="y")
+        le = 2 * y
+        self.model.update()
+        result = le * x
+        self.assertIsInstance(result, pd.Series)
+        for i in range(5):
+            self.assert_expression_equal(result[i], 2 * y * x[i])
+
+    def test_dataseries_quadexpr(self):
+        s = pd.Series(list(range(5)))
+        y = self.model.addVar(name="y")
+        qe = y * y
+        self.model.update()
+        result = s * qe
+        self.assertIsInstance(result, pd.Series)
+        for i in range(5):
+            self.assert_expression_equal(result[i], i * y * y)
+
+    @unittest.expectedFailure
+    def test_quadexpr_dataseries(self):
+        s = pd.Series(list(range(5)))
+        y = self.model.addVar(name="y")
+        qe = y * y
+        self.model.update()
+        result = qe * s
+        self.assertIsInstance(result, pd.Series)
+        for i in range(5):
+            self.assert_expression_equal(result[i], i * y * y)
+
+    @unittest.expectedFailure
+    def test_varseries_quadexpr(self):
+        # Cannot multiply, should get a python TypeError
+        x = pd.RangeIndex(5).grb.pd_add_vars(self.model, name="x")
+        y = self.model.addVar(name="y")
+        qe = y * y
+        self.model.update()
+        with self.assertRaises(TypeError):
+            x * qe
