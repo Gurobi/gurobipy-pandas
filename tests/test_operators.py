@@ -127,6 +127,7 @@ class TestIadd(GurobiTestCase):
         y = self.model.addVar(name="y")
         self.model.update()
         x += y
+        self.assertIsInstance(x, pd.Series)
         for i in range(3):
             self.assert_expression_equal(x[i], x0[i] + y)
 
@@ -136,40 +137,57 @@ class TestIadd(GurobiTestCase):
         y = self.model.addVar(name="y")
         self.model.update()
         le += y
+        self.assertIsInstance(le, pd.Series)
         for i in range(3):
             self.assert_expression_equal(le[i], x[i] + y)
 
     def test_quadexprseries_var(self):
         x = pd.RangeIndex(3).grb.pd_add_vars(self.model, name="x")
-        le = x * x
+        qe = x * x
         y = self.model.addVar(name="y")
         self.model.update()
-        le += y
+        qe += y
+        self.assertIsInstance(qe, pd.Series)
         for i in range(3):
-            self.assert_expression_equal(le[i], x[i] * x[i] + y)
+            self.assert_expression_equal(qe[i], x[i] * x[i] + y)
 
     @unittest.expectedFailure
     def test_var_varseries(self):
+        # Type uplift to Series (reassignment)
         x = pd.RangeIndex(3).grb.pd_add_vars(self.model, name="x")
-        y = self.model.addVar(name="y")
+        y0 = self.model.addVar(name="y")
+        y = y0
         self.model.update()
-        with self.assertRaises(TypeError):
-            y += x
+        y += x
+        self.assertIsInstance(y, pd.Series)
+        for i in range(3):
+            self.assert_expression_equal(y[i], y0 + x[i])
 
     @unittest.expectedFailure
     def test_linexpr_varseries(self):
+        # Type uplift to Series (reassignment)
+        # Expected call chain:
+        #   1. LinExpr.__iadd__(Series) -> return NotImplemented
+        #   2. Series.__radd__(LinExpr) -> expanded along series
+        #   3. LinExpr.__add__(Var) -> new LinExpr for each in series
+        #   4. New series reassigned over le
         x = pd.RangeIndex(3).grb.pd_add_vars(self.model, name="x")
         y = self.model.addVar(name="y")
         le = 2 * y
         self.model.update()
-        with self.assertRaises(TypeError):
-            le += x
+        le += x
+        self.assertIsInstance(le, pd.Series)
+        for i in range(3):
+            self.assert_expression_equal(le[i], 2 * y + x[i])
 
     @unittest.expectedFailure
     def test_quadexpr_varseries(self):
+        # Type uplift to Series (reassignment)
         x = pd.RangeIndex(3).grb.pd_add_vars(self.model, name="x")
         y = self.model.addVar(name="y")
         qe = y * y
         self.model.update()
-        with self.assertRaises(TypeError):
-            qe += x
+        qe += x
+        self.assertIsInstance(qe, pd.Series)
+        for i in range(3):
+            self.assert_expression_equal(qe[i], y * y + x[i])
