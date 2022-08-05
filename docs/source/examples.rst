@@ -1,5 +1,5 @@
-Example Library
-===============
+Examples
+========
 
 .. toctree::
 
