@@ -219,6 +219,41 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.assertEqual(le.getCoeff(0), 1.0)
 
 
+class TestSeriesAddConstrs(GurobiTestCase):
+    def test_rhs_constant(self):
+        x = pd.RangeIndex(5).grb.pd_add_vars(self.model, name="x")
+        df = x.to_frame()
+        df["key"] = [1, 2, 1, 2, 1]
+        group_sums = df.groupby("key")["x"].sum()
+        constrs = group_sums.grb.pd_add_constrs(
+            self.model, GRB.LESS_EQUAL, 1, name="constr"
+        )
+        self.assertIsInstance(constrs, pd.Series)
+        self.assertEqual(len(constrs), 2)
+        self.model.update()
+        for i, constr in constrs.items():
+            self.assertIsInstance(constr, gp.Constr)
+            self.assertEqual(constr.ConstrName, f"constr[{i}]")
+            self.assertEqual(constr.Sense, GRB.LESS_EQUAL)
+            self.assertEqual(constr.RHS, 1.0)
+            row = self.model.getRow(constr)
+            self.assert_expression_equal(row, group_sums[i])
+
+    def test_rhs_series(self):
+        x = pd.RangeIndex(5).grb.pd_add_vars(self.model, name="x")
+        y = pd.RangeIndex(5).grb.pd_add_vars(self.model, name="y")
+        constrs = x.grb.pd_add_constrs(self.model, GRB.EQUAL, y, name="xeqy")
+        self.assertIsInstance(constrs, pd.Series)
+        self.model.update()
+        for i, constr in constrs.items():
+            self.assertIsInstance(constr, gp.Constr)
+            self.assertEqual(constr.ConstrName, f"xeqy[{i}]")
+            self.assertEqual(constr.Sense, GRB.EQUAL)
+            self.assertEqual(constr.RHS, 0.0)
+            row = self.model.getRow(constr)
+            self.assert_expression_equal(row, x[i] - y[i])
+
+
 class TestDataFrameAddConstrsByExpression(GurobiTestCase):
     def setUp(self):
         super().setUp()
