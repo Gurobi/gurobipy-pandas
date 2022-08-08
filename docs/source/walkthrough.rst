@@ -131,23 +131,23 @@ We then use the dataframe accessor :code:`.grb.pd_add_constrs` to create constra
     2    <gurobi.Constr capconstr[2]>
     Name: capconstr, dtype: object
 
-Constraints that each item only appears in one knapsack:
+Constraints that each item only appears in one knapsack. This can be done more simply using a series accessor:
 
 .. doctest:: [knapsack]
 
     >>> c2 = (
-    ...     x.groupby('item').sum().to_frame()
-    ...     .grb.pd_add_constrs(m, "x", GRB.LESS_EQUAL, 1, name="c")
+    ...     x.groupby('item').sum()
+    ...     .grb.pd_add_constrs(m, GRB.LESS_EQUAL, 1, name="c")
     ... )
     >>> m.update()
     >>> c2  # doctest: +NORMALIZE_WHITESPACE
-                                          x                     c
     item
-    1     <gurobi.LinExpr: x[1,1] + x[1,2]>  <gurobi.Constr c[1]>
-    2     <gurobi.LinExpr: x[2,1] + x[2,2]>  <gurobi.Constr c[2]>
-    3     <gurobi.LinExpr: x[3,1] + x[3,2]>  <gurobi.Constr c[3]>
-    4     <gurobi.LinExpr: x[4,1] + x[4,2]>  <gurobi.Constr c[4]>
-    5     <gurobi.LinExpr: x[5,1] + x[5,2]>  <gurobi.Constr c[5]>
+    1    <gurobi.Constr c[1]>
+    2    <gurobi.Constr c[2]>
+    3    <gurobi.Constr c[3]>
+    4    <gurobi.Constr c[4]>
+    5    <gurobi.Constr c[5]>
+    Name: c, dtype: object
 
 Solving the model ...
 
