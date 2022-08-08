@@ -9,18 +9,10 @@ from pandas.testing import assert_index_equal, assert_series_equal
 # import registers the accessors
 import gurobipy_pandas  # noqa
 
-
-class TestBase(unittest.TestCase):
-    def setUp(self):
-        self.env = gp.Env()
-        self.model = gp.Model(env=self.env)
-
-    def tearDown(self):
-        self.model.close()
-        self.env.close()
+from .utils import GurobiTestCase
 
 
-class TestDataFrameAddVars(TestBase):
+class TestDataFrameAddVars(GurobiTestCase):
     def setUp(self):
         super().setUp()
         self.df = pd.DataFrame(
@@ -104,7 +96,7 @@ class TestDataFrameAddVars(TestBase):
             self.assertEqual(row.z.VarName, f"z[{ind}]")
 
 
-class TestSeriesAttributes(TestBase):
+class TestSeriesAttributes(GurobiTestCase):
     def test_var_get_X(self):
         # Map Var -> X in a series. Use the same name in the result.
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
@@ -152,7 +144,7 @@ class TestSeriesAttributes(TestBase):
             self.assertEqual(x.loc[i].Start, start)
 
 
-class TestDataFrameAddConstrsByArgs(TestBase):
+class TestDataFrameAddConstrsByArgs(GurobiTestCase):
     def setUp(self):
         super().setUp()
         self.df = pd.DataFrame(
@@ -227,7 +219,7 @@ class TestDataFrameAddConstrsByArgs(TestBase):
             self.assertEqual(le.getCoeff(0), 1.0)
 
 
-class TestDataFrameAddConstrsByExpression(TestBase):
+class TestDataFrameAddConstrsByExpression(GurobiTestCase):
     def setUp(self):
         super().setUp()
         self.df = pd.DataFrame(
@@ -313,7 +305,7 @@ class TestDataFrameAddConstrsByExpression(TestBase):
             self.assertEqual(le.getCoeff(0), 1.0)
 
 
-class TestIndexAddVars(TestBase):
+class TestIndexAddVars(GurobiTestCase):
     # TODO: Test string indexes (and string columns)
 
     def test_no_args(self):
