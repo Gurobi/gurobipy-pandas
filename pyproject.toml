@@ -25,5 +25,10 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.urls]
+Documentation = "https://gurobi-optimization-gurobipy-pandas.readthedocs-hosted.com/en/latest"
+Issues = "https://github.com/Gurobi/gurobipy-pandas/issues"
+Source = "https://github.com/Gurobi/gurobipy-pandas"
+
 [tool.hatch.version]
 path = "src/gurobipy_pandas/__init__.py"
