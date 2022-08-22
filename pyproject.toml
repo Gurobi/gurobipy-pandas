@@ -14,7 +14,7 @@ authors = [
     { name = "Robert Luce", email = "luce@gurobi.com" },
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: Implementation :: CPython",
