@@ -1,5 +1,11 @@
 # gurobipy-pandas: Convenience wrapper for building optimization models from pandas data
 
+-----
+
+**This package is in beta development and not supported. The API may change without warning.**
+
+-----
+
 [![PyPI - Version](https://img.shields.io/pypi/v/gurobipy-pandas.svg)](https://pypi.org/project/gurobipy-pandas)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gurobipy-pandas.svg)](https://pypi.org/project/gurobipy-pandas)
 
