@@ -32,7 +32,7 @@ pip install gurobipy-pandas
 
 ## Documentation
 
-Full documentation for `gurobipy-pandas` is hosted on [readthedocs](https://gurobi-optimization-gurobipy-pandas.readthedocs-hosted.com/en/v0.1.0b0)
+Full documentation for `gurobipy-pandas` is hosted on [readthedocs](https://gurobi-optimization-gurobipy-pandas.readthedocs-hosted.com/en/v0.1.0b2)
 
 ## License
 
