@@ -5,3 +5,4 @@ Examples
 
    examples/regression
    examples/workforce
+   examples/portfolio

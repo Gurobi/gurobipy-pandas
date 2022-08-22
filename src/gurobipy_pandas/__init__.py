@@ -1,4 +1,4 @@
-__version__ = "0.1.0b0"
+__version__ = "0.1.0b1"
 
 # Import accessors module to register accessors.
 # The gurobipy_pandas namespace itself is not used directly.
