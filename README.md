@@ -1,18 +1,17 @@
-# gurobipy-pandas
-
-`gurobipy-pandas`
+# gurobipy-pandas: Convenience wrapper for building optimization models from pandas data
 
 [![PyPI - Version](https://img.shields.io/pypi/v/gurobipy-pandas.svg)](https://pypi.org/project/gurobipy-pandas)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gurobipy-pandas.svg)](https://pypi.org/project/gurobipy-pandas)
 
 -----
 
-**Table of Contents**
+## Features
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Documentation](#documentation)
-- [License](#license)
+`gurobipy-pandas` allows users to:
+
+- create gurobipy variables tied to the index of a series or dataframe
+- construct constraints row-wise using algebraic expressions
+- read model solutions and constraint slacks natively as pandas series
 
 ## Installation
 
@@ -20,11 +19,10 @@
 pip install gurobipy-pandas
 ```
 
-## Usage
+## Dependencies
 
-- Add variables
-- Build constraints
-- See a walkthrough and complete modelling examples in the documentation.
+- [gurobipy: Python modelling interface for the Gurobi Optimizer](https://pypi.org/project/gurobipy/)
+- [pandas: powerful Python data analysis toolkit](https://github.com/pandas-dev/pandas)
 
 ## Documentation
 
