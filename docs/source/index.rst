@@ -1,6 +1,10 @@
 Welcome to gurobipy-pandas's documentation!
 ===========================================
 
+**This package is in beta development and not supported. The API may change without warning.**
+
+-----
+
 :code:`gurobipy-pandas` is a convenient (optional) wrapper to connect pandas with gurobipy. It enables users to more easily and cleanly build optimization models from data stored in pandas objects.
 
 :code:`gurobipy-pandas` is aimed at experienced pandas users who are familiar with methods to transform and group data stored in dataframes. It expects some familiarity with optimization concepts, but does not require deep experience with gurobipy.
