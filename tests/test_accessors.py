@@ -365,6 +365,22 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertIs(le.getVar(0), entry.x)
             self.assertEqual(le.getCoeff(0), 1.0)
 
+    def test_multiindex_names(self):
+        df = pd.DataFrame(
+            index=pd.MultiIndex.from_product([pd.RangeIndex(2), pd.RangeIndex(2)])
+        ).grb.pd_add_vars(self.model, name="x")
+        df = df.grb.pd_add_constrs(self.model, "x <= 2", name="c1")
+        self.model.update()
+
+        names = df["c1"].grb.getAttr("ConstrName")
+        expected = pd.Series(
+            index=pd.MultiIndex.from_product([[0, 1], [0, 1]]),
+            data=["c1[0,0]", "c1[0,1]", "c1[1,0]", "c1[1,1]"],
+            name="c1",
+        )
+
+        assert_series_equal(names, expected)
+
 
 class TestIndexAddVars(GurobiTestCase):
     # TODO: Test string indexes (and string columns)

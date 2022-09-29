@@ -7,6 +7,12 @@ import gurobipy as gp
 from gurobipy import GRB
 
 
+def _format_index(idx):
+    if isinstance(idx, tuple):
+        return ",".join(map(str, idx))
+    return str(idx)
+
+
 @pd.api.extensions.register_dataframe_accessor("grb")
 class GRBDataFrameAccessor:
     """Accessor class for methods invoked as :code:`pd.DataFrame(...).grb.*`.
@@ -180,7 +186,7 @@ class GRBDataFrameAccessor:
                 lhs=getattr(row, lhs) if lhs in self._obj.columns else lhs,
                 sense=sense,
                 rhs=getattr(row, rhs) if rhs in self._obj.columns else rhs,
-                name=f"{name}[{row.Index}]",
+                name=f"{name}[{_format_index(row.Index)}]",
             )
             for row in self._obj.itertuples()
         ]
