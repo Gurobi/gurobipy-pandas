@@ -228,6 +228,28 @@ class GRBSeriesAccessor:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
+    def getAttr(self, attr):
+        """Retrieve the given Gurobi attribute for every object in the Series
+        held by this accessor. Analogous to Var.getAttr, series-wise.
+
+        :return: A new series with the evaluated attributes
+        :rtype: :class:`pd.Series`
+
+        For example, after solving a model, the solution can be retrieved
+
+        >>> m.optimize()
+        >>> x.grb.getAttr("X")
+        0    1.0
+        1    2.0
+        2    3.0
+        Name: x, dtype: float64
+        """
+        return pd.Series(
+            index=self._obj.index,
+            data=[v.getAttr(attr) for v in self._obj],
+            name=self._obj.name,
+        )
+
     def __getattr__(self, attr):
         """Retrieve the given Gurobi attribute for every object in the
         Series held by this accessor
@@ -254,11 +276,46 @@ class GRBSeriesAccessor:
         3    1.0
         Name: x, dtype: float64
         """
-        return pd.Series(
-            index=self._obj.index,
-            data=[v.getAttr(attr) for v in self._obj],
-            name=self._obj.name,
-        )
+        return self.getAttr(attr)
+
+    def setAttr(self, attr, value):
+        """Change the given Gurobi attribute for every object in the Series
+        held by this accessor. Analogous to Var.setAttr, series-wise.
+
+        :return: The original series (allowing method chaining)
+        :rtype: :class:`pd.Series`
+
+        For example, after creating a series of variables, their upper
+        bounds can be set and retrieved.
+
+        >>> x.grb.setAttr("LB", 3.0).grb.setAttr("UB", 5.0)
+        0    <gurobi.Var x[0]>
+        1    <gurobi.Var x[1]>
+        2    <gurobi.Var x[2]>
+        Name: x, dtype: object
+        >>> m.update()
+        >>> x.grb.getAttr("UB")
+        0    3.0
+        1    3.0
+        2    3.0
+        Name: x, dtype: float64
+        >>> x.grb.getAttr("UB")
+        0    5.0
+        1    5.0
+        2    5.0
+        Name: x, dtype: float64
+        """
+        if isinstance(value, pd.Series):
+            df = self._obj.to_frame(name="x").join(
+                value.to_frame(name="v"), how="inner"
+            )
+            for entry in df.itertuples(index=False):
+                entry.x.setAttr(attr, entry.v)
+        else:
+            for v in self._obj:
+                v.setAttr(attr, value)
+        # Return the original series to allow method chaining
+        return self._obj
 
     def __setattr__(self, attr, value):
         """Implements Python built-in :code:`__setattr__` to change the
@@ -299,15 +356,8 @@ class GRBSeriesAccessor:
         """
         if attr == "_obj":
             super().__setattr__(attr, value)
-        elif isinstance(value, pd.Series):
-            df = self._obj.to_frame(name="x").join(
-                value.to_frame(name="v"), how="inner"
-            )
-            for entry in df.itertuples(index=False):
-                entry.x.setAttr(attr, entry.v)
         else:
-            for v in self._obj:
-                v.setAttr(attr, value)
+            self.setAttr(attr, value)
 
     def get_value(self):
         """Return a new series, on the same index, containing the result of

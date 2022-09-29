@@ -144,6 +144,32 @@ class TestSeriesAttributes(GurobiTestCase):
             self.assertEqual(x.loc[i].Start, start)
 
 
+class TestSeriesGetAttr(GurobiTestCase):
+    def test_var_getattr_X(self):
+        # Map Var -> X in a series. Use the same name in the result.
+        series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
+        df = series.to_frame(name="value").grb.pd_add_vars(
+            self.model, name="x", lb="value", ub="value"
+        )
+        self.model.optimize()
+        solution = df["x"].grb.getAttr("X")
+        assert_series_equal(solution, series, check_names=False)
+        self.assertEqual(solution.name, "x")
+
+    def test_var_setattr_bounds(self):
+        x = pd.RangeIndex(5, 10).grb.pd_add_vars(self.model, name="x")
+        lb = 1.0
+        ub = pd.Series(
+            index=pd.RangeIndex(5, 10),
+            data=[2.0, 3.0, 4.0, 5.0, 6.0],
+        )
+        result = x.grb.setAttr("LB", lb).grb.setAttr("UB", ub)
+        self.model.update()
+        for i in range(5):
+            self.assertEqual(result.loc[i + 5].lb, 1.0)
+            self.assertEqual(result.loc[i + 5].ub, i + 2)
+
+
 class TestDataFrameAddConstrsByArgs(GurobiTestCase):
     def setUp(self):
         super().setUp()
