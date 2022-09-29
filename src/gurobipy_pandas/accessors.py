@@ -237,11 +237,14 @@ class GRBSeriesAccessor:
 
         For example, after solving a model, the solution can be retrieved
 
-        >>> m.optimize()
+        >>> m = gp.Model()
+        >>> x = pd.RangeIndex(3).grb.pd_add_vars(m, name='x')
+        >>> m.optimize()  # doctest: +ELLIPSIS
+        Gurobi Optimizer version...
         >>> x.grb.getAttr("X")
-        0    1.0
-        1    2.0
-        2    3.0
+        0    0.0
+        1    0.0
+        2    0.0
         Name: x, dtype: float64
         """
         return pd.Series(
@@ -288,13 +291,16 @@ class GRBSeriesAccessor:
         For example, after creating a series of variables, their upper
         bounds can be set and retrieved.
 
+        >>> m = gp.Model()
+        >>> x = pd.RangeIndex(3).grb.pd_add_vars(m, name='x')
+        >>> m.update()
         >>> x.grb.setAttr("LB", 3.0).grb.setAttr("UB", 5.0)
         0    <gurobi.Var x[0]>
         1    <gurobi.Var x[1]>
         2    <gurobi.Var x[2]>
         Name: x, dtype: object
         >>> m.update()
-        >>> x.grb.getAttr("UB")
+        >>> x.grb.getAttr("LB")
         0    3.0
         1    3.0
         2    3.0
