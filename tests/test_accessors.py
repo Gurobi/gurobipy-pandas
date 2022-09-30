@@ -430,3 +430,23 @@ class TestIndexAddVars(GurobiTestCase):
         self.assertEqual(x.loc[0, 1].VarName, "y[0,1]")
         self.assertEqual(x.loc[1, 0].VarName, "y[1,0]")
         self.assertEqual(x.loc[2, 2].VarName, "y[2,2]")
+
+
+class TestSeriesAddVars(GurobiTestCase):
+    def test_no_args(self):
+        # Create a series of gp.Var with the given index.
+        series = pd.Series(
+            index=pd.RangeIndex(0, 10, 2),
+            data=[1, 2, 3, 4, 5],
+            name="s",
+        )
+        x = series.grb.pd_add_vars(self.model)
+        self.model.update()
+        self.assertIsInstance(x, pd.Series)
+        assert_index_equal(x.index, series.index)
+        for i in range(5):
+            self.assertIsInstance(x.loc[i * 2], gp.Var)
+            self.assertEqual(x.loc[i * 2].VarName, f"C{i}")
+            self.assertEqual(x.loc[i * 2].lb, 0.0)
+            self.assertGreaterEqual(x.loc[i * 2].ub, GRB.INFINITY)
+            self.assertEqual(x.loc[i * 2].VType, GRB.CONTINUOUS)

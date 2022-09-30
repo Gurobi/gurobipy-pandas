@@ -385,6 +385,9 @@ class GRBSeriesAccessor:
             data=[le.getValue() for le in self._obj],
         )
 
+    def pd_add_vars(self, *args, **kwargs):
+        return self._obj.index.grb.pd_add_vars(*args, **kwargs)
+
     def pd_add_constrs(
         self,
         model: gp.Model,
