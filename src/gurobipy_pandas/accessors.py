@@ -6,7 +6,7 @@ import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
 
-from gurobipy_pandas.add_vars import add_vars_from_dataframe
+from gurobipy_pandas.add_vars import add_vars_from_dataframe, add_vars_from_index
 
 
 def _format_index(idx):
@@ -448,8 +448,10 @@ class GRBIndexAccessor:
     def pd_add_vars(
         self,
         model: gp.Model,
+        *,
         lb: float = 0.0,
         ub: float = GRB.INFINITY,
+        obj: float = 0.0,
         vtype: str = GRB.CONTINUOUS,
         name: Optional[str] = None,
     ):
@@ -474,9 +476,6 @@ class GRBIndexAccessor:
         :return: A Series of vars with the index referenced by the accessor
         :rtype: :class:`pd.Series`
         """
-        if name is None:
-            indices = len(self._obj)
-        else:
-            indices = self._obj
-        x = model.addVars(indices, lb=lb, ub=ub, vtype=vtype, name=name)
-        return pd.Series(index=self._obj, data=x.values(), name=name)
+        return add_vars_from_index(
+            model, self._obj, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name
+        )

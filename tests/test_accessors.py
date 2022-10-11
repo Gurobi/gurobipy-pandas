@@ -401,13 +401,14 @@ class TestIndexAddVars(GurobiTestCase):
 
     def test_add_vars_scalar_attrs(self):
         index = pd.RangeIndex(0, 10)
-        x = index.grb.pd_add_vars(self.model, lb=-10, ub=10, vtype=GRB.INTEGER)
+        x = index.grb.pd_add_vars(self.model, lb=-10, ub=10, vtype=GRB.INTEGER, obj=2.5)
         self.model.update()
         assert_index_equal(x.index, index)
         for i in range(0, 10):
             self.assertEqual(x.loc[i].VarName, f"C{i}")
-            self.assertEqual(x.loc[i].lb, -10.0)
-            self.assertGreaterEqual(x.loc[i].ub, 10.0)
+            self.assertEqual(x.loc[i].LB, -10.0)
+            self.assertEqual(x.loc[i].UB, 10.0)
+            self.assertEqual(x.loc[i].Obj, 2.5)
             self.assertEqual(x.loc[i].VType, GRB.INTEGER)
 
     def test_add_vars_multiindex(self):
