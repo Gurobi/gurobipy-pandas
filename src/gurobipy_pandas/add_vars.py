@@ -14,9 +14,9 @@ import pandas as pd
 GRBSeriesVar = NewType("GRBSeriesVar", pd.Series)
 
 
-def align_series(series: pd.Series, index: pd.Index) -> pd.Series:
+def prepare_series(series, index=None):
     """
-    Align :series with :index and return the result.
+    Align :series with :index and return the values as a list.
 
     Raise a KeyError on any mismatch between the index of :series and
     :index (reordering is ok).
@@ -24,18 +24,18 @@ def align_series(series: pd.Series, index: pd.Index) -> pd.Series:
     Raise a ValueError if there is any missing data once the series
     is aligned.
     """
-    if not index.sort_values().equals(series.index.sort_values()):
-        raise KeyError("... series not aligned with index")
-    aligned = series.loc[index]
+
+    if index is None:
+        aligned = series
+    else:
+        if not index.sort_values().equals(series.index.sort_values()):
+            raise KeyError("... series not aligned with index")
+        aligned = series.loc[index]
+
     if aligned.isnull().any():
         raise ValueError("... series has missing values")
-    return aligned
 
-
-def check_missing(series: pd.Series) -> None:
-    if series.isnull().any():
-        raise ValueError("... series has missing values")
-    return series
+    return list(aligned.values)
 
 
 def add_vars_from_index(
@@ -77,24 +77,19 @@ def add_vars_from_index(
     """
 
     if isinstance(lb, pd.Series):
-        lbseries = align_series(lb, index)
-        lb = list(lbseries.values)
+        lb = prepare_series(lb, index)
 
     if isinstance(ub, pd.Series):
-        ubseries = align_series(ub, index)
-        ub = list(ubseries.values)
+        ub = prepare_series(ub, index)
 
     if isinstance(obj, pd.Series):
-        objseries = align_series(obj, index)
-        obj = list(objseries.values)
+        obj = prepare_series(obj, index)
 
     if isinstance(vtype, pd.Series):
-        vtypeseries = align_series(vtype, index)
-        vtype = list(vtypeseries.values)
+        vtype = prepare_series(vtype, index)
 
     if isinstance(name, pd.Series):
-        nameseries = align_series(name, index)
-        namearg = list(nameseries.values)
+        namearg = prepare_series(name, index)
         seriesname = None
     else:
         namearg = name
@@ -138,16 +133,13 @@ def add_vars_from_dataframe(
     """
 
     if isinstance(lb, str):
-        lbseries = check_missing(data[lb])
-        lb = list(lbseries.values)
+        lb = prepare_series(data[lb])
 
     if isinstance(ub, str):
-        ubseries = check_missing(data[ub])
-        ub = list(ubseries.values)
+        ub = prepare_series(data[ub])
 
     if isinstance(obj, str):
-        objseries = check_missing(data[obj])
-        obj = list(objseries.values)
+        obj = prepare_series(data[obj])
 
     newvars = model.addVars(data.index, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name)
     return pd.Series(index=data.index, data=list(newvars.values()), name=name)
