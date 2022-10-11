@@ -6,6 +6,8 @@ import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
 
+from gurobipy_pandas.add_vars import add_vars_from_dataframe
+
 
 def _format_index(idx):
     if isinstance(idx, tuple):
@@ -30,12 +32,12 @@ class GRBDataFrameAccessor:
     def pd_add_vars(
         self,
         model: gp.Model,
-        name: str,
+        *,
         lb: Union[float, str] = 0.0,
         ub: Union[float, str] = GRB.INFINITY,
         obj: Union[float, str] = 0.0,
         vtype: str = GRB.CONTINUOUS,
-        index: Optional[Union[str, List[str]]] = None,
+        name: str,
     ):
         """Add a variable to the given model for each row in the dataframe
         referenced by this accessor.
@@ -59,31 +61,13 @@ class GRBDataFrameAccessor:
         :param vtype: Gurobi variable type for created variables, defaults
             to :code:`GRB.CONTINUOUS`
         :type vtype: str, optional
-        :param index: If provided, use the name column(s) for variable name
-            suffixes. If :code:`None`, use the index
-        :type index: str or list, optional
         :return: A new DataFrame with new Vars appended as a column
         :rtype: :class:`pd.DataFrame`
         """
-        if index is None:
-            indices = self._obj.index
-        elif isinstance(index, str):
-            indices = self._obj[index]
-        else:
-            indices = self._obj[index].itertuples(index=False)
-        if lb in self._obj.columns:
-            lb = self._obj[lb]
-        if ub in self._obj.columns:
-            ub = self._obj[ub]
-        if obj in self._obj.columns:
-            obj = self._obj[obj]
-        # FIXME resolve ambiguities in column referencing vs. values ... maybe
-        # lb/ub/obj must be only float or string. If string, then must match a
-        # column, if float, then it's a fixed value (pandas columns can have
-        # any hashable name). Test to be added to clear this up.
-        x = model.addVars(indices, name=name, lb=lb, ub=ub, obj=obj, vtype=vtype)
-        xs = pd.Series(data=x.values(), index=self._obj.index, name=name)
-        return self._obj.join(xs)
+        varseries = add_vars_from_dataframe(
+            model, self._obj, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name
+        )
+        return self._obj.join(varseries)
 
     def pd_add_constrs(
         self,

@@ -28,7 +28,7 @@ class TestDataFrameAddVars(GurobiTestCase):
         # Adds a series of gp.Var as named column. This should be the
         # simplest test we can have; the new column must have a name so
         # we always use that + the index for variable naming.
-        result = self.df.grb.pd_add_vars(self.model, "x")
+        result = self.df.grb.pd_add_vars(self.model, name="x")
         self.model.update()
         assert_index_equal(result.index, self.df.index)
         self.assertEqual(list(result.columns), ["a", "b", "x"])
@@ -44,7 +44,7 @@ class TestDataFrameAddVars(GurobiTestCase):
 
     def test_scalar_args(self):
         result = self.df.grb.pd_add_vars(
-            self.model, "x", lb=-10, ub=10, obj=2, vtype=GRB.INTEGER
+            self.model, lb=-10, ub=10, obj=2, vtype=GRB.INTEGER, name="x"
         )
         self.model.update()
         assert_index_equal(result.index, self.df.index)
@@ -58,20 +58,6 @@ class TestDataFrameAddVars(GurobiTestCase):
             self.assertEqual(v.ub, 10.0)
             self.assertEqual(v.obj, 2.0)
             self.assertEqual(v.VType, GRB.INTEGER)
-
-    def test_single_index_col(self):
-        result = self.df.grb.pd_add_vars(self.model, name="y", index="a")
-        self.model.update()
-        self.assertEqual(list(result.columns), ["a", "b", "y"])
-        for row in result.itertuples():
-            self.assertEqual(row.y.VarName, f"y[{row.a}]")
-
-    def test_multiple_index_cols(self):
-        result = self.df.grb.pd_add_vars(self.model, name="z", index=["b", "a"])
-        self.model.update()
-        self.assertEqual(list(result.columns), ["a", "b", "z"])
-        for row in result.itertuples():
-            self.assertEqual(row.z.VarName, f"z[{row.b},{row.a}]")
 
     def test_set_bounds_by_column(self):
         result = self.df.grb.pd_add_vars(self.model, name="x", lb="a", ub="b")
@@ -182,7 +168,7 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
         )
 
     def test_scalar_rhs(self):
-        df = self.df.grb.pd_add_vars(self.model, "x")
+        df = self.df.grb.pd_add_vars(self.model, name="x")
         result = df.grb.pd_add_constrs(self.model, "x", GRB.EQUAL, 1.0, name="constr")
         self.model.update()
         for entry in result.itertuples():
@@ -195,7 +181,7 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
     def test_scalar_lhs(self):
-        df = self.df.grb.pd_add_vars(self.model, "x")
+        df = self.df.grb.pd_add_vars(self.model, name="x")
         result = df.grb.pd_add_constrs(self.model, 1.0, GRB.EQUAL, "x", name="constr")
         self.model.update()
         for entry in result.itertuples():
@@ -208,7 +194,7 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), -1.0)
 
     def test_series_rhs(self):
-        df = self.df.grb.pd_add_vars(self.model, "x")
+        df = self.df.grb.pd_add_vars(self.model, name="x")
         result = df.grb.pd_add_constrs(
             self.model, "x", GRB.LESS_EQUAL, "b", name="constr"
         )
@@ -224,7 +210,7 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
     def test_quadratic(self):
-        df = self.df.grb.pd_add_vars(self.model, "x")
+        df = self.df.grb.pd_add_vars(self.model, name="x")
         df["x2"] = df["x"] * df["x"] + 1
         result = df.grb.pd_add_constrs(
             self.model, "x", GRB.LESS_EQUAL, "x2", name="constr"
@@ -292,7 +278,7 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
         )
 
     def test_scalar_rhs(self):
-        df = self.df.grb.pd_add_vars(self.model, "x")
+        df = self.df.grb.pd_add_vars(self.model, name="x")
         result = df.grb.pd_add_constrs(self.model, "x == 1", name="constr")
         self.model.update()
         for entry in result.itertuples():
@@ -305,7 +291,7 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
     def test_scalar_lhs(self):
-        df = self.df.grb.pd_add_vars(self.model, "x")
+        df = self.df.grb.pd_add_vars(self.model, name="x")
         result = df.grb.pd_add_constrs(self.model, "1 == x", name="constr")
         self.model.update()
         for entry in result.itertuples():
@@ -318,7 +304,7 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), -1.0)
 
     def test_series_rhs(self):
-        df = self.df.grb.pd_add_vars(self.model, "x")
+        df = self.df.grb.pd_add_vars(self.model, name="x")
         result = df.grb.pd_add_constrs(self.model, "x <= b", name="constr")
         self.model.update()
         for entry in result.itertuples():
@@ -331,7 +317,9 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
     def test_expressions(self):
-        df = self.df.grb.pd_add_vars(self.model, "x").grb.pd_add_vars(self.model, "y")
+        df = self.df.grb.pd_add_vars(self.model, name="x").grb.pd_add_vars(
+            self.model, name="y"
+        )
         result = df.grb.pd_add_constrs(self.model, "x + b <= 1 - 2*y", name="constr")
         self.model.update()
         self.assertEqual(df.shape, (3, 4))
@@ -348,7 +336,7 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.getCoeff(1), 2.0)
 
     def test_quadratic(self):
-        df = self.df.grb.pd_add_vars(self.model, "x")
+        df = self.df.grb.pd_add_vars(self.model, name="x")
         result = df.grb.pd_add_constrs(self.model, "x <= x**2 + 1", name="constr")
         self.model.update()
         for entry in result.itertuples():
