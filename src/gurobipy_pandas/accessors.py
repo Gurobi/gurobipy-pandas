@@ -33,11 +33,11 @@ class GRBDataFrameAccessor:
         self,
         model: gp.Model,
         *,
+        name: str,
         lb: Union[float, str] = 0.0,
         ub: Union[float, str] = GRB.INFINITY,
         obj: Union[float, str] = 0.0,
         vtype: str = GRB.CONTINUOUS,
-        name: str,
     ):
         """Add a variable to the given model for each row in the dataframe
         referenced by this accessor.
@@ -67,6 +67,8 @@ class GRBDataFrameAccessor:
         varseries = add_vars_from_dataframe(
             model, self._obj, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name
         )
+        # FIXME: better error messages
+        # :name cannot overlap with existing columns in the dataframe
         return self._obj.join(varseries)
 
     def pd_add_constrs(
@@ -449,17 +451,19 @@ class GRBIndexAccessor:
         self,
         model: gp.Model,
         *,
+        name: Optional[str] = None,
         lb: float = 0.0,
         ub: float = GRB.INFINITY,
         obj: float = 0.0,
         vtype: str = GRB.CONTINUOUS,
-        name: Optional[str] = None,
     ):
         """Add a variable to the given model for each entry in the index
         referenced by this accessor.
 
         :param model: A Gurobi model to which new variables will be added
         :type model: :class:`gurobipy.Model`
+        :param name: If provided, used as base name for new Gurobi variables
+        :type name: str, optional
         :param lb: Lower bound for created variables, defaults to 0.0
         :type lb: float, optional
         :param ub: Upper bound for created variables, defaults to
@@ -471,8 +475,6 @@ class GRBIndexAccessor:
         :param vtype: Gurobi variable type for created variables, defaults
             to :code:`GRB.CONTINUOUS`
         :type vtype: str, optional
-        :param name: If provided, used as base name for new Gurobi variables
-        :type name: str, optional
         :return: A Series of vars with the index referenced by the accessor
         :rtype: :class:`pd.Series`
         """
