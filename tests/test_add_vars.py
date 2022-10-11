@@ -5,7 +5,7 @@ from pandas.testing import assert_index_equal
 import gurobipy as gp
 from gurobipy import GRB
 
-from gurobipy_pandas.add_vars import add_vars_from_index
+from gurobipy_pandas.add_vars import add_vars_from_index, add_vars_from_dataframe
 
 
 class TestAddVarsFromIndex(unittest.TestCase):
@@ -325,3 +325,152 @@ class TestAddVarsFromIndex(unittest.TestCase):
         with self.assertRaises(ValueError):
             vtypeseries = pd.Series(index=index, data=["C", None, "I", "B", None])
             add_vars_from_index(self.model, index, vtype=vtypeseries)
+
+
+class TestAddVarsFromDataFrame(unittest.TestCase):
+    def setUp(self):
+        self.env = gp.Env()
+        self.model = gp.Model(env=self.env)
+        self.data = pd.DataFrame(
+            {
+                "str1": ["a", "b", "c", "d"],
+                "int1": [1, 2, 3, 4],
+                "float1": [2.2, 3.1, -1.0, 2.4],
+                "float2": [1.1, 2.1, 4.3, 1.5],
+            }
+        )
+
+    def tearDown(self):
+        self.model.close()
+        self.env.close()
+
+    def test_noargs(self):
+        # Variables are created for each entry in index, with default names
+        # from Gurobi
+
+        varseries = add_vars_from_dataframe(self.model, self.data)
+
+        self.model.update()
+        self.assertEqual(self.model.NumVars, 4)
+
+        self.assertIsInstance(varseries, pd.Series)
+        self.assertIsNone(varseries.name)
+        assert_index_equal(varseries.index, self.data.index)
+
+        for i, ind in enumerate(self.data.index):
+            v = varseries[ind]
+            self.assertEqual(v.LB, 0.0)
+            self.assertGreater(v.UB, 1e100)
+            self.assertEqual(v.Obj, 0.0)
+            self.assertEqual(v.VType, GRB.CONTINUOUS)
+            self.assertEqual(v.VarName, f"C{i}")
+
+    def test_generatednames(self):
+        # Variables are created for each entry in index, with prefixed
+        # names incorporating the index values
+
+        df = self.data.set_index("int1")
+
+        varseries = add_vars_from_dataframe(self.model, df, name="y")
+
+        self.model.update()
+        self.assertEqual(self.model.NumVars, 4)
+
+        self.assertIsInstance(varseries, pd.Series)
+        self.assertEqual(varseries.name, "y")
+        assert_index_equal(varseries.index, df.index)
+
+        for ind in df.index:
+            v = varseries[ind]
+            self.assertEqual(v.LB, 0.0)
+            self.assertGreater(v.UB, 1e100)
+            self.assertEqual(v.Obj, 0.0)
+            self.assertEqual(v.VType, GRB.CONTINUOUS)
+            self.assertEqual(v.VarName, f"y[{ind}]")
+
+    def test_generatednames_multiindex(self):
+        # Variables are created for each entry in index, with prefixed
+        # names incorporating the index values
+
+        df = self.data.set_index(["int1", "str1"])
+
+        varseries = add_vars_from_dataframe(self.model, df, name="z")
+
+        self.model.update()
+        self.assertEqual(self.model.NumVars, 4)
+
+        self.assertIsInstance(varseries, pd.Series)
+        self.assertEqual(varseries.name, "z")
+        assert_index_equal(varseries.index, df.index)
+
+        for some_int, some_str in df.index:
+            v = varseries[some_int, some_str]
+            self.assertEqual(v.LB, 0.0)
+            self.assertGreater(v.UB, 1e100)
+            self.assertEqual(v.Obj, 0.0)
+            self.assertEqual(v.VType, GRB.CONTINUOUS)
+            self.assertEqual(v.VarName, f"z[{some_int},{some_str}]")
+
+    def test_lb_value(self):
+        # lb numeric value assigned to all variables
+
+        varseries = add_vars_from_dataframe(self.model, self.data, lb=-100)
+
+        self.model.update()
+        for _, v in varseries.items():
+            self.assertEqual(v.LB, -100.0)
+
+    def test_lb_column(self):
+        # lb string value interpreted as a column to reference
+
+        varseries = add_vars_from_dataframe(self.model, self.data, lb="float1")
+
+        self.model.update()
+        for ind, v in varseries.items():
+            self.assertEqual(v.LB, self.data.loc[ind, "float1"])
+
+    def test_ub_value(self):
+        # ub numeric value assigned to all variables
+
+        varseries = add_vars_from_dataframe(self.model, self.data, ub=5)
+
+        self.model.update()
+        for _, v in varseries.items():
+            self.assertEqual(v.UB, 5.0)
+
+    def test_ub_column(self):
+        # ub string value interpreted as a column to reference
+
+        varseries = add_vars_from_dataframe(self.model, self.data, ub="float2")
+
+        self.model.update()
+        for ind, v in varseries.items():
+            self.assertEqual(v.UB, self.data.loc[ind, "float2"])
+
+    def test_obj_value(self):
+        # obj numeric value assigned to all variables
+
+        varseries = add_vars_from_dataframe(self.model, self.data, obj=1.0)
+
+        self.model.update()
+        for _, v in varseries.items():
+            self.assertEqual(v.Obj, 1.0)
+
+    def test_obj_column(self):
+        # obj string value interpreted as a column to reference
+
+        varseries = add_vars_from_dataframe(self.model, self.data, obj="float1")
+
+        self.model.update()
+        for ind, v in varseries.items():
+            self.assertEqual(v.Obj, self.data.loc[ind, "float1"])
+
+    def test_vtype_value(self):
+        # vtype can only be a string value, giving all variables the
+        # same type
+
+        varseries = add_vars_from_dataframe(self.model, self.data, vtype=GRB.BINARY)
+
+        self.model.update()
+        for _, v in varseries.items():
+            self.assertEqual(v.VType, GRB.BINARY)

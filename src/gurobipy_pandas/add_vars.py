@@ -32,6 +32,12 @@ def align_series(series: pd.Series, index: pd.Index) -> pd.Series:
     return aligned
 
 
+def check_missing(series: pd.Series) -> None:
+    if series.isnull().any():
+        raise ValueError("... series has missing values")
+    return series
+
+
 def add_vars_from_index(
     model: gp.Model,
     index: pd.Index,
@@ -130,4 +136,18 @@ def add_vars_from_dataframe(
 
     model and data are positional, others are keyword-only
     """
-    return
+
+    if isinstance(lb, str):
+        lbseries = check_missing(data[lb])
+        lb = list(lbseries.values)
+
+    if isinstance(ub, str):
+        ubseries = check_missing(data[ub])
+        ub = list(ubseries.values)
+
+    if isinstance(obj, str):
+        objseries = check_missing(data[obj])
+        obj = list(objseries.values)
+
+    newvars = model.addVars(data.index, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name)
+    return pd.Series(index=data.index, data=list(newvars.values()), name=name)
