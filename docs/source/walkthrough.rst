@@ -23,7 +23,7 @@ Imports you'll need for all :code:`gurobipy_pandas` applications:
     >>> import pandas as pd
     >>> import gurobipy as gp
     >>> from gurobipy import GRB
-    >>> from gurobipy_pandas import pd_add_vars, pd_add_constrs
+    >>> from gurobipy_pandas import pd_add_constrs
 
 Pandas conveniently stores data in relation to indexes, so we would naturally define the data for items in a single DataFrame (with columns for weights and profits).
 
