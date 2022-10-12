@@ -2,21 +2,15 @@
 Accessor methods bound to pd.Index.grb, pd.Series.grb, pd.DataFrame.grb
 """
 
-import re
 from typing import Union, Optional
 
 import pandas as pd
 
 import gurobipy as gp
 from gurobipy import GRB
+from gurobipy_pandas.add_constrs import add_constrs_from_dataframe
 
 from gurobipy_pandas.add_vars import add_vars_from_dataframe, add_vars_from_index
-
-
-def _format_index(idx):
-    if isinstance(idx, tuple):
-        return ",".join(map(str, idx))
-    return str(idx)
 
 
 @pd.api.extensions.register_dataframe_accessor("grb")
@@ -78,10 +72,11 @@ class GRBDataFrameAccessor:
     def pd_add_constrs(
         self,
         model: gp.Model,
-        lhs: str,
+        lhs: Union[str, float],
         sense: Optional[str] = None,
         rhs: Optional[Union[str, float]] = None,
-        name: Optional[str] = None,
+        *,
+        name: str,
     ):
         """Add a constraint to the model for each row in the dataframe
         referenced by this accessor.
@@ -163,50 +158,10 @@ class GRBDataFrameAccessor:
         1  <gurobi.LinExpr: x[1] + y[1]>  <gurobi.Constr c4[1]>
         2  <gurobi.LinExpr: x[2] + y[2]>  <gurobi.Constr c4[2]>
         """
-        if sense is None:
-            return self._add_constrs_by_expression(model, lhs, name=name)
-        else:
-            return self._add_constrs_by_args(model, lhs, sense, rhs, name=name)
-
-    def _add_constrs_by_args(self, model, lhs, sense, rhs, name):
-        """lhs, rhs can be scalars or columns"""
-        c = [
-            # Use QConstr here for generalisability
-            model.addQConstr(
-                lhs=getattr(row, lhs) if lhs in self._obj.columns else lhs,
-                sense=sense,
-                rhs=getattr(row, rhs) if rhs in self._obj.columns else rhs,
-                name=f"{name}[{_format_index(row.Index)}]",
-            )
-            for row in self._obj.itertuples()
-        ]
-        cs = pd.Series(c, index=self._obj.index, name=name)
-        return self._obj.join(cs)
-
-    def _add_constrs_by_expression(self, model, expr, *, name):
-        """Parse an expression (like DataFrame.query) to build constraints
-        from data.
-
-        TODO add query-like abilty to pull variables from the enclosing
-        scope (uses leading @).
-        """
-        # DataFrame.eval() is one option to help generalise the expression
-        # parsing for this. But for a dtype='object' series it seems to only
-        # ever use operators implemented on 'object' (which is essentially
-        # none??) so isn't that helpful.
-        lhs, rhs = re.split("[<>=]+", expr)
-        sense = expr.replace(lhs, "").replace(rhs, "")
-        return self._obj.join(
-            pd.DataFrame(
-                index=self._obj.index,
-                data={
-                    "lhs": eval(lhs, None, self._obj),
-                    "rhs": eval(rhs, None, self._obj),
-                },
-            )
-            .grb._add_constrs_by_args(model, "lhs", sense, "rhs", name)
-            .drop(columns=["lhs", "rhs"])
+        constrseries = add_constrs_from_dataframe(
+            model, self._obj, lhs, sense, rhs, name=name
         )
+        return self._obj.join(constrseries)
 
 
 @pd.api.extensions.register_series_accessor("grb")
