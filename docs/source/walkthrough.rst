@@ -23,7 +23,7 @@ Imports you'll need for all :code:`gurobipy_pandas` applications:
     >>> import pandas as pd
     >>> import gurobipy as gp
     >>> from gurobipy import GRB
-    >>> import gurobipy_pandas
+    >>> from gurobipy_pandas import pd_add_vars, pd_add_constrs
 
 Pandas conveniently stores data in relation to indexes, so we would naturally define the data for items in a single DataFrame (with columns for weights and profits).
 
@@ -131,13 +131,12 @@ We then use the dataframe accessor :code:`.grb.pd_add_constrs` to create constra
     2    <gurobi.Constr capconstr[2]>
     Name: capconstr, dtype: object
 
-Constraints that each item only appears in one knapsack. This can be done more simply using a series accessor:
+Constraints that each item only appears in one knapsack. This can be done more simply using the top-level function:
 
 .. doctest:: [knapsack]
 
-    >>> c2 = (
-    ...     x.groupby('item').sum()
-    ...     .grb.pd_add_constrs(m, GRB.LESS_EQUAL, 1, name="c")
+    >>> c2 = pd_add_constrs(
+    ...     m, x.groupby('item').sum(), GRB.LESS_EQUAL, 1.0, name="c"
     ... )
     >>> m.update()
     >>> c2  # doctest: +NORMALIZE_WHITESPACE
