@@ -3,24 +3,15 @@ Tests for the public API. These are intentionally simple, more careful
 tests of data types, errors, etc, are done on the lower-level functions.
 """
 
-import unittest
-
 import pandas as pd
 from pandas.testing import assert_index_equal, assert_series_equal
 import gurobipy as gp
 from gurobipy import GRB
-from gurobipy_pandas import pd_add_vars
+from gurobipy_pandas import pd_add_vars, pd_add_constrs
+from tests.utils import GurobiTestCase
 
 
-class TestPDAddVars(unittest.TestCase):
-    def setUp(self):
-        self.env = gp.Env()
-        self.model = gp.Model(env=self.env)
-
-    def tearDown(self):
-        self.model.close()
-        self.env.close()
-
+class TestPDAddVars(GurobiTestCase):
     def test_from_dataframe(self):
 
         data = pd.DataFrame(
@@ -95,11 +86,42 @@ class TestPDAddVars(unittest.TestCase):
         assert_index_equal(x.index, index)
 
         # Names/types are correct and match the index (checking individual objects)
-        for index, variable in x.items():
-            self.assertEqual(variable.VarName, f"x[{index}]")
+        for ind, variable in x.items():
+            self.assertEqual(variable.VarName, f"x[{ind}]")
             self.assertEqual(variable.VType, GRB.CONTINUOUS)
 
         # Attributes are correct, using the series accessors to validate
         self.assertTrue((x.grb.LB == 0.0).all())
         self.assertTrue((x.grb.UB >= 1e100).all())
         assert_series_equal(x.grb.Obj, objseries, check_names=False)
+
+
+class TestPDAddConstrs(GurobiTestCase):
+    def test_from_series(self):
+
+        index = pd.RangeIndex(10)
+
+        x = pd_add_vars(self.model, index, name="x")
+        y = pd_add_vars(self.model, index, name="y")
+        k = pd.Series(index=index, data=range(10, 20))
+
+        constrs = pd_add_constrs(self.model, 2 * x + y, GRB.LESS_EQUAL, k, name="cons")
+
+        # Correct model metadata
+        self.model.update()
+        self.assertEqual(self.model.NumVars, 20)
+        self.assertEqual(self.model.NumConstrs, 10)
+
+        # Check return values
+        self.assertIsInstance(constrs, pd.Series)
+        self.assertEqual(constrs.name, "cons")
+        assert_index_equal(constrs.index, index)
+
+        # Constraint data per object
+        for ind, constr in constrs.items():
+            self.assertEqual(constr.ConstrName, f"cons[{ind}]")
+            self.assert_linexpr_equal(self.model.getRow(constr), 2 * x[ind] + y[ind])
+
+        # Check data using accessors
+        self.assertTrue((constrs.grb.Sense == GRB.LESS_EQUAL).all())
+        assert_series_equal(constrs.grb.RHS, k.astype(float), check_names=False)

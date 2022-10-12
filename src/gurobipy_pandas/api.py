@@ -12,6 +12,7 @@ from gurobipy_pandas.add_vars import (
     add_vars_from_index,
     add_vars_from_dataframe,
 )
+from gurobipy_pandas.add_constrs import add_constrs_from_series
 
 
 # Index/Series variant (attribute arguments must be values or series)
@@ -80,11 +81,11 @@ def pd_add_vars(
 
 
 def pd_add_constrs(
-    model,
+    model: gp.Model,
     lhs: Union[pd.Series, float],
     sense: str,
     rhs: Union[pd.Series, float],
     *,
     name: Optional[str] = None,
 ) -> pd.Series:
-    return
+    return add_constrs_from_series(model, lhs, sense, rhs, name=name)

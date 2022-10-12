@@ -60,9 +60,9 @@ def add_constrs_from_dataframe(
 
 def add_constrs_from_series(
     model: gp.Model,
-    lhs: pd.Series,
+    lhs: Union[pd.Series, float],
     sense: str,
-    rhs: pd.Series,
+    rhs: Union[pd.Series, float],
     *,
     name: Optional[str] = None,
 ) -> pd.Series:
