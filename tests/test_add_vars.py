@@ -326,6 +326,30 @@ class TestAddVarsFromIndex(unittest.TestCase):
             vtypeseries = pd.Series(index=index, data=["C", None, "I", "B", None])
             add_vars_from_index(self.model, index, vtype=vtypeseries)
 
+    def test_attribute_wrongtypes(self):
+        # If series are not passed for attributes, they must be scalar
+        index = pd.RangeIndex(5)
+
+        with self.subTest(attr="lb"):
+            with self.assertRaises(TypeError):
+                add_vars_from_index(self.model, index, lb=[1, 2, 3, 4, 5])
+
+        with self.subTest(attr="ub"):
+            with self.assertRaises(TypeError):
+                add_vars_from_index(self.model, index, ub=[1, 2, 3, 4, 5])
+
+        with self.subTest(attr="obj"):
+            with self.assertRaises(TypeError):
+                add_vars_from_index(self.model, index, obj=[1, 2, 3, 4, 5])
+
+        with self.subTest(attr="vtype"):
+            with self.assertRaises(TypeError):
+                add_vars_from_index(self.model, index, vtype=["B", "I", "C", "N", "S"])
+
+        with self.subTest(attr="name"):
+            with self.assertRaises(TypeError):
+                add_vars_from_index(self.model, index, name=1.5)
+
 
 class TestAddVarsFromDataFrame(unittest.TestCase):
     def setUp(self):
@@ -474,3 +498,27 @@ class TestAddVarsFromDataFrame(unittest.TestCase):
         self.model.update()
         for _, v in varseries.items():
             self.assertEqual(v.VType, GRB.BINARY)
+
+    def test_attribute_series(self):
+        # passing attributes as a series should fail (even if aligned)
+
+        with self.subTest(attr="lb"):
+            with self.assertRaises(TypeError):
+                add_vars_from_dataframe(self.model, self.data, lb=self.data["float1"])
+
+        with self.subTest(attr="ub"):
+            with self.assertRaises(TypeError):
+                add_vars_from_dataframe(self.model, self.data, ub=self.data["float1"])
+
+        with self.subTest(attr="obj"):
+            with self.assertRaises(TypeError):
+                add_vars_from_dataframe(self.model, self.data, obj=self.data["float1"])
+
+        with self.subTest(attr="name"):
+            with self.assertRaises(TypeError):
+                add_vars_from_dataframe(self.model, self.data, name=self.data["str1"])
+
+        with self.subTest(attr="vtype"):
+            typeseries = pd.Series(index=self.data.index, data=["I", "B", "C", "S"])
+            with self.assertRaises(TypeError):
+                add_vars_from_dataframe(self.model, self.data, vtype=typeseries)

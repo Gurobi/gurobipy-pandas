@@ -74,22 +74,35 @@ def add_vars_from_index(
 
     if isinstance(lb, pd.Series):
         lb = prepare_series(lb, index)
+    else:
+        lb = float(lb)
 
     if isinstance(ub, pd.Series):
         ub = prepare_series(ub, index)
+    else:
+        ub = float(ub)
 
     if isinstance(obj, pd.Series):
         obj = prepare_series(obj, index)
+    else:
+        obj = float(obj)
 
     if isinstance(vtype, pd.Series):
         vtype = prepare_series(vtype, index)
+    elif not isinstance(vtype, str):
+        raise TypeError("'vtype' must be a string or series")
 
     if isinstance(name, pd.Series):
         namearg = prepare_series(name, index)
         seriesname = None
-    else:
+    elif isinstance(name, str):
         namearg = name
         seriesname = name
+    elif name is None:
+        namearg = None
+        seriesname = None
+    else:
+        raise TypeError("'name' must be a string, series, or None")
 
     newvars = model.addVars(index, lb=lb, ub=ub, obj=obj, vtype=vtype, name=namearg)
     return pd.Series(index=index, data=list(newvars.values()), name=seriesname)
@@ -130,12 +143,24 @@ def add_vars_from_dataframe(
 
     if isinstance(lb, str):
         lb = prepare_series(data[lb])
+    else:
+        lb = float(lb)
 
     if isinstance(ub, str):
         ub = prepare_series(data[ub])
+    else:
+        ub = float(ub)
 
     if isinstance(obj, str):
         obj = prepare_series(data[obj])
+    else:
+        obj = float(obj)
+
+    if not isinstance(vtype, str):
+        raise TypeError("'vtype' must be a string")
+
+    if not (name is None or isinstance(name, str)):
+        raise TypeError("'name' must be a string or None")
 
     newvars = model.addVars(data.index, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name)
     return pd.Series(index=data.index, data=list(newvars.values()), name=name)
