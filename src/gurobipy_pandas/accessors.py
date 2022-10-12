@@ -3,7 +3,7 @@ Accessor methods bound to pd.Index.grb, pd.Series.grb, pd.DataFrame.grb
 """
 
 import re
-from typing import Union, Optional, List
+from typing import Union, Optional
 
 import pandas as pd
 

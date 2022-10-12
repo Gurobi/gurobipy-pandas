@@ -3,15 +3,11 @@ Internal methods for adding variables to a model using a pandas structure.
 These are used to build the actual API methods.
 """
 
-from typing import Union, NewType, Optional
+from typing import Union, Optional
 
 import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
-
-
-# Dummy type to enable type checking of series accessors
-GRBSeriesVar = NewType("GRBSeriesVar", pd.Series)
 
 
 def prepare_series(series, index=None):
@@ -47,7 +43,7 @@ def add_vars_from_index(
     obj: Union[float, pd.Series] = 0.0,
     vtype: Union[str, pd.Series] = GRB.CONTINUOUS,
     name: Optional[Union[str, pd.Series]] = None,
-) -> GRBSeriesVar:
+) -> pd.Series:
     """Add one variable to :model for every entry in :index. Added
     variables are returned as a series with index :index.
 
@@ -108,7 +104,7 @@ def add_vars_from_dataframe(
     obj: Union[float, str] = 0.0,
     vtype: str = GRB.CONTINUOUS,
     name: Optional[str] = None,
-) -> GRBSeriesVar:
+) -> pd.Series:
     """Add one variable to :model for every row in :data. Added
     variables are returned as a series on the same index as :data.
 
