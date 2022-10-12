@@ -330,67 +330,6 @@ class GRBSeriesAccessor:
             data=[le.getValue() for le in self._obj],
         )
 
-    def pd_add_vars(self, *args, **kwargs):
-        return self._obj.index.grb.pd_add_vars(*args, **kwargs)
-
-    def pd_add_constrs(
-        self,
-        model: gp.Model,
-        sense: str,
-        rhs: Optional[Union[str, float]] = None,
-        name: Optional[str] = None,
-    ):
-        """Add a constraint to the model for each entry in the series
-        referenced by this accessor.
-
-        :param model: A Gurobi model to which new constraints will be added
-        :type model: :class:`gurobipy.Model`
-        :param sense: Constraint sense.
-        :type sense: str
-        :param rhs: Constraint right hand side. Can be a scalar value or
-            another Series with a corresponding index.
-        :type rhs: :class:`pd.Series` or float
-        :param name: Used as the returned Series name, as well as the base
-            name for added Gurobi constraints. Constraint name suffixes
-            come from the dataframe index.
-        :type name: str
-        :return: A Series of constraints attached to the given Model.
-        :rtype: :class:`pd.Series`
-
-        This syntax is useful for simple groupby operations (for example,
-        building logical OR relationships):
-
-        >>> m = gp.Model()
-        >>> df = pd.DataFrame({"key": [1, 2, 2, 2]})
-        >>> df = df.grb.pd_add_vars(m, name="x", vtype=gp.GRB.BINARY)
-        >>> constrs = (
-        ...     df.groupby('key')['x'].sum()
-        ...     .grb.pd_add_constrs(m, GRB.EQUAL, 1, name='c')
-        ... )
-        >>> m.update()
-        >>> constrs.grb.RHS
-        key
-        1    1.0
-        2    1.0
-        Name: c, dtype: float64
-        >>> constrs.grb.Sense
-        key
-        1    =
-        2    =
-        Name: c, dtype: object
-        >>> constrs.apply(m.getRow)
-        key
-        1                  <gurobi.LinExpr: x[0]>
-        2    <gurobi.LinExpr: x[1] + x[2] + x[3]>
-        Name: c, dtype: object
-
-        """
-        df = self._obj.to_frame(name="lhs")
-        df["rhs"] = rhs
-        # Use the dataframe machinery.
-        df = df.grb.pd_add_constrs(model, "lhs", sense, "rhs", name=name)
-        return df[name]
-
 
 @pd.api.extensions.register_index_accessor("grb")
 class GRBIndexAccessor:
