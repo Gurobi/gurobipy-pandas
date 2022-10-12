@@ -58,6 +58,35 @@ def add_constrs_from_dataframe(
         return _add_constrs_from_dataframe_args(model, data, lhs, sense, rhs, name)
 
 
+def add_constrs_from_series(
+    model: gp.Model,
+    lhs: pd.Series,
+    sense: str,
+    rhs: pd.Series,
+    *,
+    name: Optional[str] = None,
+) -> pd.Series:
+
+    if isinstance(lhs, pd.Series) and isinstance(rhs, pd.Series):
+        if not lhs.index.sort_values().equals(rhs.index.sort_values()):
+            raise KeyError("series must be aligned")
+
+    if isinstance(lhs, pd.Series) and lhs.isnull().any():
+        raise ValueError("lhs series has missing values")
+
+    if isinstance(rhs, pd.Series) and rhs.isnull().any():
+        raise ValueError("rhs series has missing values")
+
+    data = pd.DataFrame(
+        {
+            "lhs": lhs,
+            "rhs": rhs,
+        }
+    )
+
+    return add_constrs_from_dataframe(model, data, "lhs", sense, "rhs", name=name)
+
+
 def _create_expressions_dataframe(df, expr):
     """Parse an expression (like DataFrame.query) to create left- and
     right-hand sides for buildind constraints. A new dataframe is

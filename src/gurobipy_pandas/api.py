@@ -26,7 +26,7 @@ def pd_add_vars(
     obj: Union[float, pd.Series] = 0.0,
     vtype: Union[str, pd.Series] = GRB.CONTINUOUS,
 ) -> pd.Series:
-    ...
+    ...  # pragma: no cover
 
 
 # DataFrame variant (attribute arguments must be values or column names)
@@ -41,7 +41,7 @@ def pd_add_vars(
     obj: Union[float, str] = 0.0,
     vtype: str = GRB.CONTINUOUS,
 ) -> pd.Series:
-    ...
+    ...  # pragma: no cover
 
 
 def pd_add_vars(
@@ -54,6 +54,7 @@ def pd_add_vars(
     obj=0.0,
     vtype=GRB.CONTINUOUS,
 ):
+    """Create variables based on a pandas object"""
 
     if isinstance(pandas_obj, pd.Index):
         # Use the given index as the base object. All attribute arguments must
@@ -76,3 +77,14 @@ def pd_add_vars(
         )
     else:
         raise ValueError("`pandas_obj` must be an index, series, or dataframe")
+
+
+def pd_add_constrs(
+    model,
+    lhs: Union[pd.Series, float],
+    sense: str,
+    rhs: Union[pd.Series, float],
+    *,
+    name: Optional[str] = None,
+) -> pd.Series:
+    return

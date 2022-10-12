@@ -4,7 +4,10 @@ import gurobipy as gp
 from gurobipy import GRB
 
 from gurobipy_pandas.add_vars import add_vars_from_index
-from gurobipy_pandas.add_constrs import add_constrs_from_dataframe
+from gurobipy_pandas.add_constrs import (
+    add_constrs_from_dataframe,
+    add_constrs_from_series,
+)
 
 from .utils import GurobiTestCase
 
@@ -285,3 +288,131 @@ class TestAddConstrsFromDataFrame(GurobiTestCase):
             self.assertEqual(qconstr.QCRHS, 5.0)
             ref = x[index] * y[index] - y[index] * a[index]
             self.assert_quadexpr_equal(self.model.getQCRow(qconstr), ref)
+
+
+class TestAddConstrsFromSeries(GurobiTestCase):
+    def test_bothseries(self):
+        # linear series <= linear series
+
+        index = pd.RangeIndex(5)
+        x = add_vars_from_index(self.model, index, name="x")
+        y = add_vars_from_index(self.model, index, name="y")
+
+        constrs = add_constrs_from_series(
+            self.model, x + 1, GRB.LESS_EQUAL, y * 2, name="linear"
+        )
+
+        # Constraints added to model
+        self.model.update()
+        self.assertEqual(self.model.NumConstrs, 5)
+
+        # Returned series has the right structure
+        self.assertIsInstance(constrs, pd.Series)
+        self.assertEqual(constrs.name, "linear")
+        assert_index_equal(constrs.index, index)
+
+        # Check data in model
+        for ind, constr in constrs.items():
+            self.assertEqual(constr.ConstrName, f"linear[{ind}]")
+            self.assertEqual(constr.Sense, GRB.LESS_EQUAL)
+            self.assertEqual(constr.RHS, -1.0)
+            self.assert_linexpr_equal(self.model.getRow(constr), x[ind] - 2 * y[ind])
+
+    def test_lhs_scalar(self):
+        # scalar == linear series
+
+        index = pd.RangeIndex(5)
+        x = add_vars_from_index(self.model, index, name="x")
+
+        constrs = add_constrs_from_series(self.model, x + 1, GRB.EQUAL, 2)
+
+        # Constraints added to model
+        self.model.update()
+        self.assertEqual(self.model.NumConstrs, 5)
+
+        # Returned series has the right structure
+        self.assertIsInstance(constrs, pd.Series)
+        self.assertIsNone(constrs.name)
+        assert_index_equal(constrs.index, index)
+
+        # Check data in model
+        for i, (ind, constr) in enumerate(constrs.items()):
+            self.assertEqual(constr.ConstrName, f"R{i}")
+            self.assertEqual(constr.Sense, GRB.EQUAL)
+            self.assertEqual(constr.RHS, 1.0)
+            self.assert_linexpr_equal(self.model.getRow(constr), gp.LinExpr(x[ind]))
+
+    def test_rhs_scalar(self):
+        # scalar >= linear series
+
+        index = pd.RangeIndex(5)
+        x = add_vars_from_index(self.model, index, name="x")
+
+        constrs = add_constrs_from_series(self.model, 1, GRB.GREATER_EQUAL, 2 * x)
+
+        # Constraints added to model
+        self.model.update()
+        self.assertEqual(self.model.NumConstrs, 5)
+
+        # Returned series has the right structure
+        self.assertIsInstance(constrs, pd.Series)
+        self.assertIsNone(constrs.name)
+        assert_index_equal(constrs.index, index)
+
+        # Check data in model
+        for i, (ind, constr) in enumerate(constrs.items()):
+            self.assertEqual(constr.ConstrName, f"R{i}")
+            self.assertEqual(constr.Sense, GRB.GREATER_EQUAL)
+            self.assertEqual(constr.RHS, -1.0)
+            self.assert_linexpr_equal(self.model.getRow(constr), -2.0 * x[ind])
+
+    def test_quad_series(self):
+        # quad == linear
+
+        index = pd.MultiIndex.from_tuples([("a", 1), ("b", 2), ("c", 3)])
+        x = add_vars_from_index(self.model, index, name="x")
+        y = add_vars_from_index(self.model, index, name="y")
+        z = add_vars_from_index(self.model, index, name="z")
+
+        qconstrs = add_constrs_from_series(
+            self.model, x * y, GRB.EQUAL, 3 * z + 1, name="Q"
+        )
+
+        # Constraints added to model
+        self.model.update()
+        self.assertEqual(self.model.NumQConstrs, 3)
+
+        # Returned series has the right structure
+        self.assertIsInstance(qconstrs, pd.Series)
+        self.assertEqual(qconstrs.name, "Q")
+        assert_index_equal(qconstrs.index, index)
+
+        # Check data in model
+        for (ind1, ind2), qconstr in qconstrs.items():
+            self.assertEqual(qconstr.QCName, f"Q[{ind1},{ind2}]")
+            self.assertEqual(qconstr.QCSense, GRB.EQUAL)
+            self.assertEqual(qconstr.QCRHS, 1)
+            ref = x[ind1, ind2] * y[ind1, ind2] - z[ind1, ind2] * 3
+            self.assert_quadexpr_equal(self.model.getQCRow(qconstr), ref)
+
+    def test_misaligned_series(self):
+
+        x = add_vars_from_index(self.model, pd.RangeIndex(5))
+        y = add_vars_from_index(self.model, pd.RangeIndex(1, 4))
+
+        with self.assertRaises(KeyError):
+            add_constrs_from_series(self.model, x, GRB.EQUAL, y)
+
+        with self.assertRaises(KeyError):
+            add_constrs_from_series(self.model, y, GRB.EQUAL, x)
+
+    def test_missingvalues(self):
+
+        y = add_vars_from_index(self.model, pd.RangeIndex(1, 4))
+        a = pd.Series(index=y.index, data=[1, None, 2], dtype=float)
+
+        with self.assertRaises(ValueError):
+            add_constrs_from_series(self.model, y, GRB.EQUAL, a)
+
+        with self.assertRaises(ValueError):
+            add_constrs_from_series(self.model, a, GRB.EQUAL, y)
