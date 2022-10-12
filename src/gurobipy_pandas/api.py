@@ -55,8 +55,23 @@ def pd_add_vars(
     obj=0.0,
     vtype=GRB.CONTINUOUS,
 ):
-    """Create variables based on a pandas object"""
+    """Add a variable to the given model for each entry in the given pandas
+    Index, Series, or DataFrame.
 
+    :param model: A Gurobi model to which new variables will be added
+    :type model: :class:`gurobipy.Model`
+    :param pandas_obj: A pandas Index, Series, or DataFrame
+    :param name: If provided, used as base name for new Gurobi variables
+        and the name of the returned series
+    :type name: str, optional
+    :param lb: Lower bound for created variables. Can be a single numeric
+        value. If :pandas_obj is an Index or Series, can be a Series aligned
+        with :pandas_obj. If :pandas_obj is a dataframe, can be a string
+        referring to a column of :pandas_obj. Defaults to 0.0
+    :type lb: float, str, or pd.Series, optional
+    :return: A Series of vars with the the index of :pandas_obj
+    :rtype: :class:`pd.Series`
+    """
     if isinstance(pandas_obj, pd.Index):
         # Use the given index as the base object. All attribute arguments must
         # be single values, or series aligned with the index.
@@ -88,4 +103,21 @@ def pd_add_constrs(
     *,
     name: Optional[str] = None,
 ) -> pd.Series:
+    """Add a constraint to the model for each row in lhs & rhs.
+
+    :param model: A Gurobi model to which new constraints will be added
+    :type model: :class:`gurobipy.Model`
+    :param lhs: A series or numeric value
+    :type lhs: pd.Series
+    :param sense: Constraint sense
+    :type sense: str
+    :param rhs: A series or numeric value
+    :type rhs: pd.Series
+    :param name: Used as the returned series name, as well as the base
+        name for added Gurobi constraints. Constraint name suffixes
+        come from the lhs/rhs index.
+    :type name: str
+    :return: A Series of Constr objects
+    :rtype: :class:`pd.Series`
+    """
     return add_constrs_from_series(model, lhs, sense, rhs, name=name)
