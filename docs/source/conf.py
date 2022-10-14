@@ -23,6 +23,7 @@ extensions = [
     "sphinx_toolbox.collapse",
     "sphinx_toolbox.code",
     "nbsphinx",
+    "sphinx_copybutton",
 ]
 
 pygments_style = "vs"
@@ -43,6 +44,8 @@ intersphinx_disabled_domains = ["std"]
 templates_path = ["_templates"]
 
 autodoc_typehints = "none"
+
+copybutton_prompt_text = ">>> "
 
 # -- Options for EPUB output
 
