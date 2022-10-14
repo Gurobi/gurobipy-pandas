@@ -59,6 +59,6 @@ Index
 
    installation
    walkthrough
-   top-level-functions
+   function-patterns
    examples
    api

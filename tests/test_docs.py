@@ -14,5 +14,5 @@ def setup(arg):
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(gurobipy_pandas.accessors, setUp=setup))
     tests.addTests(doctest.DocFileSuite("../docs/source/walkthrough.rst"))
-    tests.addTests(doctest.DocFileSuite("../docs/source/top-level-functions.rst"))
+    tests.addTests(doctest.DocFileSuite("../docs/source/function-patterns.rst"))
     return tests

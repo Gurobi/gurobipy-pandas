@@ -1,7 +1,7 @@
-Top Level Function Style
-========================
+Function Patterns
+=================
 
-Imports you'll need for this style:
+Imports you'll need for this pattern:
 
 .. doctest:: [toplevel]
 
@@ -28,7 +28,13 @@ Create a series of variables based on a pandas dataframe (dataframe may be used 
 .. doctest:: [toplevel]
 
     >>> model = gp.Model("networkflow")
-    >>> flow = pd_add_vars(model, data, ub="capacity", obj="cost", name="flow")
+    >>> flow = pd_add_vars(
+    ... model,
+    ... data,
+    ... ub="capacity",
+    ... obj="cost",
+    ... name="flow",
+    ... )
     >>> model.update()
     >>> flow
     from  to
@@ -51,7 +57,12 @@ Create constraints from aligned series:
 
 .. doctest:: [toplevel]
 
-    >>> constrs = pd_add_constrs(model, flow.groupby("to").sum(), GRB.EQUAL, flow.groupby("from").sum())
+    >>> constrs = pd_add_constrs(
+    ... model,
+    ... flow.groupby("to").sum(),
+    ... GRB.EQUAL,
+    ... flow.groupby("from").sum(),
+    ... )
     >>> model.update()
     >>> constrs
     0    <gurobi.Constr R0>
