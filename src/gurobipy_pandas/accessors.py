@@ -295,8 +295,9 @@ class GRBSeriesAccessor:
         1    <gurobi.Var C1>
         2    <gurobi.Var C2>
         dtype: object
-        >>> upper_bounds = pd.Series(data=[3, 2], index=[1, 2])
+        >>> upper_bounds = pd.Series(data=[1, 3, 2], index=[0, 1, 2])
         >>> upper_bounds
+        0    1
         1    3
         2    2
         dtype: int64
@@ -308,7 +309,7 @@ class GRBSeriesAccessor:
 
         >>> m.update()
         >>> x.gppd.UB
-        0    inf
+        0    1.0
         1    3.0
         2    2.0
         dtype: float64
