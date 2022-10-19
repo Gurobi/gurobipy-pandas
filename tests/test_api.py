@@ -40,9 +40,9 @@ class TestPDAddVars(GurobiTestCase):
             self.assertEqual(flowvar.VType, GRB.CONTINUOUS)
 
         # Attributes are correct, using the series accessors to validate
-        self.assertTrue((flow.grb.LB == 0).all())
-        assert_series_equal(flow.grb.UB, data["capacity"], check_names=False)
-        assert_series_equal(flow.grb.Obj, data["cost"], check_names=False)
+        self.assertTrue((flow.gppd.LB == 0).all())
+        assert_series_equal(flow.gppd.UB, data["capacity"], check_names=False)
+        assert_series_equal(flow.gppd.Obj, data["cost"], check_names=False)
 
     def test_from_series(self):
 
@@ -65,9 +65,9 @@ class TestPDAddVars(GurobiTestCase):
             self.assertEqual(variable.VType, GRB.BINARY)
 
         # Attributes are correct, using the series accessors to validate
-        self.assertTrue((x.grb.LB == 0.0).all())
-        self.assertTrue((x.grb.UB == 1.0).all())
-        self.assertTrue((x.grb.Obj == 0.0).all())
+        self.assertTrue((x.gppd.LB == 0.0).all())
+        self.assertTrue((x.gppd.UB == 1.0).all())
+        self.assertTrue((x.gppd.Obj == 0.0).all())
 
     def test_from_index(self):
 
@@ -91,9 +91,9 @@ class TestPDAddVars(GurobiTestCase):
             self.assertEqual(variable.VType, GRB.CONTINUOUS)
 
         # Attributes are correct, using the series accessors to validate
-        self.assertTrue((x.grb.LB == 0.0).all())
-        self.assertTrue((x.grb.UB >= 1e100).all())
-        assert_series_equal(x.grb.Obj, objseries, check_names=False)
+        self.assertTrue((x.gppd.LB == 0.0).all())
+        self.assertTrue((x.gppd.UB >= 1e100).all())
+        assert_series_equal(x.gppd.Obj, objseries, check_names=False)
 
 
 class TestPDAddConstrs(GurobiTestCase):
@@ -125,5 +125,5 @@ class TestPDAddConstrs(GurobiTestCase):
             self.assert_linexpr_equal(self.model.getRow(constr), 2 * x[ind] + y[ind])
 
         # Check data using accessors
-        self.assertTrue((constrs.grb.Sense == GRB.LESS_EQUAL).all())
-        assert_series_equal(constrs.grb.RHS, k.astype(float), check_names=False)
+        self.assertTrue((constrs.gppd.Sense == GRB.LESS_EQUAL).all())
+        assert_series_equal(constrs.gppd.RHS, k.astype(float), check_names=False)
