@@ -17,7 +17,7 @@ Welcome to gurobipy-pandas's documentation!
       a  b
    0  1  3
    1  2  4
-   >>> df.grb.pd_add_vars(model, name='x')
+   >>> df.gppd.add_vars(model, name='x')
       a  b                  x
    0  1  3  <gurobi.Var x[0]>
    1  2  4  <gurobi.Var x[1]>
@@ -42,7 +42,7 @@ Finally, the accessors allow constraints to be added to the model using the resu
 
 .. doctest:: [simple]
 
-   >>> df.groupby("a")["y"].sum().grb.pd_add_constrs(
+   >>> df.groupby("a")["y"].sum().gppd.add_constrs(
    ...     model, gp.GRB.LESS_EQUAL, 1, name='c'
    ... )
                          c

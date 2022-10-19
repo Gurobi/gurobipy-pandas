@@ -23,7 +23,7 @@ Imports you'll need for all :code:`gurobipy_pandas` applications:
     >>> import pandas as pd
     >>> import gurobipy as gp
     >>> from gurobipy import GRB
-    >>> from gurobipy_pandas import pd_add_constrs
+    >>> import gurobipy_pandas as gppd
 
 Pandas conveniently stores data in relation to indexes, so we would naturally define the data for items in a single DataFrame (with columns for weights and profits).
 
@@ -74,14 +74,14 @@ The model contains a variable for every index pair. Pandas provides a convenient
                 (5, 2)],
                names=['item', 'knapsack'])
 
-From an index, :code:`gurobipy_pandas` provides an accessor API to create variables. We first create a gurobipy Model, then call the index accessor :code:`.grb.pd_add_vars` to create a Gurobi variable for every entry in the index. The result is a Pandas series containing Gurobi variables.
+From an index, :code:`gurobipy_pandas` provides an accessor API to create variables. We first create a gurobipy Model, then call the index accessor :code:`.gppd.add_vars` to create a Gurobi variable for every entry in the index. The result is a Pandas series containing Gurobi variables.
 
 .. doctest:: [knapsack]
 
     >>> m = gp.Model()
     >>> x = (
     ...     pd.MultiIndex.from_product([items, knapsacks])
-    ...     .grb.pd_add_vars(m, name='x', vtype=gp.GRB.BINARY)
+    ...     .gppd.add_vars(m, name='x', vtype=GRB.BINARY)
     ... )
     >>> m.update()
     >>> x
@@ -98,10 +98,10 @@ From an index, :code:`gurobipy_pandas` provides an accessor API to create variab
           2           <gurobi.Var x[5,2]>
     Name: x, dtype: object
 
-The objective function of the model can be set by associating the data coefficients :math:`p_i`, stored in :code:`item_data['value']` with the :math:`x_{ij}` variables. This is done using the series accessor :code:`.grb.Obj`. Note that this method lines up variables with data based on the "items" index (the index name is important).
+The objective function of the model can be set by associating the data coefficients :math:`p_i`, stored in :code:`item_data['value']` with the :math:`x_{ij}` variables. This is done using the series accessor :code:`.gppd.Obj`. Note that this method lines up variables with data based on the "items" index (the index name is important).
 
 >>> m.ModelSense = GRB.MAXIMIZE
->>> x.grb.Obj = item_data["value"]
+>>> x.gppd.Obj = item_data["value"]
 >>> m.update()
 >>> m.getObjective()
 <gurobi.LinExpr: 0.5 x[1,1] + 0.5 x[1,2] + 1.2 x[2,1] + 1.2 x[2,2] + 0.3 x[3,1] + 0.3 x[3,2] + 0.7 x[4,1] + 0.7 x[4,2] + 0.9 x[5,1] + 0.9 x[5,2]>
@@ -116,13 +116,13 @@ Finally, we can build the constraints by using the "knapsack" index to group var
     1         <gurobi.LinExpr: x[1,1] + x[2,1] + ...       2.0
     2         <gurobi.LinExpr: x[1,2] + x[2,2] + ...       1.5
 
-We then use the dataframe accessor :code:`.grb.pd_add_constrs` to create constraints relating two columns in the resulting dataframe.
+We then use the dataframe accessor :code:`.gppd.add_constrs` to create constraints relating two columns in the resulting dataframe.
 
 .. doctest:: [knapsack]
 
     >>> constrs = (
     ...     x.groupby("knapsack").sum().to_frame().join(knapsack_capacity)
-    ...     .grb.pd_add_constrs(m, "x", GRB.LESS_EQUAL, "capacity", name="capconstr")
+    ...     .gppd.add_constrs(m, "x", GRB.LESS_EQUAL, "capacity", name="capconstr")
     ... )
     >>> m.update()
     >>> constrs["capconstr"]
@@ -135,7 +135,7 @@ Constraints that each item only appears in one knapsack. This can be done more s
 
 .. doctest:: [knapsack]
 
-    >>> c2 = pd_add_constrs(
+    >>> c2 = gppd.add_constrs(
     ...     m, x.groupby('item').sum(), GRB.LESS_EQUAL, 1.0, name="c"
     ... )
     >>> m.update()
@@ -156,11 +156,11 @@ Solving the model ...
     Gurobi Optimizer ...
     Best objective 2.800000000000e+00, best bound 2.800000000000e+00, gap 0.0000%
 
-Finally, we use the series accessor :code:`.grb.X` to retrieve solution values. Using Pandas functions we can transform the result into a more readable form. Below shows that items 4 and 5 are packed into knapsack 1, while only item 2 is packed into knapsack 2.
+Finally, we use the series accessor :code:`.gppd.X` to retrieve solution values. Using Pandas functions we can transform the result into a more readable form. Below shows that items 4 and 5 are packed into knapsack 1, while only item 2 is packed into knapsack 2.
 
 .. doctest:: [knapsack]
 
-    >>> x.grb.X.unstack().abs()  # doctest: +NORMALIZE_WHITESPACE
+    >>> x.gppd.X.unstack().abs()  # doctest: +NORMALIZE_WHITESPACE
     knapsack    1    2
     item
     1         0.0  0.0
@@ -169,11 +169,11 @@ Finally, we use the series accessor :code:`.grb.X` to retrieve solution values. 
     4         1.0  0.0
     5         1.0  0.0
 
-We can also use the series access :code:`.grb.Slack` on constraint series to determine constraint slacks. For example, the following shows spare capacity in each knapsack based on the capacity constraint.
+We can also use the series access :code:`.gppd.Slack` on constraint series to determine constraint slacks. For example, the following shows spare capacity in each knapsack based on the capacity constraint.
 
 .. doctest:: [knapsack]
 
-    >>> constrs["capconstr"].grb.Slack
+    >>> constrs["capconstr"].gppd.Slack
     knapsack
     1    0.0
     2    0.5

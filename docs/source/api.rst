@@ -1,15 +1,15 @@
 API
 ===
 
-.. autofunction:: gurobipy_pandas.api.pd_add_vars
+.. autofunction:: gurobipy_pandas.api.add_vars
 
-.. autofunction:: gurobipy_pandas.api.pd_add_constrs
+.. autofunction:: gurobipy_pandas.api.add_constrs
 
 .. autoclass:: gurobipy_pandas.accessors.GRBDataFrameAccessor
-    :members: pd_add_vars, pd_add_constrs
+    :members: add_vars, add_constrs
 
 .. autoclass:: gurobipy_pandas.accessors.GRBSeriesAccessor
     :members: __getattr__, __setattr__, get_value
 
 .. autoclass:: gurobipy_pandas.accessors.GRBIndexAccessor
-    :members: pd_add_vars
+    :members: add_vars

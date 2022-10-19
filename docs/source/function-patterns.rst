@@ -8,7 +8,7 @@ Imports you'll need for this pattern:
     >>> import pandas as pd
     >>> import gurobipy as gp
     >>> from gurobipy import GRB
-    >>> from gurobipy_pandas import pd_add_constrs, pd_add_vars
+    >>> import gurobipy_pandas as gppd
 
 Some networky data to feed in:
 
@@ -28,7 +28,7 @@ Create a series of variables based on a pandas dataframe (dataframe may be used 
 .. doctest:: [toplevel]
 
     >>> model = gp.Model("networkflow")
-    >>> flow = pd_add_vars(
+    >>> flow = gppd.add_vars(
     ... model,
     ... data,
     ... ub="capacity",
@@ -44,7 +44,7 @@ Create a series of variables based on a pandas dataframe (dataframe may be used 
     0     2     <gurobi.Var flow[0,2]>
     3     2     <gurobi.Var flow[3,2]>
     Name: flow, dtype: object
-    >>> flow.grb.UB
+    >>> flow.gppd.UB
     from  to
     1     0     0.3
     2     1     1.2
@@ -57,7 +57,7 @@ Create constraints from aligned series:
 
 .. doctest:: [toplevel]
 
-    >>> constrs = pd_add_constrs(
+    >>> constrs = gppd.add_constrs(
     ... model,
     ... flow.groupby("to").sum(),
     ... GRB.EQUAL,
@@ -76,13 +76,13 @@ Create constraints from aligned series:
     2    <gurobi.LinExpr: -1.0 flow[2,1] + flow[0,2] + ...
     3         <gurobi.LinExpr: flow[1,3] + -1.0 flow[3,2]>
     dtype: object
-    >>> constrs.grb.Sense
+    >>> constrs.gppd.Sense
     0    =
     1    =
     2    =
     3    =
     dtype: object
-    >>> constrs.grb.RHS
+    >>> constrs.gppd.RHS
     0    0.0
     1    0.0
     2    0.0
