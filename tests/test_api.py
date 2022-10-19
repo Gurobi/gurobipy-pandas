@@ -4,10 +4,10 @@ tests of data types, errors, etc, are done on the lower-level functions.
 """
 
 import pandas as pd
-from pandas.testing import assert_index_equal, assert_series_equal
-import gurobipy as gp
 from gurobipy import GRB
-from gurobipy_pandas import pd_add_vars, pd_add_constrs
+import gurobipy_pandas as gppd
+
+from pandas.testing import assert_index_equal, assert_series_equal
 from tests.utils import GurobiTestCase
 
 
@@ -23,7 +23,7 @@ class TestPDAddVars(GurobiTestCase):
             }
         ).set_index(["source", "sink"])
 
-        flow = pd_add_vars(self.model, data, name="flow", obj="cost", ub="capacity")
+        flow = gppd.add_vars(self.model, data, name="flow", obj="cost", ub="capacity")
 
         # Necessary variables registered on the model
         self.model.update()
@@ -48,7 +48,7 @@ class TestPDAddVars(GurobiTestCase):
 
         series = pd.Series(index=pd.RangeIndex(5), data=[1, 2, 3, 4, 5])
 
-        x = pd_add_vars(self.model, series, name="x", vtype="B")
+        x = gppd.add_vars(self.model, series, name="x", vtype="B")
 
         # Necessary variables registered on the model
         self.model.update()
@@ -74,7 +74,7 @@ class TestPDAddVars(GurobiTestCase):
         index = pd.RangeIndex(5)
         objseries = pd.Series(index=index, data=[1, 2, 3, 4, 5], dtype=float)
 
-        x = pd_add_vars(self.model, index, name="x", obj=objseries)
+        x = gppd.add_vars(self.model, index, name="x", obj=objseries)
 
         # Necessary variables registered on the model
         self.model.update()
@@ -101,11 +101,13 @@ class TestPDAddConstrs(GurobiTestCase):
 
         index = pd.RangeIndex(10)
 
-        x = pd_add_vars(self.model, index, name="x")
-        y = pd_add_vars(self.model, index, name="y")
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
         k = pd.Series(index=index, data=range(10, 20))
 
-        constrs = pd_add_constrs(self.model, 2 * x + y, GRB.LESS_EQUAL, k, name="cons")
+        constrs = gppd.add_constrs(
+            self.model, 2 * x + y, GRB.LESS_EQUAL, k, name="cons"
+        )
 
         # Correct model metadata
         self.model.update()
