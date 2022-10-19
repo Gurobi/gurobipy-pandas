@@ -57,86 +57,94 @@ Data for knapsacks fits more naturally in a Series, since there is only one data
     2    1.5
     Name: capacity, dtype: float64
 
-The model contains a variable for every index pair. Pandas provides a convenient construction to express all the indices for :math:`x_{ij}` as a multi-index.
+The model contains a variable for every index pair. Pandas provides a convenient construction to express all the indices for :math:`x_{ij}` as a multi-index. We can then join the item data onto this index (this helps us later to align data with variables).
 
 .. doctest:: [knapsack]
 
-    >>> pd.MultiIndex.from_product([items, knapsacks])
-    MultiIndex([(1, 1),
-                (1, 2),
-                (2, 1),
-                (2, 2),
-                (3, 1),
-                (3, 2),
-                (4, 1),
-                (4, 2),
-                (5, 1),
-                (5, 2)],
-               names=['item', 'knapsack'])
+    >>> df_pairs = pd.DataFrame(
+    ...    index=pd.MultiIndex.from_product([items, knapsacks])
+    ... ).join(item_data)
+    >>> df_pairs    # doctest: +NORMALIZE_WHITESPACE
+                   weight  value
+    item knapsack
+    1    1            1.0    0.5
+         2            1.0    0.5
+    2    1            1.5    1.2
+         2            1.5    1.2
+    3    1            1.2    0.3
+         2            1.2    0.3
+    4    1            0.9    0.7
+         2            0.9    0.7
+    5    1            0.7    0.9
+         2            0.7    0.9
 
-From an index, :code:`gurobipy_pandas` provides an accessor API to create variables. We first create a gurobipy Model, then call the index accessor :code:`.gppd.add_vars` to create a Gurobi variable for every entry in the index. The result is a Pandas series containing Gurobi variables.
+From the above dataframe, :code:`gurobipy_pandas` provides an accessor to create a corresponding series of variables. We first create a gurobipy Model, then call :code:`.gppd.add_vars` on our new dataframe to create a Gurobi variable for every entry in the index. The result is a Pandas dataframe containing Gurobi variables. Note the objective coefficients can be set directly on the variables as they are created, using the aligned item value data.
 
 .. doctest:: [knapsack]
 
     >>> m = gp.Model()
-    >>> x = (
-    ...     pd.MultiIndex.from_product([items, knapsacks])
-    ...     .gppd.add_vars(m, name='x', vtype=GRB.BINARY)
+    >>> df_assign = df_pairs.gppd.add_vars(
+    ...    m, name='x', vtype=GRB.BINARY, obj="value"
     ... )
+    >>> m.ModelSense = GRB.MAXIMIZE
     >>> m.update()
-    >>> x
-    item  knapsack
-    1     1           <gurobi.Var x[1,1]>
-          2           <gurobi.Var x[1,2]>
-    2     1           <gurobi.Var x[2,1]>
-          2           <gurobi.Var x[2,2]>
-    3     1           <gurobi.Var x[3,1]>
-          2           <gurobi.Var x[3,2]>
-    4     1           <gurobi.Var x[4,1]>
-          2           <gurobi.Var x[4,2]>
-    5     1           <gurobi.Var x[5,1]>
-          2           <gurobi.Var x[5,2]>
-    Name: x, dtype: object
+    >>> df_assign    # doctest: +NORMALIZE_WHITESPACE
+                   weight  value                    x
+    item knapsack
+    1    1            1.0    0.5  <gurobi.Var x[1,1]>
+         2            1.0    0.5  <gurobi.Var x[1,2]>
+    2    1            1.5    1.2  <gurobi.Var x[2,1]>
+         2            1.5    1.2  <gurobi.Var x[2,2]>
+    3    1            1.2    0.3  <gurobi.Var x[3,1]>
+         2            1.2    0.3  <gurobi.Var x[3,2]>
+    4    1            0.9    0.7  <gurobi.Var x[4,1]>
+         2            0.9    0.7  <gurobi.Var x[4,2]>
+    5    1            0.7    0.9  <gurobi.Var x[5,1]>
+         2            0.7    0.9  <gurobi.Var x[5,2]>
 
-The objective function of the model can be set by associating the data coefficients :math:`p_i`, stored in :code:`item_data['value']` with the :math:`x_{ij}` variables. This is done using the series accessor :code:`.gppd.Obj`. Note that this method lines up variables with data based on the "items" index (the index name is important).
-
->>> m.ModelSense = GRB.MAXIMIZE
->>> x.gppd.Obj = item_data["value"]
->>> m.update()
->>> m.getObjective()
-<gurobi.LinExpr: 0.5 x[1,1] + 0.5 x[1,2] + 1.2 x[2,1] + 1.2 x[2,2] + 0.3 x[3,1] + 0.3 x[3,2] + 0.7 x[4,1] + 0.7 x[4,2] + 0.9 x[5,1] + 0.9 x[5,2]>
-
-Finally, we can build the constraints by using the "knapsack" index to group variables, and lining the result up with the data based on that index.
+Check the constructed objective function:
 
 .. doctest:: [knapsack]
 
-    >>> x.groupby("knapsack").sum().to_frame().join(knapsack_capacity)  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-                                                   x  capacity
+    >>> m.getObjective()
+    <gurobi.LinExpr: 0.5 x[1,1] + 0.5 x[1,2] + 1.2 x[2,1] + 1.2 x[2,2] + 0.3 x[3,1] + 0.3 x[3,2] + 0.7 x[4,1] + 0.7 x[4,2] + 0.9 x[5,1] + 0.9 x[5,2]>
+
+Finally, we can build the capacity constraints by using the "knapsack" index to group variables along with their weights:
+
+.. doctest:: [knapsack]
+
+    >>> total_weight = (
+    ...     (df_assign["weight"] * df_assign["x"])
+    ...     .groupby("knapsack").sum()
+    ... )
+    >>> total_weight
     knapsack
-    1         <gurobi.LinExpr: x[1,1] + x[2,1] + ...       2.0
-    2         <gurobi.LinExpr: x[1,2] + x[2,2] + ...       1.5
+    1    <gurobi.LinExpr: x[1,1] + 1.5 x[2,1] + 1.2 x[3...
+    2    <gurobi.LinExpr: x[1,2] + 1.5 x[2,2] + 1.2 x[3...
+    dtype: object
 
-We then use the dataframe accessor :code:`.gppd.add_constrs` to create constraints relating two columns in the resulting dataframe.
+and using the function `gppd.add_constrs` to create constraints by aligning these expressions with capacity data:
 
 .. doctest:: [knapsack]
 
-    >>> constrs = (
-    ...     x.groupby("knapsack").sum().to_frame().join(knapsack_capacity)
-    ...     .gppd.add_constrs(m, "x", GRB.LESS_EQUAL, "capacity", name="capconstr")
+    >>> c1 = gppd.add_constrs(
+    ...     m, total_weight, GRB.LESS_EQUAL, knapsack_capacity,
+    ...     name='capconstr'
     ... )
     >>> m.update()
-    >>> constrs["capconstr"]
+    >>> c1
     knapsack
     1    <gurobi.Constr capconstr[1]>
     2    <gurobi.Constr capconstr[2]>
     Name: capconstr, dtype: object
 
-Constraints that each item only appears in one knapsack. This can be done more simply using the top-level function:
+We also need constraints that each item only appears in one knapsack. This can be done using the same function:
 
 .. doctest:: [knapsack]
 
     >>> c2 = gppd.add_constrs(
-    ...     m, x.groupby('item').sum(), GRB.LESS_EQUAL, 1.0, name="c"
+    ...     m, df_assign['x'].groupby('item').sum(),
+    ...     GRB.LESS_EQUAL, 1.0, name="c",
     ... )
     >>> m.update()
     >>> c2  # doctest: +NORMALIZE_WHITESPACE
@@ -160,7 +168,7 @@ Finally, we use the series accessor :code:`.gppd.X` to retrieve solution values.
 
 .. doctest:: [knapsack]
 
-    >>> x.gppd.X.unstack().abs()  # doctest: +NORMALIZE_WHITESPACE
+    >>> df_assign['x'].gppd.X.unstack().abs()  # doctest: +NORMALIZE_WHITESPACE
     knapsack    1    2
     item
     1         0.0  0.0
@@ -173,8 +181,8 @@ We can also use the series access :code:`.gppd.Slack` on constraint series to de
 
 .. doctest:: [knapsack]
 
-    >>> constrs["capconstr"].gppd.Slack
+    >>> c1.gppd.Slack
     knapsack
-    1    0.0
-    2    0.5
+    1    0.4
+    2    0.0
     Name: capconstr, dtype: float64
