@@ -8,16 +8,16 @@ import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
 
-from gurobipy_pandas.add_vars import (
+from gurobipy_pandas.variables import (
     add_vars_from_index,
     add_vars_from_dataframe,
 )
-from gurobipy_pandas.add_constrs import add_constrs_from_series
+from gurobipy_pandas.constraints import add_constrs_from_series
 
 
 # Index/Series variant (attribute arguments must be values or series)
 @overload
-def pd_add_vars(
+def add_vars(
     model: gp.Model,
     pandas_obj: Union[pd.Index, pd.Series],
     *,
@@ -32,7 +32,7 @@ def pd_add_vars(
 
 # DataFrame variant (attribute arguments must be values or column names)
 @overload
-def pd_add_vars(
+def add_vars(
     model: gp.Model,
     pandas_obj: pd.DataFrame,
     *,
@@ -45,7 +45,7 @@ def pd_add_vars(
     ...  # pragma: no cover
 
 
-def pd_add_vars(
+def add_vars(
     model,
     pandas_obj,
     *,
@@ -95,7 +95,7 @@ def pd_add_vars(
         raise ValueError("`pandas_obj` must be an index, series, or dataframe")
 
 
-def pd_add_constrs(
+def add_constrs(
     model: gp.Model,
     lhs: Union[pd.Series, float],
     sense: str,

@@ -3,8 +3,8 @@ from pandas.testing import assert_index_equal
 import gurobipy as gp
 from gurobipy import GRB
 
-from gurobipy_pandas.add_vars import add_vars_from_index
-from gurobipy_pandas.add_constrs import (
+from gurobipy_pandas.variables import add_vars_from_index
+from gurobipy_pandas.constraints import (
     add_constrs_from_dataframe,
     add_constrs_from_series,
 )

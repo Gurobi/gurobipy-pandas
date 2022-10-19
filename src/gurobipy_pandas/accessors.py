@@ -8,9 +8,9 @@ import pandas as pd
 
 import gurobipy as gp
 from gurobipy import GRB
-from gurobipy_pandas.add_constrs import add_constrs_from_dataframe
+from gurobipy_pandas.constraints import add_constrs_from_dataframe
 
-from gurobipy_pandas.add_vars import add_vars_from_dataframe, add_vars_from_index
+from gurobipy_pandas.variables import add_vars_from_dataframe, add_vars_from_index
 
 
 @pd.api.extensions.register_dataframe_accessor("grb")
