@@ -11,6 +11,7 @@ from gurobipy import GRB
 from gurobipy_pandas.constraints import add_constrs_from_dataframe
 
 from gurobipy_pandas.variables import add_vars_from_dataframe, add_vars_from_index
+from gurobipy_pandas.util import align_series
 
 
 @pd.api.extensions.register_dataframe_accessor("gppd")
@@ -263,12 +264,13 @@ class GRBSeriesAccessor:
         Name: x, dtype: float64
         """
         if isinstance(value, pd.Series):
-            df = self._obj.to_frame(name="x").join(
-                value.to_frame(name="v"), how="inner"
-            )
-            for entry in df.itertuples(index=False):
+            aligned = align_series(value, self._obj.index, attr)
+            for entry in pd.DataFrame({"x": self._obj, "v": aligned}).itertuples(
+                index=False
+            ):
                 entry.x.setAttr(attr, entry.v)
         else:
+            value = float(value)
             for v in self._obj:
                 v.setAttr(attr, value)
         # Return the original series to allow method chaining
