@@ -4,8 +4,7 @@ from gurobipy import GRB
 import pandas as pd
 from pandas.testing import assert_index_equal, assert_series_equal
 
-# import registers the accessors
-import gurobipy_pandas  # noqa
+import gurobipy_pandas as gppd
 
 from .utils import GurobiTestCase
 
@@ -119,16 +118,73 @@ class TestSeriesAttributes(GurobiTestCase):
 
     def test_var_set_start_series(self):
         x = pd.RangeIndex(0, 10).gppd.add_vars(self.model, name="x")
-        x.gppd.Start = pd.Series(
-            index=pd.RangeIndex(5, 10), data=[1, 2, 3, 0, 1]
-        ).astype(float)
+        mip_start = pd.Series(index=pd.RangeIndex(5, 10), data=[1, 2, 3, 0, 1]).astype(
+            float
+        )
+        # Require exact alignment to set attribute, so we need to
+        # index into the variable series first.
+        x.loc[mip_start.index].gppd.Start = mip_start
         self.model.update()
         expected = [GRB.UNDEFINED] * 5 + [1, 2, 3, 0, 1]
         for i, start in enumerate(expected):
             self.assertEqual(x.loc[i].Start, start)
 
+    def test_setattr_series_mismatch(self):
 
-class TestSeriesGetAttr(GurobiTestCase):
+        x = gppd.add_vars(self.model, pd.RangeIndex(5))
+        self.model.update()
+
+        # Missing entries for some values in the index
+        ub = pd.Series(index=pd.RangeIndex(1, 4), data=[1, 2, 3])
+        with self.assertRaises(KeyError):
+            x.gppd.UB = ub
+
+        # Too many values (require exact alignment)
+        lb = pd.Series(index=pd.RangeIndex(6), data=list(range(6)))
+        with self.assertRaisesRegex(KeyError, "'LB' series not aligned with index"):
+            x.gppd.LB = lb
+
+    def test_setattr_series_missing_values(self):
+        index = pd.RangeIndex(5)
+        x = gppd.add_vars(self.model, index)
+        self.model.update()
+
+        # Missing data (series must be complete if on the same index)
+        obj = pd.Series(index=index, data=[1, 2, None, 4, None])
+        with self.assertRaisesRegex(ValueError, "'Obj' series has missing values"):
+            x.gppd.Obj = obj
+
+    def test_var_set_obj_index_mismatch(self):
+        # Old example that we want to error our
+        items = pd.Index([1, 2, 3, 4, 5], name="item")
+        knapsacks = pd.Index([1, 2], name="knapsack")
+        item_data = pd.DataFrame(
+            index=items,
+            data={
+                "weight": [1.0, 1.5, 1.2, 0.9, 0.7],
+                "value": [0.5, 1.2, 0.3, 0.7, 0.9],
+            },
+        )
+
+        x = gppd.add_vars(self.model, pd.MultiIndex.from_product([items, knapsacks]))
+        self.model.update()
+
+        with self.assertRaises(KeyError):
+            # Attempts to align a multi-index with a single index. The accessor
+            # should complain of the mismatch.
+            x.gppd.Obj = item_data["value"]
+
+    def test_setattr_dataframe(self):
+        # Must be a scalar or series, not a dataframe
+        index = pd.RangeIndex(5)
+        x = gppd.add_vars(self.model, index)
+        self.model.update()
+
+        with self.assertRaises(TypeError):
+            x.gppd.Start = pd.DataFrame(index=index, data={"start": [1, 2, 3, 4, 5]})
+
+
+class TestSeriesGetAttrSetAttr(GurobiTestCase):
     def test_var_getattr_X(self):
         # Map Var -> X in a series. Use the same name in the result.
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
@@ -152,6 +208,63 @@ class TestSeriesGetAttr(GurobiTestCase):
         for i in range(5):
             self.assertEqual(result.loc[i + 5].lb, 1.0)
             self.assertEqual(result.loc[i + 5].ub, i + 2)
+
+    def test_setattr_series_mismatch(self):
+
+        x = gppd.add_vars(self.model, pd.RangeIndex(5))
+        self.model.update()
+
+        # Missing entries for some values in the index
+        ub = pd.Series(index=pd.RangeIndex(1, 4), data=[1, 2, 3])
+        with self.assertRaises(KeyError):
+            x.gppd.setAttr("UB", ub)
+
+        # Too many values (require exact alignment)
+        lb = pd.Series(index=pd.RangeIndex(6), data=list(range(6)))
+        with self.assertRaises(KeyError):
+            x.gppd.setAttr("LB", lb)
+
+    def test_setattr_series_missing_values(self):
+
+        index = pd.RangeIndex(5)
+        x = gppd.add_vars(self.model, index)
+        self.model.update()
+
+        # Missing data (series must be complete if on the same index)
+        obj = pd.Series(index=index, data=[1, 2, None, 4, None])
+        with self.assertRaisesRegex(ValueError, "'Obj' series has missing values"):
+            x.gppd.setAttr("Obj", obj)
+
+    def test_var_set_obj_index_mismatch(self):
+        # Old example that we want to error our
+        items = pd.Index([1, 2, 3, 4, 5], name="item")
+        knapsacks = pd.Index([1, 2], name="knapsack")
+        item_data = pd.DataFrame(
+            index=items,
+            data={
+                "weight": [1.0, 1.5, 1.2, 0.9, 0.7],
+                "value": [0.5, 1.2, 0.3, 0.7, 0.9],
+            },
+        )
+
+        x = gppd.add_vars(self.model, pd.MultiIndex.from_product([items, knapsacks]))
+        self.model.update()
+
+        with self.assertRaisesRegex(KeyError, "'Obj' series not aligned with index"):
+            # Attempts to align a multi-index with a single index. The accessor
+            # should complain of the mismatch.
+            x.gppd.setAttr("Obj", item_data["value"])
+
+    def test_setattr_dataframe(self):
+        # Must be a scalar or series, not a dataframe
+        index = pd.RangeIndex(5)
+        x = gppd.add_vars(self.model, index)
+        self.model.update()
+
+        with self.assertRaises(TypeError):
+            x.gppd.setAttr(
+                "Start", pd.DataFrame(index=index, data={"start": [1, 2, 3, 4, 5]})
+            )
 
 
 class TestDataFrameAddConstrsByArgs(GurobiTestCase):
