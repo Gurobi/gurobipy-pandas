@@ -123,7 +123,7 @@ Finally, we can build the capacity constraints by using the "knapsack" index to 
     2    <gurobi.LinExpr: x[1,2] + 1.5 x[2,2] + 1.2 x[3...
     dtype: object
 
-and using the function `gppd.add_constrs` to create constraints by aligning these expressions with capacity data:
+and using the function :code:`gppd.add_constrs` to create constraints by aligning these expressions with capacity data:
 
 .. doctest:: [knapsack]
 

@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
-import gurobipy_pandas
+import gurobipy_pandas as gppd
 ```
 
 ## Min-cost flow network for max-flow computation
@@ -148,9 +148,9 @@ balance_df
 #     .fillna(0)   # zero fill (some nodes have no in, out, or demand)
 # )
 
-# # pd_add_constrs(model, tmp_df, "inflow - outflow == demand")
+# gppd.add_constrs(model, tmp_df, "inflow - outflow == demand")
 
-# gurobipy_pandas.pd_add_constrs(
+# gppd.add_constrs(
 #     model,
 #     tmp_df["inflow"] - tmp_df["outflow"],
 #     GRB.EQUAL,
@@ -181,7 +181,7 @@ balance_df
 # demand = demand_data["demand"].reindex(nodes).fillna(0)
 
 # # This was a long way round to get here.
-# gurobipy_pandas.pd_add_constrs(
+# gppd.pd_add_constrs(
 #     model,
 #     inflow - outflow,
 #     GRB.EQUAL,
