@@ -1,5 +1,5 @@
 """
-Accessor methods bound to pd.Index.grb, pd.Series.grb, pd.DataFrame.grb
+Accessor methods bound to pd.Index.gppd, pd.Series.gppd, pd.DataFrame.gppd
 """
 
 from typing import Union, Optional
@@ -13,9 +13,9 @@ from gurobipy_pandas.constraints import add_constrs_from_dataframe
 from gurobipy_pandas.variables import add_vars_from_dataframe, add_vars_from_index
 
 
-@pd.api.extensions.register_dataframe_accessor("grb")
+@pd.api.extensions.register_dataframe_accessor("gppd")
 class GRBDataFrameAccessor:
-    """Accessor class for methods invoked as :code:`pd.DataFrame(...).grb.*`.
+    """Accessor class for methods invoked as :code:`pd.DataFrame(...).gppd.*`.
     The accessor does not expect particular types in the dataframe. This
     class should not be instantiated directly; it should be used via Pandas'
     accessor API
@@ -27,7 +27,7 @@ class GRBDataFrameAccessor:
     def __init__(self, pandas_obj: pd.DataFrame):
         self._obj = pandas_obj
 
-    def pd_add_vars(
+    def add_vars(
         self,
         model: gp.Model,
         *,
@@ -69,7 +69,7 @@ class GRBDataFrameAccessor:
         # :name cannot overlap with existing columns in the dataframe
         return self._obj.join(varseries)
 
-    def pd_add_constrs(
+    def add_constrs(
         self,
         model: gp.Model,
         lhs: Union[str, float],
@@ -105,8 +105,8 @@ class GRBDataFrameAccessor:
         >>> m = gp.Model()
         >>> df = (
         ...     pd.DataFrame({"c": [1, 2, 3]})
-        ...     .grb.pd_add_vars(m, name="x")
-        ...     .grb.pd_add_vars(m, name="y")
+        ...     .gppd.add_vars(m, name="x")
+        ...     .gppd.add_vars(m, name="y")
         ... )
         >>> m.update()
         >>> df
@@ -120,7 +120,7 @@ class GRBDataFrameAccessor:
         row in the dataframe, specifying e.g. :math:`x_0 + y_0 \le 1` in the
         first row.
 
-        >>> df2 = df.grb.pd_add_constrs(m, "x + y <= c", name="constr")
+        >>> df2 = df.gppd.add_constrs(m, "x + y <= c", name="constr")
         >>> m.update()
         >>> df2
            c                  x                  y                     constr
@@ -132,7 +132,7 @@ class GRBDataFrameAccessor:
         a string expression. This case specifies that :math:`x_i \le y_i`
         must hold for every row in the dataframe.
 
-        >>> df3 = df.grb.pd_add_constrs(m, "x", GRB.LESS_EQUAL, "y", name="xy")
+        >>> df3 = df.gppd.add_constrs(m, "x", GRB.LESS_EQUAL, "y", name="xy")
         >>> m.update()
         >>> df3
            c                  x                  y                     xy
@@ -150,7 +150,7 @@ class GRBDataFrameAccessor:
         0  1  <gurobi.Var x[0]>  <gurobi.Var y[0]>  <gurobi.LinExpr: x[0] + y[0]>
         1  2  <gurobi.Var x[1]>  <gurobi.Var y[1]>  <gurobi.LinExpr: x[1] + y[1]>
         2  3  <gurobi.Var x[2]>  <gurobi.Var y[2]>  <gurobi.LinExpr: x[2] + y[2]>
-        >>> df4 = df4.grb.pd_add_constrs(m, "expr", GRB.LESS_EQUAL, 1, name="c4")
+        >>> df4 = df4.gppd.add_constrs(m, "expr", GRB.LESS_EQUAL, 1, name="c4")
         >>> m.update()
         >>> df4[["expr", "c4"]]
                                     expr                     c4
@@ -164,9 +164,9 @@ class GRBDataFrameAccessor:
         return self._obj.join(constrseries)
 
 
-@pd.api.extensions.register_series_accessor("grb")
+@pd.api.extensions.register_series_accessor("gppd")
 class GRBSeriesAccessor:
-    """Accessor class for methods invoked as :code:`pd.Series(...).grb.*`. The
+    """Accessor class for methods invoked as :code:`pd.Series(...).gppd.*`. The
     accessor expects a series containing gurobipy objects, and can return new
     series by evaluating a target value across all objects in the series. This
     class should not be instantiated directly; it should be used via Pandas'
@@ -189,10 +189,10 @@ class GRBSeriesAccessor:
         For example, after solving a model, the solution can be retrieved
 
         >>> m = gp.Model()
-        >>> x = pd.RangeIndex(3).grb.pd_add_vars(m, name='x')
+        >>> x = pd.RangeIndex(3).gppd.add_vars(m, name='x')
         >>> m.optimize()  # doctest: +ELLIPSIS
         Gurobi Optimizer version...
-        >>> x.grb.getAttr("X")
+        >>> x.gppd.getAttr("X")
         0    0.0
         1    0.0
         2    0.0
@@ -218,12 +218,12 @@ class GRBSeriesAccessor:
 
         >>> m = gp.Model()
         >>> df = pd.DataFrame({"key": [1, 2, 2, 2], "obj": [4, 3, 2, 1]})
-        >>> df = df.grb.pd_add_vars(m, name="x", vtype=gp.GRB.BINARY, obj="obj")
-        >>> grouped = df.groupby('key')[['x']].sum().grb.pd_add_constrs(m, "x == 1", name="constr")
+        >>> df = df.gppd.add_vars(m, name="x", vtype=GRB.BINARY, obj="obj")
+        >>> grouped = df.groupby('key')[['x']].sum().gppd.add_constrs(m, "x == 1", name="constr")
         >>> m.optimize()  # doctest: +ELLIPSIS
         Gurobi Optimizer version...
         Best objective 5.000000000000e+00, best bound 5.000000000000e+00, gap 0.0000%
-        >>> df['x'].grb.X
+        >>> df['x'].gppd.X
         0    1.0
         1    0.0
         2    0.0
@@ -243,20 +243,20 @@ class GRBSeriesAccessor:
         bounds can be set and retrieved.
 
         >>> m = gp.Model()
-        >>> x = pd.RangeIndex(3).grb.pd_add_vars(m, name='x')
+        >>> x = pd.RangeIndex(3).gppd.add_vars(m, name='x')
         >>> m.update()
-        >>> x.grb.setAttr("LB", 3.0).grb.setAttr("UB", 5.0)
+        >>> x.gppd.setAttr("LB", 3.0).gppd.setAttr("UB", 5.0)
         0    <gurobi.Var x[0]>
         1    <gurobi.Var x[1]>
         2    <gurobi.Var x[2]>
         Name: x, dtype: object
         >>> m.update()
-        >>> x.grb.getAttr("LB")
+        >>> x.gppd.getAttr("LB")
         0    3.0
         1    3.0
         2    3.0
         Name: x, dtype: float64
-        >>> x.grb.getAttr("UB")
+        >>> x.gppd.getAttr("UB")
         0    5.0
         1    5.0
         2    5.0
@@ -286,7 +286,7 @@ class GRBSeriesAccessor:
         bounds can be set and retrieved.
 
         >>> m = gp.Model()
-        >>> x = pd.RangeIndex(3).grb.pd_add_vars(m)
+        >>> x = pd.RangeIndex(3).gppd.add_vars(m)
         >>> m.update()
         >>> x
         0    <gurobi.Var C0>
@@ -298,14 +298,14 @@ class GRBSeriesAccessor:
         1    3
         2    2
         dtype: int64
-        >>> x.grb.UB = upper_bounds
+        >>> x.gppd.UB = upper_bounds
 
         After setting upper bounds (by aligning the variable series :code:`x`
         with the data series :code:`upper_bounds`), attributes can be read
         back from the Gurobi objects.
 
         >>> m.update()
-        >>> x.grb.UB
+        >>> x.gppd.UB
         0    inf
         1    3.0
         2    2.0
@@ -331,9 +331,9 @@ class GRBSeriesAccessor:
         )
 
 
-@pd.api.extensions.register_index_accessor("grb")
+@pd.api.extensions.register_index_accessor("gppd")
 class GRBIndexAccessor:
-    """Accessor class for methods invoked as :code:`pd.Index(...).grb.*`. The
+    """Accessor class for methods invoked as :code:`pd.Index(...).gppd.*`. The
     accessor expects normal pandas types in the index, and can return new
     series of gurobipy objects aligned to that index. This class should not be
     instantiated directly; it should be used via Pandas' accessor API
@@ -345,7 +345,7 @@ class GRBIndexAccessor:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
-    def pd_add_vars(
+    def add_vars(
         self,
         model: gp.Model,
         *,
