@@ -1,5 +1,3 @@
-import unittest
-
 import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
@@ -28,7 +26,7 @@ class TestDataFrameAddVars(GurobiTestCase):
         # Adds a series of gp.Var as named column. This should be the
         # simplest test we can have; the new column must have a name so
         # we always use that + the index for variable naming.
-        result = self.df.grb.pd_add_vars(self.model, name="x")
+        result = self.df.gppd.add_vars(self.model, name="x")
         self.model.update()
         assert_index_equal(result.index, self.df.index)
         self.assertEqual(list(result.columns), ["a", "b", "x"])
@@ -43,7 +41,7 @@ class TestDataFrameAddVars(GurobiTestCase):
             self.assertEqual(v.VType, GRB.CONTINUOUS)
 
     def test_scalar_args(self):
-        result = self.df.grb.pd_add_vars(
+        result = self.df.gppd.add_vars(
             self.model, lb=-10, ub=10, obj=2, vtype=GRB.INTEGER, name="x"
         )
         self.model.update()
@@ -60,21 +58,21 @@ class TestDataFrameAddVars(GurobiTestCase):
             self.assertEqual(v.VType, GRB.INTEGER)
 
     def test_set_bounds_by_column(self):
-        result = self.df.grb.pd_add_vars(self.model, name="x", lb="a", ub="b")
+        result = self.df.gppd.add_vars(self.model, name="x", lb="a", ub="b")
         self.model.update()
         for row in result.itertuples():
             self.assertEqual(row.x.lb, row.a)
             self.assertEqual(row.x.ub, row.b)
 
     def test_set_objective_by_column(self):
-        result = self.df.grb.pd_add_vars(self.model, name="x", obj="a")
+        result = self.df.gppd.add_vars(self.model, name="x", obj="a")
         self.model.update()
         for row in result.itertuples():
             self.assertEqual(row.x.obj, row.a)
 
     def test_multiindex(self):
         df = self.df.assign(c=1).set_index(["b", "a"])
-        result = df.grb.pd_add_vars(self.model, name="z")
+        result = df.gppd.add_vars(self.model, name="z")
         self.model.update()
         self.assertEqual(list(result.columns), ["c", "z"])
         for row in result.itertuples():
@@ -86,11 +84,11 @@ class TestSeriesAttributes(GurobiTestCase):
     def test_var_get_X(self):
         # Map Var -> X in a series. Use the same name in the result.
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
-        df = series.to_frame(name="value").grb.pd_add_vars(
+        df = series.to_frame(name="value").gppd.add_vars(
             self.model, name="x", lb="value", ub="value"
         )
         self.model.optimize()
-        solution = df["x"].grb.X
+        solution = df["x"].gppd.X
         assert_series_equal(solution, series, check_names=False)
         self.assertEqual(solution.name, "x")
 
@@ -98,30 +96,30 @@ class TestSeriesAttributes(GurobiTestCase):
         df = pd.DataFrame(
             data=np.random.randint(0, 10, size=(100, 5)).astype(float),
             columns=list("abcde"),
-        ).grb.pd_add_vars(self.model, name="x", lb="a", ub="b")
+        ).gppd.add_vars(self.model, name="x", lb="a", ub="b")
         self.model.update()
-        assert_series_equal(df["x"].grb.lb, df["a"], check_names=False)
-        assert_series_equal(df["x"].grb.ub, df["b"], check_names=False)
+        assert_series_equal(df["x"].gppd.lb, df["a"], check_names=False)
+        assert_series_equal(df["x"].gppd.ub, df["b"], check_names=False)
 
     def test_linexpr_get_value(self):
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
-        df = series.to_frame(name="value").grb.pd_add_vars(
+        df = series.to_frame(name="value").gppd.add_vars(
             self.model, name="x", lb="value", ub="value"
         )
         self.model.optimize()
-        solution = (df["x"] * 2.0).grb.get_value()
+        solution = (df["x"] * 2.0).gppd.get_value()
         assert_series_equal(solution, series * 2.0, check_names=False)
 
     def test_var_set_ub_scalar(self):
-        x = pd.RangeIndex(0, 10).grb.pd_add_vars(self.model, name="x")
-        x.grb.ub = 1
+        x = pd.RangeIndex(0, 10).gppd.add_vars(self.model, name="x")
+        x.gppd.ub = 1
         self.model.update()
         for i in range(10):
             self.assertEqual(x.loc[i].ub, 1.0)
 
     def test_var_set_start_series(self):
-        x = pd.RangeIndex(0, 10).grb.pd_add_vars(self.model, name="x")
-        x.grb.Start = pd.Series(
+        x = pd.RangeIndex(0, 10).gppd.add_vars(self.model, name="x")
+        x.gppd.Start = pd.Series(
             index=pd.RangeIndex(5, 10), data=[1, 2, 3, 0, 1]
         ).astype(float)
         self.model.update()
@@ -134,22 +132,22 @@ class TestSeriesGetAttr(GurobiTestCase):
     def test_var_getattr_X(self):
         # Map Var -> X in a series. Use the same name in the result.
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
-        df = series.to_frame(name="value").grb.pd_add_vars(
+        df = series.to_frame(name="value").gppd.add_vars(
             self.model, name="x", lb="value", ub="value"
         )
         self.model.optimize()
-        solution = df["x"].grb.getAttr("X")
+        solution = df["x"].gppd.getAttr("X")
         assert_series_equal(solution, series, check_names=False)
         self.assertEqual(solution.name, "x")
 
     def test_var_setattr_bounds(self):
-        x = pd.RangeIndex(5, 10).grb.pd_add_vars(self.model, name="x")
+        x = pd.RangeIndex(5, 10).gppd.add_vars(self.model, name="x")
         lb = 1.0
         ub = pd.Series(
             index=pd.RangeIndex(5, 10),
             data=[2.0, 3.0, 4.0, 5.0, 6.0],
         )
-        result = x.grb.setAttr("LB", lb).grb.setAttr("UB", ub)
+        result = x.gppd.setAttr("LB", lb).gppd.setAttr("UB", ub)
         self.model.update()
         for i in range(5):
             self.assertEqual(result.loc[i + 5].lb, 1.0)
@@ -168,8 +166,8 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
         )
 
     def test_scalar_rhs(self):
-        df = self.df.grb.pd_add_vars(self.model, name="x")
-        result = df.grb.pd_add_constrs(self.model, "x", GRB.EQUAL, 1.0, name="constr")
+        df = self.df.gppd.add_vars(self.model, name="x")
+        result = df.gppd.add_constrs(self.model, "x", GRB.EQUAL, 1.0, name="constr")
         self.model.update()
         for entry in result.itertuples():
             self.assertEqual(entry.constr.sense, GRB.EQUAL)
@@ -181,8 +179,8 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
     def test_scalar_lhs(self):
-        df = self.df.grb.pd_add_vars(self.model, name="x")
-        result = df.grb.pd_add_constrs(self.model, 1.0, GRB.EQUAL, "x", name="constr")
+        df = self.df.gppd.add_vars(self.model, name="x")
+        result = df.gppd.add_constrs(self.model, 1.0, GRB.EQUAL, "x", name="constr")
         self.model.update()
         for entry in result.itertuples():
             self.assertEqual(entry.constr.sense, GRB.EQUAL)
@@ -194,8 +192,8 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), -1.0)
 
     def test_series_rhs(self):
-        df = self.df.grb.pd_add_vars(self.model, name="x")
-        result = df.grb.pd_add_constrs(
+        df = self.df.gppd.add_vars(self.model, name="x")
+        result = df.gppd.add_constrs(
             self.model, "x", GRB.LESS_EQUAL, "b", name="constr"
         )
         self.model.update()
@@ -210,9 +208,9 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
     def test_quadratic(self):
-        df = self.df.grb.pd_add_vars(self.model, name="x")
+        df = self.df.gppd.add_vars(self.model, name="x")
         df["x2"] = df["x"] * df["x"] + 1
-        result = df.grb.pd_add_constrs(
+        result = df.gppd.add_constrs(
             self.model, "x", GRB.LESS_EQUAL, "x2", name="constr"
         )
         self.model.update()
@@ -243,8 +241,8 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
         )
 
     def test_scalar_rhs(self):
-        df = self.df.grb.pd_add_vars(self.model, name="x")
-        result = df.grb.pd_add_constrs(self.model, "x == 1", name="constr")
+        df = self.df.gppd.add_vars(self.model, name="x")
+        result = df.gppd.add_constrs(self.model, "x == 1", name="constr")
         self.model.update()
         for entry in result.itertuples():
             self.assertEqual(entry.constr.sense, GRB.EQUAL)
@@ -256,8 +254,8 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
     def test_scalar_lhs(self):
-        df = self.df.grb.pd_add_vars(self.model, name="x")
-        result = df.grb.pd_add_constrs(self.model, "1 == x", name="constr")
+        df = self.df.gppd.add_vars(self.model, name="x")
+        result = df.gppd.add_constrs(self.model, "1 == x", name="constr")
         self.model.update()
         for entry in result.itertuples():
             self.assertEqual(entry.constr.sense, GRB.EQUAL)
@@ -269,8 +267,8 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), -1.0)
 
     def test_series_rhs(self):
-        df = self.df.grb.pd_add_vars(self.model, name="x")
-        result = df.grb.pd_add_constrs(self.model, "x <= b", name="constr")
+        df = self.df.gppd.add_vars(self.model, name="x")
+        result = df.gppd.add_constrs(self.model, "x <= b", name="constr")
         self.model.update()
         for entry in result.itertuples():
             self.assertEqual(entry.constr.sense, GRB.LESS_EQUAL)
@@ -282,10 +280,10 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
     def test_expressions(self):
-        df = self.df.grb.pd_add_vars(self.model, name="x").grb.pd_add_vars(
+        df = self.df.gppd.add_vars(self.model, name="x").gppd.add_vars(
             self.model, name="y"
         )
-        result = df.grb.pd_add_constrs(self.model, "x + b <= 1 - 2*y", name="constr")
+        result = df.gppd.add_constrs(self.model, "x + b <= 1 - 2*y", name="constr")
         self.model.update()
         self.assertEqual(df.shape, (3, 4))
         self.assertEqual(result.shape, (3, 5))
@@ -301,8 +299,8 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.getCoeff(1), 2.0)
 
     def test_quadratic(self):
-        df = self.df.grb.pd_add_vars(self.model, name="x")
-        result = df.grb.pd_add_constrs(self.model, "x <= x**2 + 1", name="constr")
+        df = self.df.gppd.add_vars(self.model, name="x")
+        result = df.gppd.add_constrs(self.model, "x <= x**2 + 1", name="constr")
         self.model.update()
         for entry in result.itertuples():
             self.assertIsInstance(entry.constr, gp.QConstr)
@@ -321,11 +319,11 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
     def test_multiindex_names(self):
         df = pd.DataFrame(
             index=pd.MultiIndex.from_product([pd.RangeIndex(2), pd.RangeIndex(2)])
-        ).grb.pd_add_vars(self.model, name="x")
-        df = df.grb.pd_add_constrs(self.model, "x <= 2", name="c1")
+        ).gppd.add_vars(self.model, name="x")
+        df = df.gppd.add_constrs(self.model, "x <= 2", name="c1")
         self.model.update()
 
-        names = df["c1"].grb.getAttr("ConstrName")
+        names = df["c1"].gppd.getAttr("ConstrName")
         expected = pd.Series(
             index=pd.MultiIndex.from_product([[0, 1], [0, 1]]),
             data=["c1[0,0]", "c1[0,1]", "c1[1,0]", "c1[1,1]"],
@@ -341,7 +339,7 @@ class TestIndexAddVars(GurobiTestCase):
     def test_no_args(self):
         # Create a series of gp.Var with the given index.
         index = pd.RangeIndex(0, 10, 2)
-        x = index.grb.pd_add_vars(self.model)
+        x = index.gppd.add_vars(self.model)
         self.model.update()
         self.assertIsInstance(x, pd.Series)
         assert_index_equal(x.index, index)
@@ -355,7 +353,7 @@ class TestIndexAddVars(GurobiTestCase):
     def test_single_index_named(self):
         # Use the index for naming if a name is given.
         index = pd.RangeIndex(0, 10, 2)
-        x = index.grb.pd_add_vars(self.model, name="x")
+        x = index.gppd.add_vars(self.model, name="x")
         self.model.update()
         assert_index_equal(x.index, index)
         for i in range(0, 10, 2):
@@ -366,7 +364,7 @@ class TestIndexAddVars(GurobiTestCase):
 
     def test_add_vars_scalar_attrs(self):
         index = pd.RangeIndex(0, 10)
-        x = index.grb.pd_add_vars(self.model, lb=-10, ub=10, vtype=GRB.INTEGER, obj=2.5)
+        x = index.gppd.add_vars(self.model, lb=-10, ub=10, vtype=GRB.INTEGER, obj=2.5)
         self.model.update()
         assert_index_equal(x.index, index)
         for i in range(0, 10):
@@ -378,7 +376,7 @@ class TestIndexAddVars(GurobiTestCase):
 
     def test_add_vars_multiindex(self):
         index = pd.MultiIndex.from_tuples([(0, 1), (1, 0), (2, 2)])
-        x = index.grb.pd_add_vars(self.model, name="y")
+        x = index.gppd.add_vars(self.model, name="y")
         self.model.update()
         assert_index_equal(x.index, index)
         self.assertEqual(x.loc[0, 1].VarName, "y[0,1]")
