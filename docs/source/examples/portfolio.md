@@ -41,7 +41,7 @@ Create a new model and add a variable for each stock. The columns in our datafra
 
 ```{code-cell} ipython3
 model = gp.Model('Portfolio')
-stocks = data.columns.grb.pd_add_vars(model, name="Stock")
+stocks = data.columns.gppd.add_vars(model, name="Stock")
 model.update()
 stocks
 ```
@@ -69,7 +69,7 @@ model.optimize()
 Display the minimum risk portfolio.
 
 ```{code-cell} ipython3
-stocks.grb.X.round(3)
+stocks.gppd.X.round(3)
 ```
 
 Key metrics

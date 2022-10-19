@@ -53,7 +53,7 @@ m = gp.Model()
 df = (
     preferences
     .set_index(["Worker", "Shift"])
-    .grb.pd_add_vars(m, name="assign", vtype=GRB.BINARY, obj="Preference")
+    .gppd.add_vars(m, name="assign", vtype=GRB.BINARY, obj="Preference")
 )
 m.update()
 df
@@ -71,7 +71,7 @@ Also would be useful to format dates cleanly. Must remove spacing, maybe remove 
 shift_cover = (
     df.groupby('Shift')[['assign']].sum()
     .join(shift_requirements)
-    .grb.pd_add_constrs(m, "assign == Required", name="shift_cover")
+    .gppd.add_constrs(m, "assign == Required", name="shift_cover")
 )
 m.update()
 shift_cover
@@ -82,7 +82,7 @@ m.optimize()
 ```
 
 ```{code-cell}
-solution = df['assign'].grb.X
+solution = df['assign'].gppd.X
 solution
 ```
 

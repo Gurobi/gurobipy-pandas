@@ -36,10 +36,10 @@ Create model.
 model = gp.Model()
 ```
 
-Create unbounded variables for each column coefficient. Use the index accessor; in pandas the columns are also an index, so `.grb.pd_add_vars` associates a Gurobi variable with each column index entry.
+Create unbounded variables for each column coefficient. Use the index accessor; in pandas the columns are also an index, so `.gppd.add_vars` associates a Gurobi variable with each column index entry.
 
 ```{code-cell}
-coeffs = X_train.columns.grb.pd_add_vars(model, name="coeff", lb=-GRB.INFINITY)
+coeffs = X_train.columns.gppd.add_vars(model, name="coeff", lb=-GRB.INFINITY)
 model.update()
 coeffs
 ```
@@ -55,10 +55,10 @@ Add non-negative deviation variables for each data point to measure total error.
 
 ```{code-cell}
 fit = (
-    relation.grb.pd_add_vars(model, name="U")
-    .grb.pd_add_vars(model, name="V")
+    relation.gppd.add_vars(model, name="U")
+    .gppd.add_vars(model, name="V")
     .join(y_train)
-    .grb.pd_add_constrs(model, "target == MX + U - V", name="fit")
+    .gppd.add_constrs(model, "target == MX + U - V", name="fit")
 )
 model.update()
 fit
@@ -81,24 +81,24 @@ model.optimize()
 Check coefficients.
 
 ```{code-cell}
-coeffs.grb.X
+coeffs.gppd.X
 ```
 
 Plot distribution of errors.
 
 ```{code-cell}
-abs_error.grb.get_value().plot.hist();
+abs_error.gppd.get_value().plot.hist();
 ```
 
 ```{code-cell}
 :nbsphinx: hidden
 
 assert model.ObjVal <= 44
-assert isinstance(coeffs.grb.X, pd.Series)
+assert isinstance(coeffs.gppd.X, pd.Series)
 ```
 
 ```{code-cell}
-coeffs.grb.X.plot.bar()
+coeffs.gppd.X.plot.bar()
 ```
 
 ## Adding Regularization
@@ -110,11 +110,11 @@ Note: this dataset really needs some normalization for a reasonable comparison. 
 ```{code-cell}
 model = gp.Model()
 coeffs = (
-    X_train.columns.grb.pd_add_vars(model, name="coeff", lb=-GRB.INFINITY)
+    X_train.columns.gppd.add_vars(model, name="coeff", lb=-GRB.INFINITY)
     .to_frame()
-    .grb.pd_add_vars(model, name="abscoeff", lb=0.0)
-    .grb.pd_add_constrs(model, "coeff <= abscoeff", name="poscoeff")
-    .grb.pd_add_constrs(model, "coeff >= -abscoeff", name="negcoeff")
+    .gppd.add_vars(model, name="abscoeff", lb=0.0)
+    .gppd.add_constrs(model, "coeff <= abscoeff", name="poscoeff")
+    .gppd.add_constrs(model, "coeff >= -abscoeff", name="negcoeff")
 )
 model.update()
 coeffs
@@ -123,9 +123,9 @@ coeffs
 Set the objective contribution for each non-intercept coefficient to a small alpha value.
 
 ```{code-cell}
-coeffs['abscoeff'].drop("intercept").grb.Obj = 0.1
+coeffs['abscoeff'].drop("intercept").gppd.Obj = 0.1
 model.update()
-coeffs['abscoeff'].grb.Obj
+coeffs['abscoeff'].gppd.Obj
 ```
 
 Then add the MAE fit components as before (note we directly set the objective contributions of the MAE variable 'U' and 'V' to 1.0).
@@ -133,10 +133,10 @@ Then add the MAE fit components as before (note we directly set the objective co
 ```{code-cell}
 fit = (
     (X_train * coeffs['coeff']).sum(axis="columns").to_frame(name="MX")
-    .grb.pd_add_vars(model, name="U", obj=1.0)
-    .grb.pd_add_vars(model, name="V", obj=1.0)
+    .gppd.add_vars(model, name="U", obj=1.0)
+    .gppd.add_vars(model, name="V", obj=1.0)
     .join(y_train)
-    .grb.pd_add_constrs(model, "target == MX + U - V", name="fit")
+    .gppd.add_constrs(model, "target == MX + U - V", name="fit")
 )
 model.update()
 fit
@@ -147,21 +147,21 @@ model.optimize()
 ```
 
 ```{code-cell}
-coeffs['coeff'].grb.X.plot.bar();
+coeffs['coeff'].gppd.X.plot.bar();
 ```
 
 ```{code-cell}
-(fit['U'] + fit['V']).grb.get_value().plot.hist();
+(fit['U'] + fit['V']).gppd.get_value().plot.hist();
 ```
 
 ```{code-cell}
-(fit['U'] + fit['V']).grb.get_value().mean()
+(fit['U'] + fit['V']).gppd.get_value().mean()
 ```
 
 ```{code-cell}
 :nbsphinx: hidden
 
-assert (fit['U'] + fit['V']).grb.get_value().mean() <= 44
+assert (fit['U'] + fit['V']).gppd.get_value().mean() <= 44
 ```
 
 Voila! Sparser model, with less extreme coefficients and a very similar MAE.
