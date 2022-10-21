@@ -103,6 +103,10 @@ class GRBDataFrameAccessor:
 
         Using some simple example data and variables to demo:
 
+        >>> import pandas as pd
+        >>> import gurobipy as gp
+        >>> from gurobipy import GRB
+        >>> import gurobipy_pandas as gppd
         >>> m = gp.Model()
         >>> df = (
         ...     pd.DataFrame({"c": [1, 2, 3]})
@@ -189,8 +193,12 @@ class GRBSeriesAccessor:
 
         For example, after solving a model, the solution can be retrieved
 
+        >>> import pandas as pd
+        >>> import gurobipy as gp
+        >>> from gurobipy import GRB
+        >>> import gurobipy_pandas as gppd
         >>> m = gp.Model()
-        >>> x = pd.RangeIndex(3).gppd.add_vars(m, name='x')
+        >>> x = gppd.add_vars(m, pd.RangeIndex(3), name='x')
         >>> m.optimize()  # doctest: +ELLIPSIS
         Gurobi Optimizer version...
         >>> x.gppd.getAttr("X")
@@ -217,6 +225,10 @@ class GRBSeriesAccessor:
 
         Build and solve a little model:
 
+        >>> import pandas as pd
+        >>> import gurobipy as gp
+        >>> from gurobipy import GRB
+        >>> import gurobipy_pandas as gppd
         >>> m = gp.Model()
         >>> df = pd.DataFrame({"key": [1, 2, 2, 2], "obj": [4, 3, 2, 1]})
         >>> df = df.gppd.add_vars(m, name="x", vtype=GRB.BINARY, obj="obj")
@@ -243,8 +255,12 @@ class GRBSeriesAccessor:
         For example, after creating a series of variables, their upper
         bounds can be set and retrieved.
 
+        >>> import pandas as pd
+        >>> import gurobipy as gp
+        >>> from gurobipy import GRB
+        >>> import gurobipy_pandas as gppd
         >>> m = gp.Model()
-        >>> x = pd.RangeIndex(3).gppd.add_vars(m, name='x')
+        >>> x = gppd.add_vars(m, pd.RangeIndex(3), name='x')
         >>> m.update()
         >>> x.gppd.setAttr("LB", 3.0).gppd.setAttr("UB", 5.0)
         0    <gurobi.Var x[0]>
@@ -287,8 +303,12 @@ class GRBSeriesAccessor:
         For example, after creating a series of variables, their upper
         bounds can be set and retrieved.
 
+        >>> import pandas as pd
+        >>> import gurobipy as gp
+        >>> from gurobipy import GRB
+        >>> import gurobipy_pandas as gppd
         >>> m = gp.Model()
-        >>> x = pd.RangeIndex(3).gppd.add_vars(m)
+        >>> x = gppd.add_vars(m, pd.RangeIndex(3))
         >>> m.update()
         >>> x
         0    <gurobi.Var C0>

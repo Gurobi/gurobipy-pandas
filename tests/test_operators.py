@@ -4,7 +4,7 @@ objects correctly defer to Series for arithmetic operations. """
 import operator
 import unittest
 
-import gurobipy_pandas
+import gurobipy_pandas as gppd
 import pandas as pd
 
 from .utils import GurobiTestCase
@@ -15,7 +15,7 @@ class TestAdd(GurobiTestCase):
     op = operator.add
 
     def test_varseries_var(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         self.model.update()
         result = self.op(x, y)
@@ -25,7 +25,7 @@ class TestAdd(GurobiTestCase):
 
     @unittest.expectedFailure
     def test_var_varseries(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         self.model.update()
         result = self.op(y, x)
@@ -53,7 +53,7 @@ class TestAdd(GurobiTestCase):
             self.assert_expression_equal(result[i], self.op(x, i))
 
     def test_varseries_linexpr(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         le = 2 * y + 1
         self.model.update()
@@ -64,7 +64,7 @@ class TestAdd(GurobiTestCase):
 
     @unittest.expectedFailure
     def test_linexpr_varseries(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         le = 2 * y + 1
         self.model.update()
@@ -74,7 +74,7 @@ class TestAdd(GurobiTestCase):
             self.assert_expression_equal(result[i], self.op(2 * y + 1, x[i]))
 
     def test_varseries_quadexpr(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         qe = y * y + 2 * y + 3
         self.model.update()
@@ -85,7 +85,7 @@ class TestAdd(GurobiTestCase):
 
     @unittest.expectedFailure
     def test_quadexpr_varseries(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         qe = y * y + 2 * y + 3
         self.model.update()
@@ -118,7 +118,7 @@ class TestIadd(GurobiTestCase):
             self.assert_expression_equal(x[i], self.checkop(x0[i], y))
 
     def test_linexprseries_var(self):
-        x = pd.RangeIndex(3).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(3), name="x")
         le = x * 1
         y = self.model.addVar(name="y")
         self.model.update()
@@ -128,7 +128,7 @@ class TestIadd(GurobiTestCase):
             self.assert_expression_equal(le[i], self.checkop(x[i], y))
 
     def test_quadexprseries_var(self):
-        x = pd.RangeIndex(3).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(3), name="x")
         qe = x * x
         y = self.model.addVar(name="y")
         self.model.update()
@@ -140,7 +140,7 @@ class TestIadd(GurobiTestCase):
     @unittest.expectedFailure
     def test_var_varseries(self):
         # Type uplift to Series (reassignment)
-        x = pd.RangeIndex(3).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(3), name="x")
         y0 = self.model.addVar(name="y")
         y = y0
         self.model.update()
@@ -157,7 +157,7 @@ class TestIadd(GurobiTestCase):
         #   2. Series.__radd__(LinExpr) -> expanded along series
         #   3. LinExpr.__add__(Var) -> new LinExpr for each in series
         #   4. New series reassigned over le
-        x = pd.RangeIndex(3).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(3), name="x")
         y = self.model.addVar(name="y")
         le = 2 * y
         self.model.update()
@@ -169,7 +169,7 @@ class TestIadd(GurobiTestCase):
     @unittest.expectedFailure
     def test_quadexpr_varseries(self):
         # Type uplift to Series (reassignment)
-        x = pd.RangeIndex(3).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(3), name="x")
         y = self.model.addVar(name="y")
         qe = y * y
         self.model.update()
@@ -188,7 +188,7 @@ class TestIsub(TestIadd):
 
 class TestMul(GurobiTestCase):
     def test_varseries_var(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         self.model.update()
         result = x * y
@@ -198,7 +198,7 @@ class TestMul(GurobiTestCase):
 
     @unittest.expectedFailure
     def test_var_varseries(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         self.model.update()
         result = y * x
@@ -207,7 +207,7 @@ class TestMul(GurobiTestCase):
             self.assert_expression_equal(result[i], y * x[i])
 
     def test_varseries_linexpr(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         le = 2 * y
         self.model.update()
@@ -218,7 +218,7 @@ class TestMul(GurobiTestCase):
 
     @unittest.expectedFailure
     def test_linexpr_varseries(self):
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         le = 2 * y
         self.model.update()
@@ -251,7 +251,7 @@ class TestMul(GurobiTestCase):
     @unittest.expectedFailure
     def test_varseries_quadexpr(self):
         # Cannot multiply, should get a python TypeError
-        x = pd.RangeIndex(5).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         qe = y * y
         self.model.update()

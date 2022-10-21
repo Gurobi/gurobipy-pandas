@@ -110,14 +110,15 @@ class TestSeriesAttributes(GurobiTestCase):
         assert_series_equal(solution, series * 2.0, check_names=False)
 
     def test_var_set_ub_scalar(self):
-        x = pd.RangeIndex(0, 10).gppd.add_vars(self.model, name="x")
+        index = pd.RangeIndex(0, 10)
+        x = gppd.add_vars(self.model, index, name="x")
         x.gppd.ub = 1
         self.model.update()
-        for i in range(10):
+        for i in index:
             self.assertEqual(x.loc[i].ub, 1.0)
 
     def test_var_set_start_series(self):
-        x = pd.RangeIndex(0, 10).gppd.add_vars(self.model, name="x")
+        x = gppd.add_vars(self.model, pd.RangeIndex(0, 10), name="x")
         mip_start = pd.Series(index=pd.RangeIndex(5, 10), data=[1, 2, 3, 0, 1]).astype(
             float
         )
@@ -197,12 +198,10 @@ class TestSeriesGetAttrSetAttr(GurobiTestCase):
         self.assertEqual(solution.name, "x")
 
     def test_var_setattr_bounds(self):
-        x = pd.RangeIndex(5, 10).gppd.add_vars(self.model, name="x")
+        index = pd.RangeIndex(5, 10)
+        x = gppd.add_vars(self.model, index, name="x")
         lb = 1.0
-        ub = pd.Series(
-            index=pd.RangeIndex(5, 10),
-            data=[2.0, 3.0, 4.0, 5.0, 6.0],
-        )
+        ub = pd.Series(index=index, data=[2.0, 3.0, 4.0, 5.0, 6.0])
         result = x.gppd.setAttr("LB", lb).gppd.setAttr("UB", ub)
         self.model.update()
         for i in range(5):
