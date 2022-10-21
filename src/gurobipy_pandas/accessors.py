@@ -10,7 +10,7 @@ import gurobipy as gp
 from gurobipy import GRB
 from gurobipy_pandas.constraints import add_constrs_from_dataframe
 
-from gurobipy_pandas.variables import add_vars_from_dataframe, add_vars_from_index
+from gurobipy_pandas.variables import add_vars_from_dataframe
 from gurobipy_pandas.util import align_series
 
 
@@ -331,54 +331,4 @@ class GRBSeriesAccessor:
         return pd.Series(
             index=self._obj.index,
             data=[le.getValue() for le in self._obj],
-        )
-
-
-@pd.api.extensions.register_index_accessor("gppd")
-class GRBIndexAccessor:
-    """Accessor class for methods invoked as :code:`pd.Index(...).gppd.*`. The
-    accessor expects normal pandas types in the index, and can return new
-    series of gurobipy objects aligned to that index. This class should not be
-    instantiated directly; it should be used via Pandas' accessor API
-
-    :param pandas_obj: A pandas index
-    :type pandas_obj: :class:`pd.Index`
-    """
-
-    def __init__(self, pandas_obj):
-        self._obj = pandas_obj
-
-    def add_vars(
-        self,
-        model: gp.Model,
-        *,
-        name: Optional[str] = None,
-        lb: float = 0.0,
-        ub: float = GRB.INFINITY,
-        obj: float = 0.0,
-        vtype: str = GRB.CONTINUOUS,
-    ):
-        """Add a variable to the given model for each entry in the index
-        referenced by this accessor.
-
-        :param model: A Gurobi model to which new variables will be added
-        :type model: :class:`gurobipy.Model`
-        :param name: If provided, used as base name for new Gurobi variables
-        :type name: str, optional
-        :param lb: Lower bound for created variables, defaults to 0.0
-        :type lb: float, optional
-        :param ub: Upper bound for created variables, defaults to
-            :code:`GRB.INFINITY`
-        :type ub: float, optional
-        :param obj: Objective function coefficient for created variables,
-            defaults to 0.0
-        :type obj: float, optional
-        :param vtype: Gurobi variable type for created variables, defaults
-            to :code:`GRB.CONTINUOUS`
-        :type vtype: str, optional
-        :return: A Series of vars with the index referenced by the accessor
-        :rtype: :class:`pd.Series`
-        """
-        return add_vars_from_index(
-            model, self._obj, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name
         )
