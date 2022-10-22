@@ -4,10 +4,13 @@ objects correctly defer to Series for arithmetic operations. """
 import operator
 import unittest
 
+import gurobipy as gp
 import gurobipy_pandas as gppd
 import pandas as pd
 
 from .utils import GurobiTestCase
+
+GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
 
 
 class TestAdd(GurobiTestCase):
@@ -112,7 +115,7 @@ class TestIadd(GurobiTestCase):
         x = pd.Series(x0)
         y = self.model.addVar(name="y")
         self.model.update()
-        self.op(x, y)
+        x = self.op(x, y)
         self.assertIsInstance(x, pd.Series)
         for i in range(3):
             self.assert_expression_equal(x[i], self.checkop(x0[i], y))
@@ -122,7 +125,7 @@ class TestIadd(GurobiTestCase):
         le = x * 1
         y = self.model.addVar(name="y")
         self.model.update()
-        self.op(le, y)
+        le = self.op(le, y)
         self.assertIsInstance(le, pd.Series)
         for i in range(3):
             self.assert_expression_equal(le[i], self.checkop(x[i], y))
@@ -132,7 +135,7 @@ class TestIadd(GurobiTestCase):
         qe = x * x
         y = self.model.addVar(name="y")
         self.model.update()
-        self.op(qe, y)
+        qe = self.op(qe, y)
         self.assertIsInstance(qe, pd.Series)
         for i in range(3):
             self.assert_expression_equal(qe[i], self.checkop(x[i] * x[i], y))
@@ -144,7 +147,7 @@ class TestIadd(GurobiTestCase):
         y0 = self.model.addVar(name="y")
         y = y0
         self.model.update()
-        self.op(y, x)
+        y = self.op(y, x)
         self.assertIsInstance(y, pd.Series)
         for i in range(3):
             self.assert_expression_equal(y[i], self.checkop(y0, x[i]))
@@ -161,7 +164,7 @@ class TestIadd(GurobiTestCase):
         y = self.model.addVar(name="y")
         le = 2 * y
         self.model.update()
-        self.op(le, x)
+        le = self.op(le, x)
         self.assertIsInstance(le, pd.Series)
         for i in range(3):
             self.assert_expression_equal(le[i], self.checkop(2 * y, x[i]))
@@ -173,7 +176,7 @@ class TestIadd(GurobiTestCase):
         y = self.model.addVar(name="y")
         qe = y * y
         self.model.update()
-        self.op(qe, x)
+        qe = self.op(qe, x)
         self.assertIsInstance(qe, pd.Series)
         for i in range(3):
             self.assert_expression_equal(qe[i], self.checkop(y * y, x[i]))
@@ -248,12 +251,13 @@ class TestMul(GurobiTestCase):
         for i in range(5):
             self.assert_expression_equal(result[i], i * y * y)
 
-    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_varseries_quadexpr(self):
-        # Cannot multiply, should get a python TypeError
+        # Cannot multiply, should get a GurobiError
+        # (Note in gurobipy, QuadExpr * QuadExpr is technically allowed as long
+        # as it won't introduce degree > 2 terms)
         x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
         qe = y * y
         self.model.update()
-        with self.assertRaises(TypeError):
+        with self.assertRaises(gp.GurobiError):
             x * qe
