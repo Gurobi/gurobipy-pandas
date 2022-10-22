@@ -1,6 +1,10 @@
 import doctest
 
+import gurobipy as gp
+
 import gurobipy_pandas.accessors
+
+GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
 
 
 def setup(arg):
@@ -12,6 +16,11 @@ def setup(arg):
 
 # Load doctests as unittest, see https://docs.python.org/3/library/doctest.html#unittest-api
 def load_tests(loader, tests, ignore):
+    if GUROBIPY_MAJOR_VERSION >= 10:
+        # Changed reprs in gurobipy v10 break doctests; don't load them.
+        # TODO Update the doctests to use the prettier v10 output and
+        # reverse this condition.
+        return tests
     tests.addTests(doctest.DocTestSuite(gurobipy_pandas.accessors, setUp=setup))
     tests.addTests(doctest.DocFileSuite("../docs/source/walkthrough.rst"))
     tests.addTests(doctest.DocFileSuite("../docs/source/function-patterns.rst"))
