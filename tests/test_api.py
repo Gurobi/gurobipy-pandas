@@ -11,7 +11,7 @@ from pandas.testing import assert_index_equal, assert_series_equal
 from tests.utils import GurobiTestCase
 
 
-class TestPDAddVars(GurobiTestCase):
+class TestAddVars(GurobiTestCase):
     def test_from_dataframe(self):
 
         data = pd.DataFrame(
@@ -98,71 +98,97 @@ class TestPDAddVars(GurobiTestCase):
     def test_names_1(self):
         # Default name sanitization
         index = pd.Index(["a  b", "c^d", "e+f"])
-
-        x1 = gppd.add_vars(self.model, index, name="x")
-        x2 = gppd.add_vars(self.model, pd.Series(index=index, data=[1, 2, 3]), name="x")
-        x3 = gppd.add_vars(
-            self.model, pd.DataFrame(index=index, data={"a": [1, 2, 3]}), name="x"
-        )
-
-        self.model.update()
         expect_names = ["x[a_b]", "x[c_d]", "x[e_f]"]
-        for ind, name in zip(index, expect_names):
-            self.assertEqual(x1[ind].VarName, name)
-            self.assertEqual(x2[ind].VarName, name)
-            self.assertEqual(x3[ind].VarName, name)
+
+        with self.subTest(obj="index"):
+            x = gppd.add_vars(self.model, index, name="x")
+            self.model.update()
+            for ind, name in zip(index, expect_names):
+                self.assertEqual(x[ind].VarName, name)
+
+        with self.subTest(obj="series"):
+            x = gppd.add_vars(
+                self.model, pd.Series(index=index, data=[1, 2, 3]), name="x"
+            )
+            self.model.update()
+            for ind, name in zip(index, expect_names):
+                self.assertEqual(x[ind].VarName, name)
+
+        with self.subTest(obj="dataframe"):
+            x = gppd.add_vars(
+                self.model, pd.DataFrame(index=index, data={"a": [1, 2, 3]}), name="x"
+            )
+            self.model.update()
+            for ind, name in zip(index, expect_names):
+                self.assertEqual(x[ind].VarName, name)
 
     def test_names_2(self):
         # Disable name sanitization
         index = pd.Index(["a  b", "c^d", "e+f"])
-
-        x1 = gppd.add_vars(self.model, index, name="x", index_formatter=None)
-        x2 = gppd.add_vars(
-            self.model,
-            pd.Series(index=index, data=[1, 2, 3]),
-            name="x",
-            index_formatter=None,
-        )
-        x3 = gppd.add_vars(
-            self.model,
-            pd.DataFrame(index=index, data={"a": [1, 2, 3]}),
-            name="x",
-            index_formatter=None,
-        )
-
-        self.model.update()
         expect_names = ["x[a  b]", "x[c^d]", "x[e+f]"]
-        for ind, name in zip(index, expect_names):
-            self.assertEqual(x1[ind].VarName, name)
-            self.assertEqual(x2[ind].VarName, name)
-            self.assertEqual(x3[ind].VarName, name)
+
+        with self.subTest(obj="index"):
+            x = gppd.add_vars(self.model, index, name="x", index_formatter="disable")
+            self.model.update()
+            for ind, name in zip(index, expect_names):
+                self.assertEqual(x[ind].VarName, name)
+
+        with self.subTest(obj="series"):
+            x = gppd.add_vars(
+                self.model,
+                pd.Series(index=index, data=[1, 2, 3]),
+                name="x",
+                index_formatter="disable",
+            )
+            self.model.update()
+            for ind, name in zip(index, expect_names):
+                self.assertEqual(x[ind].VarName, name)
+
+        with self.subTest(obj="dataframe"):
+            x = gppd.add_vars(
+                self.model,
+                pd.DataFrame(index=index, data={"a": [1, 2, 3]}),
+                name="x",
+                index_formatter="disable",
+            )
+            self.model.update()
+            for ind, name in zip(index, expect_names):
+                self.assertEqual(x[ind].VarName, name)
 
     def test_names_3(self):
         # User provided formatter
         index = pd.Index(["a  b", "c^d", "e+f"])
-
         simple_mapping = {"a  b": 1, "c^d": 4, "e+f": 9}
         formatter = lambda index: index.map(simple_mapping)
-        x1 = gppd.add_vars(self.model, index, name="x", index_formatter=formatter)
-        x2 = gppd.add_vars(
-            self.model,
-            pd.Series(index=index, data=[1, 2, 3]),
-            name="x",
-            index_formatter=formatter,
-        )
-        x3 = gppd.add_vars(
-            self.model,
-            pd.DataFrame(index=index, data={"a": [1, 2, 3]}),
-            name="x",
-            index_formatter=formatter,
-        )
-
-        self.model.update()
         expect_names = ["x[1]", "x[4]", "x[9]"]
-        for ind, name in zip(index, expect_names):
-            self.assertEqual(x1[ind].VarName, name)
-            self.assertEqual(x2[ind].VarName, name)
-            self.assertEqual(x3[ind].VarName, name)
+
+        with self.subTest(obj="index"):
+            x = gppd.add_vars(self.model, index, name="x", index_formatter=formatter)
+            self.model.update()
+            for ind, name in zip(index, expect_names):
+                self.assertEqual(x[ind].VarName, name)
+
+        with self.subTest(obj="series"):
+            x = gppd.add_vars(
+                self.model,
+                pd.Series(index=index, data=[1, 2, 3]),
+                name="x",
+                index_formatter=formatter,
+            )
+            self.model.update()
+            for ind, name in zip(index, expect_names):
+                self.assertEqual(x[ind].VarName, name)
+
+        with self.subTest(obj="dataframe"):
+            x = gppd.add_vars(
+                self.model,
+                pd.DataFrame(index=index, data={"a": [1, 2, 3]}),
+                name="x",
+                index_formatter=formatter,
+            )
+            self.model.update()
+            for ind, name in zip(index, expect_names):
+                self.assertEqual(x[ind].VarName, name)
 
 
 class TestPDAddConstrs(GurobiTestCase):

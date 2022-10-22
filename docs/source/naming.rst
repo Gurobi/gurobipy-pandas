@@ -86,11 +86,11 @@ This also works for multi-indexes.
 
 Notice that the variable names are formatted to avoid spaces, hyphens, and colons.
 
-You can get the unadulterated, unmodified, unredacted string representations of all your indexes if you prefer, by passing :code:`index_formatter=None`:
+You can get the unadulterated, unmodified, unredacted string representations of all your indexes if you prefer, by passing :code:`index_formatter='disable'`:
 
 .. doctest:: [naming]
 
-    >>> height = gppd.add_vars(model, index, name="height", index_formatter=None)
+    >>> height = gppd.add_vars(model, index, name="height", index_formatter='disable')
     >>> model.update()
     >>> height.gppd.VarName    # doctest: +NORMALIZE_WHITESPACE
     location        date

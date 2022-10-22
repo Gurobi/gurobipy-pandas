@@ -13,7 +13,6 @@ from gurobipy_pandas.variables import (
     add_vars_from_dataframe,
 )
 from gurobipy_pandas.constraints import add_constrs_from_series
-from gurobipy_pandas.index_mappers import default_mapper
 
 
 # Index/Series variant (attribute arguments must be values or series)
@@ -27,7 +26,7 @@ def add_vars(
     ub: Union[float, pd.Series] = GRB.INFINITY,
     obj: Union[float, pd.Series] = 0.0,
     vtype: Union[str, pd.Series] = GRB.CONTINUOUS,
-    index_formatter: Optional[Union[Mapping, Callable]] = default_mapper,
+    index_formatter: Union[str, Callable, Mapping[str, Callable]] = "default",
 ) -> pd.Series:
     ...  # pragma: no cover
 
@@ -43,7 +42,7 @@ def add_vars(
     ub: Union[float, str] = GRB.INFINITY,
     obj: Union[float, str] = 0.0,
     vtype: str = GRB.CONTINUOUS,
-    index_formatter: Optional[Union[Mapping, Callable]] = default_mapper,
+    index_formatter: Union[str, Callable, Mapping[str, Callable]] = "default",
 ) -> pd.Series:
     ...  # pragma: no cover
 
@@ -57,7 +56,7 @@ def add_vars(
     ub=GRB.INFINITY,
     obj=0.0,
     vtype=GRB.CONTINUOUS,
-    index_formatter=default_mapper,
+    index_formatter="default",
 ):
     """Add a variable to the given model for each entry in the given pandas
     Index, Series, or DataFrame.

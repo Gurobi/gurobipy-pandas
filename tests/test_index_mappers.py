@@ -1,19 +1,21 @@
 import datetime
-from email.policy import default
 import unittest
 
 import pandas as pd
 
-from gurobipy_pandas.index_mappers import default_mapper, map_index_entries
+from gurobipy_pandas.index_mappers import create_mapper
 
 
 class TestNoMapper(unittest.TestCase):
-    # Without a mapper, everything should pass through unchanged.
+    # Passing None to create a mapper disables all default mapping.
+
+    def setUp(self):
+        self.mapper = create_mapper("disable")
 
     def test_int(self):
         # Integer dtypes -> iterable of ints
         index = pd.RangeIndex(10)
-        mapped = map_index_entries(index, mapper=None)
+        mapped = self.mapper(index)
         self.assertEqual(list(mapped), list(range(10)))
 
     def test_object(self):
@@ -21,7 +23,7 @@ class TestNoMapper(unittest.TestCase):
         index = pd.Index(
             ["a", 1, "b", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
-        mapped = map_index_entries(index, mapper=None)
+        mapped = self.mapper(index)
         self.assertEqual(
             list(mapped),
             ["a", 1, "b", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)],
@@ -30,7 +32,7 @@ class TestNoMapper(unittest.TestCase):
     def test_timestamp(self):
         # Datetimes just get the equivalent objects back
         index = pd.date_range(start=pd.Timestamp(2021, 1, 1), freq="D", periods=3)
-        mapped = map_index_entries(index, mapper=None)
+        mapped = self.mapper(index)
         self.assertEqual(
             list(mapped),
             [
@@ -47,7 +49,7 @@ class TestNoMapper(unittest.TestCase):
             [1, "a", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
         index = pd.MultiIndex.from_product([intindex, objindex])
-        mapped = map_index_entries(index, mapper=None)
+        mapped = self.mapper(index)
         self.assertEqual(
             list(mapped),
             [
@@ -64,17 +66,20 @@ class TestNoMapper(unittest.TestCase):
 
 
 class TestDefaultMapper(unittest.TestCase):
-    # Default mapper should map to strings where necessary (for non-int data types)
-    # and tidy up by removing disallowed characters.
+    # Default mapping maps to strings where necessary (for non-int data types)
+    # and tidies up by removing disallowed characters.
     # https://www.gurobi.com/documentation/9.5/refman/lp_format.html
     # a name should not contain any of the characters +, -, *, ^, or :
     # default mapper replaces all these characters, and whitespace with underscores
+
+    def setUp(self):
+        self.mapper = create_mapper("default")
 
     def test_int(self):
         # Integer dtypes -> iterable of ints
         # There's no point converting in this case, no risk of illegal characters.
         index = pd.RangeIndex(10)
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = self.mapper(index)
         self.assertEqual(list(mapped), list(range(10)))
 
     def test_object(self):
@@ -82,13 +87,13 @@ class TestDefaultMapper(unittest.TestCase):
         index = pd.Index(
             ["a", 1, "a*b+c^d", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = self.mapper(index)
         self.assertEqual(list(mapped), ["a", "1", "a_b_c_d", "2021_03_05", "12_30_43"])
 
     def test_whitespace(self):
         # All continuous whitespace replace with a single underscore
         index = pd.Index(["a  b", "c\td"])
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = self.mapper(index)
         self.assertEqual(list(mapped), ["a_b", "c_d"])
 
     def test_timestamp(self):
@@ -99,7 +104,7 @@ class TestDefaultMapper(unittest.TestCase):
             periods=3,
             tz=datetime.timezone.utc,
         )
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = self.mapper(index)
         self.assertEqual(
             list(mapped),
             ["2021_01_18T12_32_41", "2021_01_19T12_32_41", "2021_01_20T12_32_41"],
@@ -114,7 +119,7 @@ class TestDefaultMapper(unittest.TestCase):
             periods=3,
             tz=datetime.timezone.utc,
         )
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = self.mapper(index)
         self.assertEqual(
             list(mapped),
             ["2021_01_18T12_32_41", "2021_01_19T12_32_41", "2021_01_20T12_32_41"],
@@ -127,7 +132,7 @@ class TestDefaultMapper(unittest.TestCase):
             [1, "a*b+c^d", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
         index = pd.MultiIndex.from_product([intindex, objindex])
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = self.mapper(index)
         self.assertEqual(
             list(mapped),
             [
@@ -143,12 +148,18 @@ class TestDefaultMapper(unittest.TestCase):
         )
 
 
-class TestCustomMapper(unittest.TestCase):
+class TestCustomMapperCallable(unittest.TestCase):
+    # Creating the mapper from a callable applies the callable to all levels in
+    # the input series.
+
+    def setUp(self):
+        self.mapper = create_mapper(
+            lambda index: pd.Series(index).dt.strftime("%y%m%d")
+        )
+
     def test_dates(self):
         index = pd.date_range(start=pd.Timestamp(2022, 6, 5), freq="D", periods=5)
-        mapped = map_index_entries(
-            index, mapper=lambda index: pd.Series(index).dt.strftime("%y%m%d")
-        )
+        mapped = self.mapper(index)
         expected = ["220605", "220606", "220607", "220608", "220609"]
         self.assertEqual(list(mapped), expected)
 
@@ -156,56 +167,82 @@ class TestCustomMapper(unittest.TestCase):
         index1 = pd.date_range(start=pd.Timestamp(2022, 6, 5), freq="D", periods=2)
         index2 = pd.date_range(start=pd.Timestamp(2022, 8, 9), freq="D", periods=2)
         index = pd.MultiIndex.from_product([index1, index2])
-        mapped = map_index_entries(
-            index, mapper=lambda index: pd.Series(index).dt.strftime("%m%d")
-        )
+        mapped = self.mapper(index)
         expected = [
-            ("0605", "0809"),
-            ("0605", "0810"),
-            ("0606", "0809"),
-            ("0606", "0810"),
+            ("220605", "220809"),
+            ("220605", "220810"),
+            ("220606", "220809"),
+            ("220606", "220810"),
         ]
         self.assertEqual(list(mapped), expected)
+
+
+class TestCustomMapperDict(unittest.TestCase):
+    # Creating the mapper from a dict applies specific formatters to indexes
+    # by name. Any unnamed index levels will have default formatting applied.
+
+    def setUp(self):
+
+        dtindex = pd.date_range(
+            start=pd.Timestamp(2022, 6, 5), freq="D", periods=5, name="date"
+        )
+        strindex1 = pd.Index(["a  b", "c+d", "e", "f", "g"], name="str1")
+        strindex2 = pd.Index(["a  b", "c+d", "e", "f", "g"], name="str2")
+
+        self.index = pd.MultiIndex.from_arrays([dtindex, strindex1, strindex2])
 
     def test_by_level_name(self):
-        # Named formatter applied to given column, default formatter otherwise
-
-        dtindex = pd.date_range(
-            start=pd.Timestamp(2022, 6, 5), freq="D", periods=5, name="date"
+        # Named formatter applied to given level, default formatter otherwise
+        mapper = create_mapper(
+            {
+                "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
+            }
         )
-        strindex = pd.Index(["a  b", "c+d", "e", "f", "g"], name="letter")
-        index = pd.MultiIndex.from_arrays([dtindex, strindex])
-        mapper = {
-            "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
-        }
-        mapped = map_index_entries(index, mapper=mapper)
+        mapped = mapper(self.index)
+
         expected = [
-            ("220605", "a_b"),
-            ("220606", "c_d"),
-            ("220607", "e"),
-            ("220608", "f"),
-            ("220609", "g"),
+            ("220605", "a_b", "a_b"),
+            ("220606", "c_d", "c_d"),
+            ("220607", "e", "e"),
+            ("220608", "f", "f"),
+            ("220609", "g", "g"),
         ]
         self.assertEqual(list(mapped), expected)
 
-    def test_by_level_forcenodefault(self):
-        # Named formatter applied to given column, default formatter otherwise
-
-        dtindex = pd.date_range(
-            start=pd.Timestamp(2022, 6, 5), freq="D", periods=5, name="date"
+    def test_by_level_nomapper(self):
+        # None as a value implies no formatting to the given level
+        mapper = create_mapper(
+            {
+                "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
+                "str1": None,
+            }
         )
-        strindex = pd.Index(["a  b", "c+d", "e", "f", "g"], name="letter")
-        index = pd.MultiIndex.from_arrays([dtindex, strindex])
-        mapper = {
-            "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
-            "letter": None,
-        }
-        mapped = map_index_entries(index, mapper=mapper)
+        mapped = mapper(self.index)
+
         expected = [
-            ("220605", "a  b"),
-            ("220606", "c+d"),
-            ("220607", "e"),
-            ("220608", "f"),
-            ("220609", "g"),
+            ("220605", "a  b", "a_b"),
+            ("220606", "c+d", "c_d"),
+            ("220607", "e", "e"),
+            ("220608", "f", "f"),
+            ("220609", "g", "g"),
+        ]
+        self.assertEqual(list(mapped), expected)
+
+    def test_disable_remaining(self):
+        # None: None disables default mapping for any unnamed levels
+        mapper = create_mapper(
+            {
+                "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
+                None: None,
+            }
+        )
+        mapped = mapper(self.index)
+
+        expected = [
+            ("220605", "a  b", "a  b"),
+            ("220606", "c+d", "c+d"),
+            ("220607", "e", "e"),
+            ("220608", "f", "f"),
+            ("220609", "g", "g"),
         ]
         self.assertEqual(list(mapped), expected)

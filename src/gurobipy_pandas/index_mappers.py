@@ -9,12 +9,36 @@ These are not called directly by users, rather users should pass their own
 mapper in to var/constr adder methods if they want to change the behaviour.
 """
 
+from functools import partial
+
 import pandas as pd
 
 
-def default_mapper(index):
-    """Mapper to be applied by default by var/constr adders. Just does basic
-    cleanup to avoid LP format issues."""
+def create_mapper(arg):
+    """Entry point for index mapping/formatting. Takes an argument the user
+    would pass to top level functions, and returns a callable which should
+    be applied to indexes before using them to create var/constr names."""
+    if arg == "disable":
+        # Pass through unchanged
+        return lambda index: index
+    elif arg == "default":
+        # Apply default mapping at every level of the index
+        return partial(_map_index_entries, mapper=_default_mapper)
+    elif callable(arg):
+        # Apply the callable at every level of the index
+        return partial(_map_index_entries, mapper=arg)
+    else:
+        # Expects a dict-like object. Adds the default mapper as a fallback
+        # if needed. Mappers are applied level-wise by names in the dict.
+        arg = dict(arg)
+        if None not in arg:
+            arg[None] = _default_mapper
+        return partial(_map_index_entries, mapper=arg)
+
+
+def _default_mapper(index):
+    """Level mapper to be applied by default. Just does basic cleanup to avoid
+    LP format issues."""
     if pd.api.types.is_integer_dtype(index):
         # Integers will always be string-formatted sanely later, no need to
         # do any heavy string manipulation here.
@@ -27,7 +51,7 @@ def default_mapper(index):
         return index.map(str).str.replace(r"[\+\-\*\^\:\s]+", "_", regex=True)
 
 
-def map_index_entries(index: pd.Index, mapper):
+def _map_index_entries(index: pd.Index, mapper):
     """Convert an index to a list of values (single) or tuples (multi), with
     string conversions where needed to support clean variable and constraint
     naming.
@@ -35,7 +59,7 @@ def map_index_entries(index: pd.Index, mapper):
     assert isinstance(index, pd.Index)
 
     if mapper is None:
-        # Don't do any formatting.
+        # Nothing to do
         return index
 
     elif callable(mapper):
@@ -52,13 +76,20 @@ def map_index_entries(index: pd.Index, mapper):
         assert isinstance(index, pd.MultiIndex)
         levels = [index.get_level_values(i) for i in range(index.nlevels)]
         mapped_levels = []
+
+        # This function is not used directly, but wrapped by create_mapper,
+        # which will always add a fallback 'None' key.
+        default_map_func = mapper[None]
+
         for level in levels:
             if level.name in mapper:
                 map_func = mapper[level.name]
-                if map_func is None:
-                    mapped_levels.append(level)
-                else:
-                    mapped_levels.append(map_func(level))
             else:
-                mapped_levels.append(default_mapper(level))
+                map_func = default_map_func
+
+            if map_func is None:
+                mapped_levels.append(level)
+            else:
+                mapped_levels.append(map_func(level))
+
         return pd.MultiIndex.from_arrays(mapped_levels)
