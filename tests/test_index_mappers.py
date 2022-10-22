@@ -153,9 +153,7 @@ class TestCustomMapperCallable(unittest.TestCase):
     # the input series.
 
     def setUp(self):
-        self.mapper = create_mapper(
-            lambda index: pd.Series(index).dt.strftime("%y%m%d")
-        )
+        self.mapper = create_mapper(lambda index: index.strftime("%y%m%d"))
 
     def test_dates(self):
         index = pd.date_range(start=pd.Timestamp(2022, 6, 5), freq="D", periods=5)
@@ -193,11 +191,7 @@ class TestCustomMapperDict(unittest.TestCase):
 
     def test_by_level_name(self):
         # Named formatter applied to given level, default formatter otherwise
-        mapper = create_mapper(
-            {
-                "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
-            }
-        )
+        mapper = create_mapper({"date": lambda index: index.strftime("%y%m%d")})
         mapped = mapper(self.index)
 
         expected = [
@@ -212,10 +206,7 @@ class TestCustomMapperDict(unittest.TestCase):
     def test_by_level_nomapper(self):
         # None as a value implies no formatting to the given level
         mapper = create_mapper(
-            {
-                "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
-                "str1": None,
-            }
+            {"date": lambda index: index.strftime("%y%m%d"), "str1": None}
         )
         mapped = mapper(self.index)
 
@@ -231,10 +222,7 @@ class TestCustomMapperDict(unittest.TestCase):
     def test_disable_remaining(self):
         # None: None disables default mapping for any unnamed levels
         mapper = create_mapper(
-            {
-                "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
-                None: None,
-            }
+            {"date": lambda index: index.strftime("%y%m%d"), None: None}
         )
         mapped = mapper(self.index)
 

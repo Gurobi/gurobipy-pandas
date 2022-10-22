@@ -104,9 +104,7 @@ Finally, you can provide custom name mappers to apply to named indexes. This is 
 
 .. doctest:: [naming]
 
-    >>> index_formatter = {
-    ...     "date": lambda index: pd.Series(index).dt.strftime("%y%m%d")
-    ... }
+    >>> index_formatter = {"date": lambda index: index.strftime("%y%m%d")}
     >>> height = gppd.add_vars(model, index, name="height", index_formatter=index_formatter)
     >>> model.update()
     >>> height.gppd.VarName    # doctest: +NORMALIZE_WHITESPACE
