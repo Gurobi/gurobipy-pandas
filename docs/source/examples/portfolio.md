@@ -24,7 +24,7 @@ Point to think about though: when we do construct a single expression by applyin
 import gurobipy as gp
 from gurobipy import GRB
 from math import sqrt
-import gurobipy_pandas
+import gurobipy_pandas as gppd
 import pandas as pd
 import numpy as np
 import matplotlib
@@ -41,7 +41,7 @@ Create a new model and add a variable for each stock. The columns in our datafra
 
 ```{code-cell} ipython3
 model = gp.Model('Portfolio')
-stocks = data.columns.gppd.add_vars(model, name="Stock")
+stocks = gppd.add_vars(model, data.columns, name="Stock")
 model.update()
 stocks
 ```

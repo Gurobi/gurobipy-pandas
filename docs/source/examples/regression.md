@@ -13,7 +13,7 @@ jupytext:
 ```{code-cell}
 import gurobipy as gp
 from gurobipy import GRB
-import gurobipy_pandas
+import gurobipy_pandas as gppd
 import pandas as pd
 
 from sklearn import datasets
@@ -39,7 +39,7 @@ model = gp.Model()
 Create unbounded variables for each column coefficient. Use the index accessor; in pandas the columns are also an index, so `.gppd.add_vars` associates a Gurobi variable with each column index entry.
 
 ```{code-cell}
-coeffs = X_train.columns.gppd.add_vars(model, name="coeff", lb=-GRB.INFINITY)
+coeffs = gppd.add_vars(model, X_train.columns, name="coeff", lb=-GRB.INFINITY)
 model.update()
 coeffs
 ```
@@ -110,7 +110,7 @@ Note: this dataset really needs some normalization for a reasonable comparison. 
 ```{code-cell}
 model = gp.Model()
 coeffs = (
-    X_train.columns.gppd.add_vars(model, name="coeff", lb=-GRB.INFINITY)
+    gppd.add_vars(model, X_train.columns, name="coeff", lb=-GRB.INFINITY)
     .to_frame()
     .gppd.add_vars(model, name="abscoeff", lb=0.0)
     .gppd.add_constrs(model, "coeff <= abscoeff", name="poscoeff")
