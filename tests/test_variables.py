@@ -350,7 +350,7 @@ class TestAddVarsFromIndex(unittest.TestCase):
             with self.assertRaises(TypeError):
                 add_vars_from_index(self.model, index, name=1.5)
 
-    def test_default_name_mapper(self):
+    def test_default_index_formatter(self):
         # Cleanup of illegal characters in names should happen by default
         datetimeindex = pd.date_range(
             start=pd.Timestamp(2022, 4, 3), freq="D", periods=3
@@ -364,6 +364,25 @@ class TestAddVarsFromIndex(unittest.TestCase):
         string_map = {"a  b": "a_b", "c": "c", "d": "d"}
         for dtvalue, strvalue in index:
             expected = f"x[2022_04_{dtvalue.day:02d}T00_00_00,{string_map[strvalue]}]"
+            self.assertEqual(x[dtvalue, strvalue].VarName, expected)
+
+    def test_custom_index_formatter(self):
+        # Customize or switch off auto-formatting by index level
+        datetimeindex = pd.date_range(
+            start=pd.Timestamp(2022, 4, 3), freq="D", periods=3, name="date"
+        )
+        stringindex = pd.Index(["a  b", "c", "d"], name="surname")
+        index = pd.MultiIndex.from_arrays([datetimeindex, stringindex])
+
+        formatter = {
+            "date": lambda index: pd.Series(index).dt.strftime("%Y%m%d"),
+            "surname": None,
+        }
+        x = add_vars_from_index(self.model, index, name="x", index_formatter=formatter)
+        self.model.update()
+
+        for dtvalue, strvalue in index:
+            expected = f"x[202204{dtvalue.day:02d},{strvalue}]"
             self.assertEqual(x[dtvalue, strvalue].VarName, expected)
 
 
@@ -539,7 +558,7 @@ class TestAddVarsFromDataFrame(unittest.TestCase):
             with self.assertRaises(TypeError):
                 add_vars_from_dataframe(self.model, self.data, vtype=typeseries)
 
-    def test_default_name_mapper(self):
+    def test_default_index_formatter(self):
         # Cleanup of illegal characters in names should happen by default
         datetimeindex = pd.date_range(
             start=pd.Timestamp(2022, 4, 3), freq="D", periods=3
@@ -556,4 +575,27 @@ class TestAddVarsFromDataFrame(unittest.TestCase):
         string_map = {"a  b": "a_b", "c": "c", "d": "d"}
         for dtvalue, strvalue in df.index:
             expected = f"x[2022_04_{dtvalue.day:02d}T00_00_00,{string_map[strvalue]}]"
+            self.assertEqual(x[dtvalue, strvalue].VarName, expected)
+
+    def test_custom_index_formatter(self):
+        # Override cleanup for name index levels. Defaults still apply to
+        # non-named levels.
+        datetimeindex = pd.date_range(
+            start=pd.Timestamp(2022, 4, 3), freq="D", periods=3, name="date"
+        )
+        stringindex = pd.Index(["a  b", "c", "d"], name="surname")
+        df = pd.DataFrame(
+            index=pd.MultiIndex.from_arrays([datetimeindex, stringindex]),
+            data={"a": [1, 2, 3], "b": [4, 5, 6]},
+        )
+
+        formatter = {"date": lambda index: pd.Series(index).dt.strftime("%y%m%d")}
+        x = add_vars_from_dataframe(
+            self.model, df, name="x", lb="a", ub="b", index_formatter=formatter
+        )
+        self.model.update()
+
+        string_map = {"a  b": "a_b", "c": "c", "d": "d"}
+        for dtvalue, strvalue in df.index:
+            expected = f"x[2204{dtvalue.day:02d},{string_map[strvalue]}]"
             self.assertEqual(x[dtvalue, strvalue].VarName, expected)

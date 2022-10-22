@@ -2,7 +2,7 @@
 Top-level API functions
 """
 
-from typing import overload, Union, Optional
+from typing import overload, Union, Optional, Mapping, Callable
 
 import gurobipy as gp
 from gurobipy import GRB
@@ -13,6 +13,7 @@ from gurobipy_pandas.variables import (
     add_vars_from_dataframe,
 )
 from gurobipy_pandas.constraints import add_constrs_from_series
+from gurobipy_pandas.index_mappers import default_mapper
 
 
 # Index/Series variant (attribute arguments must be values or series)
@@ -26,6 +27,7 @@ def add_vars(
     ub: Union[float, pd.Series] = GRB.INFINITY,
     obj: Union[float, pd.Series] = 0.0,
     vtype: Union[str, pd.Series] = GRB.CONTINUOUS,
+    index_formatter: Optional[Union[Mapping, Callable]] = default_mapper,
 ) -> pd.Series:
     ...  # pragma: no cover
 
@@ -41,6 +43,7 @@ def add_vars(
     ub: Union[float, str] = GRB.INFINITY,
     obj: Union[float, str] = 0.0,
     vtype: str = GRB.CONTINUOUS,
+    index_formatter: Optional[Union[Mapping, Callable]] = default_mapper,
 ) -> pd.Series:
     ...  # pragma: no cover
 
@@ -54,6 +57,7 @@ def add_vars(
     ub=GRB.INFINITY,
     obj=0.0,
     vtype=GRB.CONTINUOUS,
+    index_formatter=default_mapper,
 ):
     """Add a variable to the given model for each entry in the given pandas
     Index, Series, or DataFrame.
@@ -76,20 +80,41 @@ def add_vars(
         # Use the given index as the base object. All attribute arguments must
         # be single values, or series aligned with the index.
         return add_vars_from_index(
-            model, pandas_obj, name=name, lb=lb, ub=ub, obj=obj, vtype=vtype
+            model,
+            pandas_obj,
+            name=name,
+            lb=lb,
+            ub=ub,
+            obj=obj,
+            vtype=vtype,
+            index_formatter=index_formatter,
         )
     elif isinstance(pandas_obj, pd.Series):
         # Use the index of the given series as the base object. All attribute
         # arguments must be single values, or series on the same index as the
         # given series.
         return add_vars_from_index(
-            model, pandas_obj.index, name=name, lb=lb, ub=ub, obj=obj, vtype=vtype
+            model,
+            pandas_obj.index,
+            name=name,
+            lb=lb,
+            ub=ub,
+            obj=obj,
+            vtype=vtype,
+            index_formatter=index_formatter,
         )
     elif isinstance(pandas_obj, pd.DataFrame):
         # Use the given dataframe as the base object. All attribute arguments
         # must be single values, or names of columns in the given dataframe.
         return add_vars_from_dataframe(
-            model, pandas_obj, name=name, lb=lb, ub=ub, obj=obj, vtype=vtype
+            model,
+            pandas_obj,
+            name=name,
+            lb=lb,
+            ub=ub,
+            obj=obj,
+            vtype=vtype,
+            index_formatter=index_formatter,
         )
     else:
         raise ValueError("`pandas_obj` must be an index, series, or dataframe")

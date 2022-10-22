@@ -45,6 +45,7 @@ def add_vars_from_index(
     obj: Union[float, pd.Series] = 0.0,
     vtype: Union[str, pd.Series] = GRB.CONTINUOUS,
     name: Optional[Union[str, pd.Series]] = None,
+    index_formatter=default_mapper,
 ) -> pd.Series:
     """Add one variable to :model for every entry in :index. Added
     variables are returned as a series with index :index.
@@ -106,7 +107,7 @@ def add_vars_from_index(
     else:
         raise TypeError("'name' must be a string, series, or None")
 
-    mapped = map_index_entries(index, mapper=default_mapper)
+    mapped = map_index_entries(index, mapper=index_formatter)
     newvars = model.addVars(mapped, lb=lb, ub=ub, obj=obj, vtype=vtype, name=namearg)
     return pd.Series(index=index, data=list(newvars.values()), name=seriesname)
 
@@ -120,6 +121,7 @@ def add_vars_from_dataframe(
     obj: Union[float, str] = 0.0,
     vtype: str = GRB.CONTINUOUS,
     name: Optional[str] = None,
+    index_formatter=default_mapper,
 ) -> pd.Series:
     """Add one variable to :model for every row in :data. Added
     variables are returned as a series on the same index as :data.
@@ -165,6 +167,6 @@ def add_vars_from_dataframe(
     if not (name is None or isinstance(name, str)):
         raise TypeError("'name' must be a string or None")
 
-    mapped = map_index_entries(data.index, mapper=default_mapper)
+    mapped = map_index_entries(data.index, mapper=index_formatter)
     newvars = model.addVars(mapped, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name)
     return pd.Series(index=data.index, data=list(newvars.values()), name=name)
