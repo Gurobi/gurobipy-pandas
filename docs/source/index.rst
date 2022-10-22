@@ -77,3 +77,4 @@ Index
    function-patterns
    examples
    api
+   naming

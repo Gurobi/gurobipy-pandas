@@ -22,6 +22,7 @@ def load_tests(loader, tests, ignore):
         # reverse this condition.
         return tests
     tests.addTests(doctest.DocTestSuite(gurobipy_pandas.accessors, setUp=setup))
-    tests.addTests(doctest.DocFileSuite("../docs/source/walkthrough.rst"))
     tests.addTests(doctest.DocFileSuite("../docs/source/function-patterns.rst"))
+    tests.addTests(doctest.DocFileSuite("../docs/source/naming.rst"))
+    tests.addTests(doctest.DocFileSuite("../docs/source/walkthrough.rst"))
     return tests
