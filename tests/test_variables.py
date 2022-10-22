@@ -350,6 +350,22 @@ class TestAddVarsFromIndex(unittest.TestCase):
             with self.assertRaises(TypeError):
                 add_vars_from_index(self.model, index, name=1.5)
 
+    def test_default_name_mapper(self):
+        # Cleanup of illegal characters in names should happen by default
+        datetimeindex = pd.date_range(
+            start=pd.Timestamp(2022, 4, 3), freq="D", periods=3
+        )
+        stringindex = pd.Index(["a  b", "c", "d"])
+        index = pd.MultiIndex.from_arrays([datetimeindex, stringindex])
+
+        x = add_vars_from_index(self.model, index, name="x")
+        self.model.update()
+
+        string_map = {"a  b": "a_b", "c": "c", "d": "d"}
+        for dtvalue, strvalue in index:
+            expected = f"x[2022_04_{dtvalue.day:02d}T00_00_00,{string_map[strvalue]}]"
+            self.assertEqual(x[dtvalue, strvalue].VarName, expected)
+
 
 class TestAddVarsFromDataFrame(unittest.TestCase):
     def setUp(self):
@@ -522,3 +538,22 @@ class TestAddVarsFromDataFrame(unittest.TestCase):
             typeseries = pd.Series(index=self.data.index, data=["I", "B", "C", "S"])
             with self.assertRaises(TypeError):
                 add_vars_from_dataframe(self.model, self.data, vtype=typeseries)
+
+    def test_default_name_mapper(self):
+        # Cleanup of illegal characters in names should happen by default
+        datetimeindex = pd.date_range(
+            start=pd.Timestamp(2022, 4, 3), freq="D", periods=3
+        )
+        stringindex = pd.Index(["a  b", "c", "d"])
+        df = pd.DataFrame(
+            index=pd.MultiIndex.from_arrays([datetimeindex, stringindex]),
+            data={"a": [1, 2, 3], "b": [4, 5, 6]},
+        )
+
+        x = add_vars_from_dataframe(self.model, df, name="x", lb="a", ub="b")
+        self.model.update()
+
+        string_map = {"a  b": "a_b", "c": "c", "d": "d"}
+        for dtvalue, strvalue in df.index:
+            expected = f"x[2022_04_{dtvalue.day:02d}T00_00_00,{string_map[strvalue]}]"
+            self.assertEqual(x[dtvalue, strvalue].VarName, expected)

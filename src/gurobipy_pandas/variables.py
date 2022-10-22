@@ -9,6 +9,8 @@ import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
 
+from gurobipy_pandas.index_mappers import map_index_entries, default_mapper
+
 
 def prepare_series(series, index=None):
     """
@@ -104,7 +106,8 @@ def add_vars_from_index(
     else:
         raise TypeError("'name' must be a string, series, or None")
 
-    newvars = model.addVars(index, lb=lb, ub=ub, obj=obj, vtype=vtype, name=namearg)
+    mapped = map_index_entries(index, mapper=default_mapper)
+    newvars = model.addVars(mapped, lb=lb, ub=ub, obj=obj, vtype=vtype, name=namearg)
     return pd.Series(index=index, data=list(newvars.values()), name=seriesname)
 
 
@@ -162,5 +165,6 @@ def add_vars_from_dataframe(
     if not (name is None or isinstance(name, str)):
         raise TypeError("'name' must be a string or None")
 
-    newvars = model.addVars(data.index, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name)
+    mapped = map_index_entries(data.index, mapper=default_mapper)
+    newvars = model.addVars(mapped, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name)
     return pd.Series(index=data.index, data=list(newvars.values()), name=name)
