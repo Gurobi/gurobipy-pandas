@@ -23,7 +23,7 @@ class TestAdd(GurobiTestCase):
         for i in range(5):
             self.assert_expression_equal(result[i], self.op(x[i], y))
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_var_varseries(self):
         x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
@@ -43,7 +43,7 @@ class TestAdd(GurobiTestCase):
         for i in range(5):
             self.assert_expression_equal(result[i], self.op(i, x))
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_var_dataseries(self):
         x = self.model.addVar(name="x")
         self.model.update()
@@ -62,7 +62,7 @@ class TestAdd(GurobiTestCase):
         for i in range(5):
             self.assert_expression_equal(result[i], self.op(x[i], +2 * y + 1))
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_linexpr_varseries(self):
         x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
@@ -83,7 +83,7 @@ class TestAdd(GurobiTestCase):
         for i in range(5):
             self.assert_expression_equal(result[i], self.op(x[i], y * y + 2 * y + 3))
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_quadexpr_varseries(self):
         x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
@@ -137,7 +137,7 @@ class TestIadd(GurobiTestCase):
         for i in range(3):
             self.assert_expression_equal(qe[i], self.checkop(x[i] * x[i], y))
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_var_varseries(self):
         # Type uplift to Series (reassignment)
         x = gppd.add_vars(self.model, pd.RangeIndex(3), name="x")
@@ -149,7 +149,7 @@ class TestIadd(GurobiTestCase):
         for i in range(3):
             self.assert_expression_equal(y[i], self.checkop(y0, x[i]))
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_linexpr_varseries(self):
         # Type uplift to Series (reassignment)
         # Expected call chain:
@@ -166,7 +166,7 @@ class TestIadd(GurobiTestCase):
         for i in range(3):
             self.assert_expression_equal(le[i], self.checkop(2 * y, x[i]))
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_quadexpr_varseries(self):
         # Type uplift to Series (reassignment)
         x = gppd.add_vars(self.model, pd.RangeIndex(3), name="x")
@@ -196,7 +196,7 @@ class TestMul(GurobiTestCase):
         for i in range(5):
             self.assert_expression_equal(result[i], x[i] * y)
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_var_varseries(self):
         x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
@@ -216,7 +216,7 @@ class TestMul(GurobiTestCase):
         for i in range(5):
             self.assert_expression_equal(result[i], x[i] * 2 * y)
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_linexpr_varseries(self):
         x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")
@@ -237,7 +237,7 @@ class TestMul(GurobiTestCase):
         for i in range(5):
             self.assert_expression_equal(result[i], i * y * y)
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_quadexpr_dataseries(self):
         s = pd.Series(list(range(5)))
         y = self.model.addVar(name="y")
@@ -248,7 +248,7 @@ class TestMul(GurobiTestCase):
         for i in range(5):
             self.assert_expression_equal(result[i], i * y * y)
 
-    @unittest.expectedFailure
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_varseries_quadexpr(self):
         # Cannot multiply, should get a python TypeError
         x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
