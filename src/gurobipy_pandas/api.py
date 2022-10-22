@@ -126,6 +126,7 @@ def add_constrs(
     rhs: Union[pd.Series, float],
     *,
     name: Optional[str] = None,
+    index_formatter: Union[str, Callable, Mapping[str, Callable]] = "default",
 ) -> pd.Series:
     """Add a constraint to the model for each row in lhs & rhs.
 
@@ -144,4 +145,6 @@ def add_constrs(
     :return: A Series of Constr objects
     :rtype: :class:`pd.Series`
     """
-    return add_constrs_from_series(model, lhs, sense, rhs, name=name)
+    return add_constrs_from_series(
+        model, lhs, sense, rhs, name=name, index_formatter=index_formatter
+    )

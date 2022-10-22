@@ -191,7 +191,7 @@ class TestAddVars(GurobiTestCase):
                 self.assertEqual(x[ind].VarName, name)
 
 
-class TestPDAddConstrs(GurobiTestCase):
+class TestAddConstrs(GurobiTestCase):
     def test_from_series(self):
 
         index = pd.RangeIndex(10)
@@ -222,3 +222,32 @@ class TestPDAddConstrs(GurobiTestCase):
         # Check data using accessors
         self.assertTrue((constrs.gppd.Sense == GRB.LESS_EQUAL).all())
         assert_series_equal(constrs.gppd.RHS, k.astype(float), check_names=False)
+
+    def test_index_formatter(self):
+        index = pd.Index(["a  b", "c*d", "e:f"])
+
+        x = gppd.add_vars(self.model, index)
+        y = gppd.add_vars(self.model, index)
+
+        with self.subTest(index_formatter="default"):
+            constrs = gppd.add_constrs(self.model, x, GRB.LESS_EQUAL, y, name="c")
+            self.model.update()
+            names = list(constrs.gppd.ConstrName)
+            self.assertEqual(names, ["c[a_b]", "c[c_d]", "c[e_f]"])
+
+        with self.subTest(index_formatter="disable"):
+            constrs = gppd.add_constrs(
+                self.model, x, GRB.LESS_EQUAL, y, name="c", index_formatter="disable"
+            )
+            self.model.update()
+            names = list(constrs.gppd.ConstrName)
+            self.assertEqual(names, ["c[a  b]", "c[c*d]", "c[e:f]"])
+
+        with self.subTest(index_formatter="callable"):
+            index_map = lambda ind: ind.map({"a  b": 2, "c*d": 4, "e:f": 8})
+            constrs = gppd.add_constrs(
+                self.model, x, GRB.LESS_EQUAL, y, name="c", index_formatter=index_map
+            )
+            self.model.update()
+            names = list(constrs.gppd.ConstrName)
+            self.assertEqual(names, ["c[2]", "c[4]", "c[8]"])

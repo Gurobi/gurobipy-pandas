@@ -10,6 +10,8 @@ import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
 
+from gurobipy_pandas.index_mappers import create_mapper
+
 
 CONSTRAINT_SENSES = frozenset([GRB.LESS_EQUAL, GRB.EQUAL, GRB.GREATER_EQUAL])
 
@@ -28,6 +30,7 @@ def add_constrs_from_dataframe(
     rhs: Optional[Union[str, float]] = None,
     *,
     name: Optional[str] = None,
+    index_formatter="default",
 ) -> pd.Series:
     """
     Create a constraint for each row in the dataframe. Returns a series
@@ -49,13 +52,17 @@ def add_constrs_from_dataframe(
         # called with 3 positional arguments
         # lhs must be an evaluable (?) expression on the dataframe columns
         data, sense = _create_expressions_dataframe(data, lhs)
-        return _add_constrs_from_dataframe_args(model, data, "lhs", sense, "rhs", name)
+        return _add_constrs_from_dataframe_args(
+            model, data, "lhs", sense, "rhs", name, index_formatter=index_formatter
+        )
 
     else:
         # called with 5 positional arguments
         # lhs & rhs must be column references or numeric values
         assert rhs is not None
-        return _add_constrs_from_dataframe_args(model, data, lhs, sense, rhs, name)
+        return _add_constrs_from_dataframe_args(
+            model, data, lhs, sense, rhs, name, index_formatter=index_formatter
+        )
 
 
 def add_constrs_from_series(
@@ -65,6 +72,7 @@ def add_constrs_from_series(
     rhs: Union[pd.Series, float],
     *,
     name: Optional[str] = None,
+    index_formatter="default",
 ) -> pd.Series:
 
     if isinstance(lhs, pd.Series) and isinstance(rhs, pd.Series):
@@ -84,7 +92,9 @@ def add_constrs_from_series(
         }
     )
 
-    return add_constrs_from_dataframe(model, data, "lhs", sense, "rhs", name=name)
+    return add_constrs_from_dataframe(
+        model, data, "lhs", sense, "rhs", name=name, index_formatter=index_formatter
+    )
 
 
 def _create_expressions_dataframe(df, expr):
@@ -137,6 +147,7 @@ def _add_constrs_from_dataframe_args(
     sense: str,
     rhs: Union[str, float],
     name: Optional[str],
+    index_formatter,
 ) -> pd.Series:
     """Add one constraint per in :data, where :lhs and :rhs are column
     references or single values. Return constraints as an aligned series.
@@ -152,6 +163,12 @@ def _add_constrs_from_dataframe_args(
     else:
         rhs = float(rhs)
 
+    # Create a new dataframe with a formatted index. This is used in
+    # constraint generation to get the name formatting right, but the
+    # original index is used in the returned series.
+    mapper = create_mapper(index_formatter)
+    reindexed = data.set_index(mapper(data.index), drop=True)
+
     constrs = [
         _add_constr(
             model,
@@ -160,6 +177,6 @@ def _add_constrs_from_dataframe_args(
             getattr(row, rhs) if isinstance(rhs, str) else rhs,
             name=f"{name}[{_format_index(row.Index)}]" if name else None,
         )
-        for row in data.itertuples()
+        for row in reindexed.itertuples()
     ]
     return pd.Series(index=data.index, data=constrs, name=name)

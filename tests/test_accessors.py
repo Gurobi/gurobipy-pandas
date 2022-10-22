@@ -358,6 +358,34 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.assertIs(le.getVar(0), entry.x)
             self.assertEqual(le.getCoeff(0), 1.0)
 
+    def test_index_formatter(self):
+        index = pd.Index(["a  b", "c*d", "e:f"])
+
+        df = pd.DataFrame(index=index).gppd.add_vars(self.model, name="x")
+
+        with self.subTest(index_formatter="default"):
+            result = df.gppd.add_constrs(self.model, "x", GRB.EQUAL, 1, name="c")
+            self.model.update()
+            names = list(result["c"].gppd.ConstrName)
+            self.assertEqual(names, ["c[a_b]", "c[c_d]", "c[e_f]"])
+
+        with self.subTest(index_formatter="disable"):
+            result = df.gppd.add_constrs(
+                self.model, "x", GRB.EQUAL, 1, name="c", index_formatter="disable"
+            )
+            self.model.update()
+            names = list(result["c"].gppd.ConstrName)
+            self.assertEqual(names, ["c[a  b]", "c[c*d]", "c[e:f]"])
+
+        with self.subTest(index_formatter="callable"):
+            index_map = lambda ind: ind.map({"a  b": 2, "c*d": 4, "e:f": 8})
+            result = df.gppd.add_constrs(
+                self.model, "x", GRB.EQUAL, 1, name="c", index_formatter=index_map
+            )
+            self.model.update()
+            names = list(result["c"].gppd.ConstrName)
+            self.assertEqual(names, ["c[2]", "c[4]", "c[8]"])
+
 
 class TestDataFrameAddConstrsByExpression(GurobiTestCase):
     def setUp(self):
@@ -461,3 +489,31 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
         )
 
         assert_series_equal(names, expected)
+
+    def test_index_formatter(self):
+        index = pd.Index(["a  b", "c*d", "e:f"])
+
+        df = pd.DataFrame(index=index).gppd.add_vars(self.model, name="x")
+
+        with self.subTest(index_formatter="default"):
+            result = df.gppd.add_constrs(self.model, "x <= 1", name="c")
+            self.model.update()
+            names = list(result["c"].gppd.ConstrName)
+            self.assertEqual(names, ["c[a_b]", "c[c_d]", "c[e_f]"])
+
+        with self.subTest(index_formatter="disable"):
+            result = df.gppd.add_constrs(
+                self.model, "x <= 1", name="c", index_formatter="disable"
+            )
+            self.model.update()
+            names = list(result["c"].gppd.ConstrName)
+            self.assertEqual(names, ["c[a  b]", "c[c*d]", "c[e:f]"])
+
+        with self.subTest(index_formatter="callable"):
+            index_map = lambda ind: ind.map({"a  b": 2, "c*d": 4, "e:f": 8})
+            result = df.gppd.add_constrs(
+                self.model, "x <= 1", name="c", index_formatter=index_map
+            )
+            self.model.update()
+            names = list(result["c"].gppd.ConstrName)
+            self.assertEqual(names, ["c[2]", "c[4]", "c[8]"])

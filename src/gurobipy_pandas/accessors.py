@@ -86,6 +86,7 @@ class GRBDataFrameAccessor:
         rhs: Optional[Union[str, float]] = None,
         *,
         name: str,
+        index_formatter="default",
     ):
         """Add a constraint to the model for each row in the dataframe
         referenced by this accessor.
@@ -172,7 +173,13 @@ class GRBDataFrameAccessor:
         2  <gurobi.LinExpr: x[2] + y[2]>  <gurobi.Constr c4[2]>
         """
         constrseries = add_constrs_from_dataframe(
-            model, self._obj, lhs, sense, rhs, name=name
+            model,
+            self._obj,
+            lhs,
+            sense,
+            rhs,
+            name=name,
+            index_formatter=index_formatter,
         )
         return self._obj.join(constrseries)
 
