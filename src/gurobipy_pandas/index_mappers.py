@@ -73,7 +73,7 @@ def _map_index_entries(index: pd.Index, mapper):
 
     else:
         # mapper is a mapping from index level names -> mapper functions
-        assert isinstance(index, pd.MultiIndex)
+        # if isinstance(index, pd.MultiIndex):
         levels = [index.get_level_values(i) for i in range(index.nlevels)]
         mapped_levels = []
 
@@ -92,4 +92,8 @@ def _map_index_entries(index: pd.Index, mapper):
             else:
                 mapped_levels.append(map_func(level))
 
-        return pd.MultiIndex.from_arrays(mapped_levels)
+        if isinstance(index, pd.MultiIndex):
+            return pd.MultiIndex.from_arrays(mapped_levels)
+        else:
+            assert len(levels) == 1
+            return mapped_levels[0]

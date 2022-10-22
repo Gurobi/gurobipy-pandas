@@ -181,13 +181,13 @@ class TestCustomMapperDict(unittest.TestCase):
 
     def setUp(self):
 
-        dtindex = pd.date_range(
+        self.dtindex = pd.date_range(
             start=pd.Timestamp(2022, 6, 5), freq="D", periods=5, name="date"
         )
         strindex1 = pd.Index(["a  b", "c+d", "e", "f", "g"], name="str1")
         strindex2 = pd.Index(["a  b", "c+d", "e", "f", "g"], name="str2")
 
-        self.index = pd.MultiIndex.from_arrays([dtindex, strindex1, strindex2])
+        self.index = pd.MultiIndex.from_arrays([self.dtindex, strindex1, strindex2])
 
     def test_by_level_name(self):
         # Named formatter applied to given level, default formatter otherwise
@@ -233,4 +233,18 @@ class TestCustomMapperDict(unittest.TestCase):
             ("220608", "f", "f"),
             ("220609", "g", "g"),
         ]
+        self.assertEqual(list(mapped), expected)
+
+    def test_singleindex_named(self):
+        # name -> callable mapping should still work on a single index,
+        # if the name matches
+        mapper = create_mapper(
+            {"date": lambda index: index.strftime("%y%m%d"), None: None}
+        )
+        mapped = mapper(self.dtindex)
+
+        self.assertIsInstance(mapped, pd.Index)
+        self.assertNotIsInstance(mapped, pd.MultiIndex)
+
+        expected = ["220605", "220606", "220607", "220608", "220609"]
         self.assertEqual(list(mapped), expected)
