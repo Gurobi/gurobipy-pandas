@@ -37,6 +37,7 @@ class GRBDataFrameAccessor:
         ub: Union[float, str] = GRB.INFINITY,
         obj: Union[float, str] = 0.0,
         vtype: str = GRB.CONTINUOUS,
+        index_formatter="default",
     ):
         """Add a variable to the given model for each row in the dataframe
         referenced by this accessor.
@@ -64,7 +65,14 @@ class GRBDataFrameAccessor:
         :rtype: :class:`pd.DataFrame`
         """
         varseries = add_vars_from_dataframe(
-            model, self._obj, lb=lb, ub=ub, obj=obj, vtype=vtype, name=name
+            model,
+            self._obj,
+            lb=lb,
+            ub=ub,
+            obj=obj,
+            vtype=vtype,
+            name=name,
+            index_formatter=index_formatter,
         )
         # FIXME: better error messages
         # :name cannot overlap with existing columns in the dataframe

@@ -78,6 +78,24 @@ class TestDataFrameAddVars(GurobiTestCase):
             ind = ",".join(map(str, row.Index))
             self.assertEqual(row.z.VarName, f"z[{ind}]")
 
+    def test_index_formatter(self):
+        # Test that the index_formatter argument is passed through and applied.
+        # The different variants of the argument are tested lower down, no need
+        # to repeat all of that here.
+        df = self.df.assign(str1=["a  b", "c*d", "e:f"]).set_index("str1")
+
+        with self.subTest(index_formatter="default"):
+            result = df.gppd.add_vars(self.model, name="x")
+            self.model.update()
+            names = list(result["x"].gppd.VarName)
+            self.assertEqual(names, ["x[a_b]", "x[c_d]", "x[e_f]"])
+
+        with self.subTest(index_formatter="disable"):
+            result = df.gppd.add_vars(self.model, name="x", index_formatter="disable")
+            self.model.update()
+            names = list(result["x"].gppd.VarName)
+            self.assertEqual(names, ["x[a  b]", "x[c*d]", "x[e:f]"])
+
 
 class TestSeriesAttributes(GurobiTestCase):
     def test_var_get_X(self):
