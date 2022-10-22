@@ -74,7 +74,7 @@ class TestDefaultMapper(unittest.TestCase):
         # Integer dtypes -> iterable of ints
         # There's no point converting in this case, no risk of illegal characters.
         index = pd.RangeIndex(10)
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=default_mapper)
         self.assertEqual(list(mapped), list(range(10)))
 
     def test_object(self):
@@ -82,13 +82,13 @@ class TestDefaultMapper(unittest.TestCase):
         index = pd.Index(
             ["a", 1, "a*b+c^d", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=default_mapper)
         self.assertEqual(list(mapped), ["a", "1", "a_b_c_d", "2021_03_05", "12_30_43"])
 
     def test_whitespace(self):
         # All continuous whitespace replace with a single underscore
         index = pd.Index(["a  b", "c\td"])
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=default_mapper)
         self.assertEqual(list(mapped), ["a_b", "c_d"])
 
     def test_timestamp(self):
@@ -99,7 +99,7 @@ class TestDefaultMapper(unittest.TestCase):
             periods=3,
             tz=datetime.timezone.utc,
         )
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=default_mapper)
         self.assertEqual(
             list(mapped),
             ["2021_01_18T12_32_41", "2021_01_19T12_32_41", "2021_01_20T12_32_41"],
@@ -114,7 +114,7 @@ class TestDefaultMapper(unittest.TestCase):
             periods=3,
             tz=datetime.timezone.utc,
         )
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=default_mapper)
         self.assertEqual(
             list(mapped),
             ["2021_01_18T12_32_41", "2021_01_19T12_32_41", "2021_01_20T12_32_41"],
@@ -127,7 +127,7 @@ class TestDefaultMapper(unittest.TestCase):
             [1, "a*b+c^d", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
         index = pd.MultiIndex.from_product([intindex, objindex])
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=default_mapper)
         self.assertEqual(
             list(mapped),
             [
@@ -141,3 +141,71 @@ class TestDefaultMapper(unittest.TestCase):
                 (1, "12_30_43"),
             ],
         )
+
+
+class TestCustomMapper(unittest.TestCase):
+    def test_dates(self):
+        index = pd.date_range(start=pd.Timestamp(2022, 6, 5), freq="D", periods=5)
+        mapped = map_index_entries(
+            index, mapper=lambda index: pd.Series(index).dt.strftime("%y%m%d")
+        )
+        expected = ["220605", "220606", "220607", "220608", "220609"]
+        self.assertEqual(list(mapped), expected)
+
+    def test_multi_dates(self):
+        index1 = pd.date_range(start=pd.Timestamp(2022, 6, 5), freq="D", periods=2)
+        index2 = pd.date_range(start=pd.Timestamp(2022, 8, 9), freq="D", periods=2)
+        index = pd.MultiIndex.from_product([index1, index2])
+        mapped = map_index_entries(
+            index, mapper=lambda index: pd.Series(index).dt.strftime("%m%d")
+        )
+        expected = [
+            ("0605", "0809"),
+            ("0605", "0810"),
+            ("0606", "0809"),
+            ("0606", "0810"),
+        ]
+        self.assertEqual(list(mapped), expected)
+
+    def test_by_level_name(self):
+        # Named formatter applied to given column, default formatter otherwise
+
+        dtindex = pd.date_range(
+            start=pd.Timestamp(2022, 6, 5), freq="D", periods=5, name="date"
+        )
+        strindex = pd.Index(["a  b", "c+d", "e", "f", "g"], name="letter")
+        index = pd.MultiIndex.from_arrays([dtindex, strindex])
+        mapper = {
+            "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
+        }
+        mapped = map_index_entries(index, mapper=mapper)
+        expected = [
+            ("220605", "a_b"),
+            ("220606", "c_d"),
+            ("220607", "e"),
+            ("220608", "f"),
+            ("220609", "g"),
+        ]
+        self.assertEqual(list(mapped), expected)
+
+    def test_by_level_forcenodefault(self):
+        # Named formatter applied to given column, default formatter otherwise
+
+        dtindex = pd.date_range(
+            start=pd.Timestamp(2022, 6, 5), freq="D", periods=5, name="date"
+        )
+        strindex = pd.Index(["a  b", "c+d", "e", "f", "g"], name="letter")
+        index = pd.MultiIndex.from_arrays([dtindex, strindex])
+        mapper = {
+            "date": lambda index: pd.Series(index).dt.strftime("%y%m%d"),
+            "letter": None,
+        }
+        mapped = map_index_entries(index, mapper=mapper)
+        expected = [
+            ("220605", "a  b"),
+            ("220606", "c+d"),
+            ("220607", "e"),
+            ("220608", "f"),
+            ("220609", "g"),
+        ]
+        self.assertEqual(list(mapped), expected)

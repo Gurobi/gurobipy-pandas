@@ -13,7 +13,8 @@ import pandas as pd
 
 
 def default_mapper(index):
-    """Mapper to be applied by default by var/constr adders"""
+    """Mapper to be applied by default by var/constr adders. Just does basic
+    cleanup to avoid LP format issues."""
     if pd.api.types.is_integer_dtype(index):
         # Integers will always be string-formatted sanely later, no need to
         # do any heavy string manipulation here.
@@ -26,7 +27,7 @@ def default_mapper(index):
         return index.map(str).str.replace(r"[\+\-\*\^\:\s]+", "_", regex=True)
 
 
-def map_index_entries(index: pd.Index, mapper=default_mapper):
+def map_index_entries(index: pd.Index, mapper):
     """Convert an index to a list of values (single) or tuples (multi), with
     string conversions where needed to support clean variable and constraint
     naming.
@@ -34,7 +35,9 @@ def map_index_entries(index: pd.Index, mapper=default_mapper):
     assert isinstance(index, pd.Index)
 
     if mapper is None:
+        # Don't do any formatting.
         return index
+
     elif callable(mapper):
         # Apply mapper to index. If a multi-index, apply by level and reconstruct
         if isinstance(index, pd.MultiIndex):
@@ -43,3 +46,19 @@ def map_index_entries(index: pd.Index, mapper=default_mapper):
             return pd.MultiIndex.from_arrays(mapped_levels)
         else:
             return mapper(index)
+
+    else:
+        # mapper is a mapping from index level names -> mapper functions
+        assert isinstance(index, pd.MultiIndex)
+        levels = [index.get_level_values(i) for i in range(index.nlevels)]
+        mapped_levels = []
+        for level in levels:
+            if level.name in mapper:
+                map_func = mapper[level.name]
+                if map_func is None:
+                    mapped_levels.append(level)
+                else:
+                    mapped_levels.append(map_func(level))
+            else:
+                mapped_levels.append(default_mapper(level))
+        return pd.MultiIndex.from_arrays(mapped_levels)
