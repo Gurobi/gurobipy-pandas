@@ -26,7 +26,7 @@ def default_mapper(index):
         return index.map(str).str.replace(r"[\+\-\*\^\:\s]+", "_", regex=True)
 
 
-def map_index_entries(index: pd.Index, mapper=None):
+def map_index_entries(index: pd.Index, mapper=default_mapper):
     """Convert an index to a list of values (single) or tuples (multi), with
     string conversions where needed to support clean variable and constraint
     naming.

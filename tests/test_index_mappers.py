@@ -13,7 +13,7 @@ class TestNoMapper(unittest.TestCase):
     def test_int(self):
         # Integer dtypes -> iterable of ints
         index = pd.RangeIndex(10)
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=None)
         self.assertEqual(list(mapped), list(range(10)))
 
     def test_object(self):
@@ -21,7 +21,7 @@ class TestNoMapper(unittest.TestCase):
         index = pd.Index(
             ["a", 1, "b", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=None)
         self.assertEqual(
             list(mapped),
             ["a", 1, "b", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)],
@@ -30,7 +30,7 @@ class TestNoMapper(unittest.TestCase):
     def test_timestamp(self):
         # Datetimes just get the equivalent objects back
         index = pd.date_range(start=pd.Timestamp(2021, 1, 1), freq="D", periods=3)
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=None)
         self.assertEqual(
             list(mapped),
             [
@@ -47,7 +47,7 @@ class TestNoMapper(unittest.TestCase):
             [1, "a", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
         index = pd.MultiIndex.from_product([intindex, objindex])
-        mapped = map_index_entries(index)
+        mapped = map_index_entries(index, mapper=None)
         self.assertEqual(
             list(mapped),
             [
@@ -74,7 +74,7 @@ class TestDefaultMapper(unittest.TestCase):
         # Integer dtypes -> iterable of ints
         # There's no point converting in this case, no risk of illegal characters.
         index = pd.RangeIndex(10)
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = map_index_entries(index)
         self.assertEqual(list(mapped), list(range(10)))
 
     def test_object(self):
@@ -82,13 +82,13 @@ class TestDefaultMapper(unittest.TestCase):
         index = pd.Index(
             ["a", 1, "a*b+c^d", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = map_index_entries(index)
         self.assertEqual(list(mapped), ["a", "1", "a_b_c_d", "2021_03_05", "12_30_43"])
 
     def test_whitespace(self):
         # All continuous whitespace replace with a single underscore
         index = pd.Index(["a  b", "c\td"])
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = map_index_entries(index)
         self.assertEqual(list(mapped), ["a_b", "c_d"])
 
     def test_timestamp(self):
@@ -99,7 +99,7 @@ class TestDefaultMapper(unittest.TestCase):
             periods=3,
             tz=datetime.timezone.utc,
         )
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = map_index_entries(index)
         self.assertEqual(
             list(mapped),
             ["2021_01_18T12_32_41", "2021_01_19T12_32_41", "2021_01_20T12_32_41"],
@@ -114,7 +114,7 @@ class TestDefaultMapper(unittest.TestCase):
             periods=3,
             tz=datetime.timezone.utc,
         )
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = map_index_entries(index)
         self.assertEqual(
             list(mapped),
             ["2021_01_18T12_32_41", "2021_01_19T12_32_41", "2021_01_20T12_32_41"],
@@ -127,7 +127,7 @@ class TestDefaultMapper(unittest.TestCase):
             [1, "a*b+c^d", datetime.date(2021, 3, 5), datetime.time(12, 30, 43)]
         )
         index = pd.MultiIndex.from_product([intindex, objindex])
-        mapped = map_index_entries(index, mapper=default_mapper)
+        mapped = map_index_entries(index)
         self.assertEqual(
             list(mapped),
             [
