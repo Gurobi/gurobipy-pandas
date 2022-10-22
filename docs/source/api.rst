@@ -9,7 +9,4 @@ API
     :members: add_vars, add_constrs
 
 .. autoclass:: gurobipy_pandas.accessors.GRBSeriesAccessor
-    :members: __getattr__, __setattr__, get_value
-
-.. autoclass:: gurobipy_pandas.accessors.GRBIndexAccessor
-    :members: add_vars
+    :members: getAttr, __getattr__, setAttr, __setattr__, get_value
