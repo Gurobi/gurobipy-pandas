@@ -37,6 +37,17 @@ def prepare_series(series, index=None):
     return list(aligned.values)
 
 
+def _format_index(index):
+    if isinstance(index, tuple):
+        return ",".join(map(str, index))
+    return str(index)
+
+
+def create_names(prefix, index, index_formatter):
+    mapper = create_mapper(index_formatter)
+    return [f"{prefix}[{_format_index(entry)}]" for entry in mapper(index)]
+
+
 def add_vars_from_index(
     model: gp.Model,
     index: pd.Index,
@@ -76,6 +87,9 @@ def add_vars_from_index(
     model and index are positional, others are keyword-only
     """
 
+    if index.has_duplicates:
+        raise ValueError("Index contains duplicate entries, cannot create variables")
+
     if isinstance(lb, pd.Series):
         lb = prepare_series(lb, index)
     else:
@@ -100,7 +114,7 @@ def add_vars_from_index(
         namearg = prepare_series(name, index)
         seriesname = None
     elif isinstance(name, str):
-        namearg = name
+        namearg = create_names(name, index, index_formatter)
         seriesname = name
     elif name is None:
         namearg = None
@@ -108,13 +122,12 @@ def add_vars_from_index(
     else:
         raise TypeError("'name' must be a string, series, or None")
 
-    mapper = create_mapper(index_formatter)
-    newvars = model.addVars(
-        mapper(index), lb=lb, ub=ub, obj=obj, vtype=vtype, name=namearg
+    newvars = model.addMVar(
+        len(index), lb=lb, ub=ub, obj=obj, vtype=vtype, name=namearg
     )
     if gppd_global_options["eager_updates"]:
         model.update()
-    return pd.Series(index=index, data=list(newvars.values()), name=seriesname)
+    return pd.Series(index=index, data=newvars.tolist(), name=seriesname)
 
 
 def add_vars_from_dataframe(
@@ -151,6 +164,9 @@ def add_vars_from_dataframe(
     model and data are positional, others are keyword-only
     """
 
+    if data.index.has_duplicates:
+        raise ValueError("Index contains duplicate entries, cannot create variables")
+
     if isinstance(lb, str):
         lb = prepare_series(data[lb])
     else:
@@ -172,10 +188,14 @@ def add_vars_from_dataframe(
     if not (name is None or isinstance(name, str)):
         raise TypeError("'name' must be a string or None")
 
-    mapper = create_mapper(index_formatter)
-    newvars = model.addVars(
-        mapper(data.index), lb=lb, ub=ub, obj=obj, vtype=vtype, name=name
+    if name:
+        namearg = create_names(name, data.index, index_formatter)
+    else:
+        namearg = None
+
+    newvars = model.addMVar(
+        len(data.index), lb=lb, ub=ub, obj=obj, vtype=vtype, name=namearg
     )
     if gppd_global_options["eager_updates"]:
         model.update()
-    return pd.Series(index=data.index, data=list(newvars.values()), name=name)
+    return pd.Series(index=data.index, data=newvars.tolist(), name=name)
