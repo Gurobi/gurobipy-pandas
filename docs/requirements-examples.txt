@@ -4,3 +4,4 @@ matplotlib>=3.5
 nbconvert>=6.5
 pyarrow>=8.0
 scikit-learn>=1.0
+gurobipy==10.0.0b1
