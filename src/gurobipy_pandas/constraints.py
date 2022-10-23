@@ -169,12 +169,30 @@ def _add_constrs_from_dataframe_args(
     mapper = create_mapper(index_formatter)
     reindexed = data.set_index(mapper(data.index), drop=True)
 
+    # Mappers from itertuple 'Pandas' objects to lhs/rhs values.
+    # Index into them numerically, but counting is off by one since
+    # the index is included.
+    # TODO: it's possible adding a data column for lhs/rhs constants
+    # would be faster than the extra python function call?
+
+    if isinstance(lhs, str):
+        lhs_index = list(reindexed.columns).index(lhs) + 1
+        lhs_value = lambda row: row[lhs_index]
+    else:
+        lhs_value = lambda _: lhs
+
+    if isinstance(rhs, str):
+        rhs_index = list(reindexed.columns).index(rhs) + 1
+        rhs_value = lambda row: row[rhs_index]
+    else:
+        rhs_value = lambda _: rhs
+
     constrs = [
         _add_constr(
             model,
-            getattr(row, lhs) if isinstance(lhs, str) else lhs,
+            lhs_value(row),
             sense,
-            getattr(row, rhs) if isinstance(rhs, str) else rhs,
+            rhs_value(row),
             name=f"{name}[{_format_index(row.Index)}]" if name else None,
         )
         for row in reindexed.itertuples()
