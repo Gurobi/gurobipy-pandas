@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 Import (normalized) historical return data using pandas
 
 ```{code-cell} ipython3
-data = pd.read_csv('portfolio.csv', index_col=0)
+data = pd.read_csv('data/portfolio.csv', index_col=0)
 ```
 
 Create a new model and add a variable for each stock. The columns in our dataframe correspond to stocks, so the columns can be used directly (as a pandas index) to construct the necessary variable.

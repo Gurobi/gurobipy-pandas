@@ -22,15 +22,20 @@ Basic code done, need to document the mathematical model in mathjax alongside (i
 import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
-import gurobipy_pandas
+import gurobipy_pandas as gppd
 
 pd.options.display.max_rows = 8
+gppd.set_interactive()
 ```
 
 Read in the data. Preference data contains 3 columns: shift date, worker, and preference value. If a worker is not available for a given shift, then that work-shift combination does not appear in the table.
 
 ```{code-cell} ipython3
-preferences = pd.read_feather("data/preferences.feather")
+preferences = (
+    pd.read_csv("data/preferences.csv")
+    .assign(Shift=lambda df: pd.to_datetime(df["Shift"]))
+    .set_index(["Worker", "Shift"])
+)
 preferences
 ```
 
@@ -38,7 +43,8 @@ Shift requirements data indicates the number of required workers for each shift.
 
 ```{code-cell} ipython3
 shift_requirements = (
-    pd.read_feather("data/shift_requirements.feather")
+    pd.read_csv("data/shift_requirements.csv")
+    .assign(Shift=lambda df: pd.to_datetime(df["Shift"]))
     .set_index("Shift")
 )
 shift_requirements
@@ -56,13 +62,11 @@ Note: in the gurobipy-pandas API, we only use Model() and Env() calls from gurob
 m = gp.Model()
 df = (
     preferences
-    .set_index(["Worker", "Shift"])
     .gppd.add_vars(
         m, name="assign", vtype=GRB.BINARY, obj="Preference",
         index_formatter={"Shift": lambda index: index.strftime('%a%d')},
     )
 )
-m.update()
 df
 ```
 
@@ -75,15 +79,14 @@ Fixme: .update() calls just to show naming are annoying to have to include... ne
 Also would be useful to format dates cleanly. Must remove spacing, maybe remove time if date is the only distinction.
 
 ```{code-cell} ipython3
-shift_cover = (
-    df.groupby('Shift')[['assign']].sum()
-    .join(shift_requirements)
-    .gppd.add_constrs(
-        m, "assign == Required", name="shift_cover",
-        index_formatter={"Shift": lambda index: index.strftime('%a%d')},
-    )
+shift_cover = gppd.add_constrs(
+    m,
+    df['assign'].groupby('Shift').sum(),
+    GRB.EQUAL,
+    shift_requirements["Required"],
+    name="shift_cover",
+    index_formatter={"Shift": lambda index: index.strftime('%a%d')},
 )
-m.update()
 shift_cover
 ```
 
