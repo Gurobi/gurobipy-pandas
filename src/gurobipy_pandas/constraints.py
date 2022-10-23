@@ -10,17 +10,10 @@ import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
 
-from gurobipy_pandas.index_mappers import create_mapper
-from gurobipy_pandas.util import gppd_global_options
+from gurobipy_pandas.util import create_names, gppd_global_options
 
 
 CONSTRAINT_SENSES = frozenset([GRB.LESS_EQUAL, GRB.EQUAL, GRB.GREATER_EQUAL])
-
-
-def _format_index(index):
-    if isinstance(index, tuple):
-        return ",".join(map(str, index))
-    return str(index)
 
 
 def add_constrs_from_dataframe(
@@ -176,26 +169,24 @@ def _add_constrs_from_dataframe_args(
     else:
         rhs = float(rhs)
 
-    # Create a new dataframe with a formatted index. This is used in
-    # constraint generation to get the name formatting right, but the
-    # original index is used in the returned series.
-    mapper = create_mapper(index_formatter)
-    reindexed = data.set_index(mapper(data.index), drop=True)
+    if name:
+        names = create_names(name, data.index, index_formatter)
+    else:
+        names = [""] * len(data.index)
 
     # Mappers from itertuple 'Pandas' objects to lhs/rhs values.
-    # Index into them numerically, but counting is off by one since
-    # the index is included.
+    # Index into them numerically.
     # TODO: it's possible adding a data column for lhs/rhs constants
     # would be faster than the extra python function call?
 
     if isinstance(lhs, str):
-        lhs_index = list(reindexed.columns).index(lhs) + 1
+        lhs_index = list(data.columns).index(lhs)
         lhs_value = lambda row: row[lhs_index]
     else:
         lhs_value = lambda _: lhs
 
     if isinstance(rhs, str):
-        rhs_index = list(reindexed.columns).index(rhs) + 1
+        rhs_index = list(data.columns).index(rhs)
         rhs_value = lambda row: row[rhs_index]
     else:
         rhs_value = lambda _: rhs
@@ -206,9 +197,9 @@ def _add_constrs_from_dataframe_args(
             lhs_value(row),
             sense,
             rhs_value(row),
-            name=f"{name}[{_format_index(row.Index)}]" if name else None,
+            name=name,
         )
-        for row in reindexed.itertuples()
+        for name, row in zip(names, data.itertuples(index=False))
     ]
     if gppd_global_options["eager_updates"]:
         model.update()

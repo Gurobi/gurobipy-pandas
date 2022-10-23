@@ -9,11 +9,10 @@ import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
 
-from gurobipy_pandas.index_mappers import create_mapper
-from gurobipy_pandas.util import gppd_global_options
+from gurobipy_pandas.util import gppd_global_options, create_names, align_series
 
 
-def prepare_series(series, index=None):
+def prepare_series(series: pd.Series, index: pd.Index, err_label: str):
     """
     Align :series with :index and return the values as a list.
 
@@ -23,29 +22,8 @@ def prepare_series(series, index=None):
     Raise a ValueError if there is any missing data once the series
     is aligned.
     """
-
-    if index is None:
-        aligned = series
-    else:
-        if not index.sort_values().equals(series.index.sort_values()):
-            raise KeyError("... series not aligned with index")
-        aligned = series.loc[index]
-
-    if aligned.isnull().any():
-        raise ValueError("... series has missing values")
-
+    aligned = align_series(series, index, err_label="...")
     return list(aligned.values)
-
-
-def _format_index(index):
-    if isinstance(index, tuple):
-        return ",".join(map(str, index))
-    return str(index)
-
-
-def create_names(prefix, index, index_formatter):
-    mapper = create_mapper(index_formatter)
-    return [f"{prefix}[{_format_index(entry)}]" for entry in mapper(index)]
 
 
 def add_vars_from_index(
@@ -91,27 +69,27 @@ def add_vars_from_index(
         raise ValueError("Index contains duplicate entries, cannot create variables")
 
     if isinstance(lb, pd.Series):
-        lb = prepare_series(lb, index)
+        lb = prepare_series(lb, index, "lb")
     else:
         lb = float(lb)
 
     if isinstance(ub, pd.Series):
-        ub = prepare_series(ub, index)
+        ub = prepare_series(ub, index, "ub")
     else:
         ub = float(ub)
 
     if isinstance(obj, pd.Series):
-        obj = prepare_series(obj, index)
+        obj = prepare_series(obj, index, "obj")
     else:
         obj = float(obj)
 
     if isinstance(vtype, pd.Series):
-        vtype = prepare_series(vtype, index)
+        vtype = prepare_series(vtype, index, "vtype")
     elif not isinstance(vtype, str):
         raise TypeError("'vtype' must be a string or series")
 
     if isinstance(name, pd.Series):
-        namearg = prepare_series(name, index)
+        namearg = prepare_series(name, index, "name")
         seriesname = None
     elif isinstance(name, str):
         namearg = create_names(name, index, index_formatter)
@@ -168,17 +146,17 @@ def add_vars_from_dataframe(
         raise ValueError("Index contains duplicate entries, cannot create variables")
 
     if isinstance(lb, str):
-        lb = prepare_series(data[lb])
+        lb = prepare_series(data[lb], data.index, "lb")
     else:
         lb = float(lb)
 
     if isinstance(ub, str):
-        ub = prepare_series(data[ub])
+        ub = prepare_series(data[ub], data.index, "ub")
     else:
         ub = float(ub)
 
     if isinstance(obj, str):
-        obj = prepare_series(data[obj])
+        obj = prepare_series(data[obj], data.index, "obj")
     else:
         obj = float(obj)
 
