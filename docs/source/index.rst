@@ -13,10 +13,17 @@ Welcome to gurobipy-pandas's documentation!
 
 .. doctest:: [simple]
 
+   >>> import pandas as pd
+   >>> import gurobipy as gp
+   >>> from gurobipy import GRB
+   >>> import gurobipy_pandas as gppd
+   >>> gppd.set_interactive()
+   >>> df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
    >>> df
       a  b
    0  1  3
    1  2  4
+   >>> model = gp.Model()
    >>> df.gppd.add_vars(model, name='x')
       a  b                  x
    0  1  3  <gurobi.Var x[0]>
@@ -26,29 +33,34 @@ Once variables are added, standard pandas transformations can be used to build e
 
 .. doctest:: [simple]
 
+   >>> df = (
+   ... pd.DataFrame({"a": [1, 2, 2, 1]})
+   ... .gppd.add_vars(model, name="y")
+   ... )
    >>> df
       a                  y
    0  1  <gurobi.Var y[0]>
    1  2  <gurobi.Var y[1]>
    2  2  <gurobi.Var y[2]>
    3  1  <gurobi.Var y[3]>
-   >>> df.groupby('a').sum()
+   >>> df.groupby('a').sum()  # doctest: +NORMALIZE_WHITESPACE
                                  y
    a
    1  <gurobi.LinExpr: y[0] + y[3]>
    2  <gurobi.LinExpr: y[1] + y[2]>
 
-Finally, the accessors allow constraints to be added to the model using the resulting expressions. :code:`gurobipy-pandas` accessors always return pandas objects, so modelling steps can be method-chained:
+Finally, the accessors allow constraints to be added to the model using the resulting expressions:
 
 .. doctest:: [simple]
 
-   >>> df.groupby("a")["y"].sum().gppd.add_constrs(
-   ...     model, gp.GRB.LESS_EQUAL, 1, name='c'
+   >>> gppd.add_constrs(
+   ...     model, df.groupby("a")["y"].sum(), GRB.LESS_EQUAL, 1,
+   ...     name="c",
    ... )
-                         c
    a
-   1  <gurobi.Constr c[1]>
-   2  <gurobi.Constr c[2]>
+   1    <gurobi.Constr c[1]>
+   2    <gurobi.Constr c[2]>
+   Name: c, dtype: object
 
 To get to grips with the operation of :code:`gurobipy-pandas`, first see the :doc:`walkthrough` which outlines key concepts and the design philosophy. Then, peruse our library of :doc:`examples` to see how complete models are built. The :doc:`api` documentation spells out the various accessor methods in more complete detail.
 

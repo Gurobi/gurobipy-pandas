@@ -1,4 +1,5 @@
 import doctest
+import pathlib
 
 import gurobipy as gp
 
@@ -21,9 +22,12 @@ def load_tests(loader, tests, ignore):
         # TODO Update the doctests to use the prettier v10 output and
         # reverse this condition.
         return tests
+    # docstring doctests only live in public API methods
     tests.addTests(doctest.DocTestSuite(gurobipy_pandas.accessors, setUp=setup))
     tests.addTests(doctest.DocTestSuite(gurobipy_pandas.api, setUp=setup))
-    tests.addTests(doctest.DocFileSuite("../docs/source/function-patterns.rst"))
-    tests.addTests(doctest.DocFileSuite("../docs/source/naming.rst"))
-    tests.addTests(doctest.DocFileSuite("../docs/source/walkthrough.rst"))
+    # any rst might have some doctests, fetch them all
+    here = pathlib.Path(__file__).parent
+    docs = here.joinpath("../docs/source")
+    for docfile in docs.rglob("*.rst"):
+        tests.addTests(doctest.DocFileSuite(str(docfile.relative_to(here))))
     return tests
