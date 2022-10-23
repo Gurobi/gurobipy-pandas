@@ -9,6 +9,7 @@ from typing import Optional, Union
 import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
+from gurobipy_pandas.extension import GurobipyDtype
 
 from gurobipy_pandas.util import create_names, gppd_global_options
 
@@ -189,6 +190,16 @@ def _add_constrs_from_dataframe_args(
         rhs_value = lambda row: row[rhs_index]
     else:
         rhs_value = lambda _: rhs
+
+    # If we got this far with the extension type, use MVar operations.
+    # FIXME I just stuck any old operator in here for performance testing.
+    if (
+        gppd_global_options["use_extension"]
+        and data[lhs].dtype == GurobipyDtype()
+        and data[rhs].dtype == GurobipyDtype()
+    ):
+        mconstr = model.addConstr(data[lhs].values._mobj <= data[rhs].values._mobj)
+        return pd.Series(index=data.index, data=mconstr._constrarr, name=name)
 
     constrs = [
         _add_constr(

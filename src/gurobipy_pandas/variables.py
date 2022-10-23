@@ -8,6 +8,7 @@ from typing import Union, Optional
 import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
+from gurobipy_pandas.extension import GurobipyArray
 
 from gurobipy_pandas.util import gppd_global_options, create_names, align_series
 
@@ -105,7 +106,11 @@ def add_vars_from_index(
     )
     if gppd_global_options["eager_updates"]:
         model.update()
-    return pd.Series(index=index, data=newvars.tolist(), name=seriesname)
+
+    if gppd_global_options["use_extension"]:
+        return pd.Series(index=index, data=GurobipyArray(newvars), name=seriesname)
+    else:
+        return pd.Series(index=index, data=newvars.tolist(), name=seriesname)
 
 
 def add_vars_from_dataframe(
