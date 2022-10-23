@@ -1,5 +1,7 @@
+import unittest
 import pandas as pd
-from pandas.testing import assert_index_equal
+from pandas.testing import assert_index_equal, assert_frame_equal
+import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
 
@@ -7,6 +9,7 @@ from gurobipy_pandas.variables import add_vars_from_index
 from gurobipy_pandas.constraints import (
     add_constrs_from_dataframe,
     add_constrs_from_series,
+    _create_expressions_dataframe,
 )
 
 from .utils import GurobiTestCase
@@ -439,3 +442,30 @@ class TestAddConstrsFromSeries(GurobiTestCase):
 
         with self.assertRaises(ValueError):
             add_constrs_from_series(self.model, a, GRB.EQUAL, y)
+
+
+class TestExpressionParser(unittest.TestCase):
+    # Check correctness against pd.DataFrame.eval for some numeric data
+    # cases
+
+    def test_simple(self):
+        columns = ["a:b", "c+d", "e  f", "x", "y"]
+        index = pd.RangeIndex(5, 10)
+        data = pd.DataFrame(
+            index=index,
+            columns=columns,
+            data=np.random.random((len(index), len(columns))),
+        )
+
+        expression = "`a:b` + `c+d` <= `e  f` * `c+d` + x + `y`"
+        expected_result = pd.DataFrame(
+            {
+                "lhs": data.eval("`a:b` + `c+d`"),
+                "rhs": data.eval("`e  f` * `c+d` + x + `y`"),
+            }
+        )
+        expected_sense = GRB.LESS_EQUAL
+
+        result, sense = _create_expressions_dataframe(data, expression)
+        assert_frame_equal(result, expected_result)
+        self.assertEqual(sense, expected_sense)

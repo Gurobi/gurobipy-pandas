@@ -395,11 +395,11 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.model, name="ab cd"
         )
 
-        constrs = df.gppd.add_constrs(self.model, "ab cd", GRB.EQUAL, 2, name="c")
+        result = df.gppd.add_constrs(self.model, "ab cd", GRB.EQUAL, 2, name="c")
 
         self.model.update()
         for ind in df.index:
-            constr = constrs.loc[ind, "c"]
+            constr = result.loc[ind, "c"]
             self.assertIsInstance(constr, gp.Constr)
             self.assertEqual(constr.Sense, GRB.EQUAL)
             self.assertEqual(constr.RHS, 2.0)
@@ -539,3 +539,34 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.model.update()
             names = list(result["c"].gppd.ConstrName)
             self.assertEqual(names, ["c[2]", "c[4]", "c[8]"])
+
+    def test_nonpython_columnnames(self):
+        # Create a column with a name not admissible as a python variable name,
+        # check we can still use it with pd.DataFrame.eval backtick style.
+
+        df = pd.DataFrame({"a:b": [1, 2, 3], "b@d": [4, 5, 6]}).gppd.add_vars(
+            self.model, name="ab cd"
+        )
+
+        # For the record: pandas eval can handle this (only for numeric types)
+        result = df.eval("`a:b` + `b@d`")
+        assert_series_equal(result, pd.Series([5, 7, 9]))
+
+        result = df.gppd.add_constrs(self.model, "`ab cd` >= `a:b` + `b@d`", name="c")
+
+        # For reference, same result via direct columns
+        # result = (
+        #     df.assign(tmp=lambda data: data.eval("`a:b` + `b@d`"))
+        #     .gppd.add_constrs(self.model, "ab cd", GRB.GREATER_EQUAL, "tmp", name="c")
+        # )
+
+        self.model.update()
+        for ind, rhs in zip(df.index, [5.0, 7.0, 9.0]):
+            constr = result.loc[ind, "c"]
+            self.assertIsInstance(constr, gp.Constr)
+            self.assertEqual(constr.Sense, GRB.GREATER_EQUAL)
+            self.assertEqual(constr.RHS, rhs)
+            row = self.model.getRow(constr)
+            self.assertEqual(row.size(), 1)
+            self.assertIs(row.getVar(0), df.loc[ind, "ab cd"])
+            self.assertEqual(row.getCoeff(0), 1.0)
