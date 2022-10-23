@@ -99,7 +99,7 @@ def add_constrs_from_series(
 
 def _create_expressions_dataframe(df, expr):
     """Parse an expression (like DataFrame.query) to create left- and
-    right-hand sides for buildind constraints. A new dataframe is
+    right-hand sides for building constraints. A new dataframe is
     always returned with two columns ('lhs' and 'rhs'). The sense is
     also extracted and returned.
 
@@ -113,12 +113,25 @@ def _create_expressions_dataframe(df, expr):
 
     TODO handle backtick syntax for columns containing spaces
     """
-    lhs, rhs = re.split("[<>=]+", expr)
-    # Just get the first character of sense, to match the gurobipy enums
-    sense = expr.replace(lhs, "").replace(rhs, "")[0]
+    # Input dataframe acts as the variable scope for evaluating lhs and rhs
     scope = df
+    # Replace backticked references to dataframe columns
+    for i, column in enumerate(list(df.columns)):
+        backticked = f"`{column}`"
+        if backticked in expr:
+            newname = f"_renamed_column_{i}"
+            expr = expr.replace(backticked, newname)
+            scope = scope.rename(columns={column: newname})
+
+    # Just get the first character of sense, to match the gurobipy enums
+    lhs, rhs = re.split("[<>=]+", expr)
+    sense = expr.replace(lhs, "").replace(rhs, "")[0]
+    assert sense in CONSTRAINT_SENSES
+
+    # Evaluate both sides using python eval
     lhsseries = eval(lhs, None, scope)
     rhsseries = eval(rhs, None, scope)
+
     data = pd.DataFrame(
         index=df.index,
         data={
@@ -126,7 +139,6 @@ def _create_expressions_dataframe(df, expr):
             "rhs": rhsseries,
         },
     )
-    assert sense in CONSTRAINT_SENSES
     return data, sense
 
 
