@@ -289,6 +289,29 @@ class TestAddConstrsFromDataFrame(GurobiTestCase):
             ref = x[index] * y[index] - y[index] * a[index]
             self.assert_quadexpr_equal(self.model.getQCRow(qconstr), ref)
 
+    def test_nonpython_columnnames(self):
+        # Create a column with a name not admissible as a python variable name,
+        # check we can still reference it without issues (itertuples is used
+        # as a fast iterator for constraint generation, so such edge cases
+        # can fail if looking up by attribute names).
+        data = add_vars_from_index(self.model, pd.RangeIndex(3)).to_frame(name="ab cd")
+        data["ef gh"] = 4
+
+        constrs = add_constrs_from_dataframe(
+            self.model, data, "ab cd", GRB.LESS_EQUAL, "ef gh", name="c"
+        )
+
+        self.model.update()
+        for ind in data.index:
+            constr = constrs.loc[ind]
+            self.assertIsInstance(constr, gp.Constr)
+            self.assertEqual(constr.Sense, GRB.LESS_EQUAL)
+            self.assertEqual(constr.RHS, 4.0)
+            row = self.model.getRow(constr)
+            self.assertEqual(row.size(), 1)
+            self.assertIs(row.getVar(0), data.loc[ind, "ab cd"])
+            self.assertEqual(row.getCoeff(0), 1.0)
+
 
 class TestAddConstrsFromSeries(GurobiTestCase):
     def test_bothseries(self):

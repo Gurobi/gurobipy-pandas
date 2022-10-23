@@ -386,6 +386,28 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             names = list(result["c"].gppd.ConstrName)
             self.assertEqual(names, ["c[2]", "c[4]", "c[8]"])
 
+    def test_nonpython_columnnames(self):
+        # Create a column with a name not admissible as a python variable name,
+        # check we can still reference it without issues (itertuples is used
+        # as a fast iterator for constraint generation, so such edge cases
+        # can fail if looking up by attribute names).
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}).gppd.add_vars(
+            self.model, name="ab cd"
+        )
+
+        constrs = df.gppd.add_constrs(self.model, "ab cd", GRB.EQUAL, 2, name="c")
+
+        self.model.update()
+        for ind in df.index:
+            constr = constrs.loc[ind, "c"]
+            self.assertIsInstance(constr, gp.Constr)
+            self.assertEqual(constr.Sense, GRB.EQUAL)
+            self.assertEqual(constr.RHS, 2.0)
+            row = self.model.getRow(constr)
+            self.assertEqual(row.size(), 1)
+            self.assertIs(row.getVar(0), df.loc[ind, "ab cd"])
+            self.assertEqual(row.getCoeff(0), 1.0)
+
 
 class TestDataFrameAddConstrsByExpression(GurobiTestCase):
     def setUp(self):
