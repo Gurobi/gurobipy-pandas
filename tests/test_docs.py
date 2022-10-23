@@ -17,10 +17,9 @@ def setup(arg):
 
 # Load doctests as unittest, see https://docs.python.org/3/library/doctest.html#unittest-api
 def load_tests(loader, tests, ignore):
-    if GUROBIPY_MAJOR_VERSION >= 10:
-        # Changed reprs in gurobipy v10 break doctests; don't load them.
-        # TODO Update the doctests to use the prettier v10 output and
-        # reverse this condition.
+    if GUROBIPY_MAJOR_VERSION < 10:
+        # LinExpr and QuadExpr __str__ methods changed in v10, which affects how
+        # they are displayed in a Series. So doctests fail on v9 and earlier.
         return tests
     # docstring doctests only live in public API methods
     tests.addTests(doctest.DocTestSuite(gurobipy_pandas.accessors, setUp=setup))

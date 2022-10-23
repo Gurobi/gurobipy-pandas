@@ -71,10 +71,10 @@ Create constraints from aligned series:
     3    <gurobi.Constr R3>
     dtype: object
     >>> constrs.apply(model.getRow)
-    0         <gurobi.LinExpr: flow[1,0] + -1.0 flow[0,2]>
-    1    <gurobi.LinExpr: -1.0 flow[1,0] + flow[2,1] + ...
-    2    <gurobi.LinExpr: -1.0 flow[2,1] + flow[0,2] + ...
-    3         <gurobi.LinExpr: flow[1,3] + -1.0 flow[3,2]>
+    0                     flow[1,0] + -1.0 flow[0,2]
+    1    -1.0 flow[1,0] + flow[2,1] + -1.0 flow[1,3]
+    2         -1.0 flow[2,1] + flow[0,2] + flow[3,2]
+    3                     flow[1,3] + -1.0 flow[3,2]
     dtype: object
     >>> constrs.gppd.Sense
     0    =

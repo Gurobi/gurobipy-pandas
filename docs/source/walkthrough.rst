@@ -117,10 +117,10 @@ Finally, we can build the capacity constraints by using the "knapsack" index to 
     ...     (df_assign["weight"] * df_assign["x"])
     ...     .groupby("knapsack").sum()
     ... )
-    >>> total_weight
+    >>> total_weight  # doctest: +ELLIPSIS
     knapsack
-    1    <gurobi.LinExpr: x[1,1] + 1.5 x[2,1] + 1.2 x[3...
-    2    <gurobi.LinExpr: x[1,2] + 1.5 x[2,2] + 1.2 x[3...
+    1    x[1,1] + 1.5 x[2,1] + 1.2 x[3,1] + ...
+    2    x[1,2] + 1.5 x[2,2] + 1.2 x[3,2] + ...
     dtype: object
 
 and using the function :code:`gppd.add_constrs` to create constraints by aligning these expressions with capacity data:

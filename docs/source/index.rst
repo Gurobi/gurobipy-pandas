@@ -44,10 +44,10 @@ Once variables are added, standard pandas transformations can be used to build e
    2  2  <gurobi.Var y[2]>
    3  1  <gurobi.Var y[3]>
    >>> df.groupby('a').sum()  # doctest: +NORMALIZE_WHITESPACE
-                                 y
+                y
    a
-   1  <gurobi.LinExpr: y[0] + y[3]>
-   2  <gurobi.LinExpr: y[1] + y[2]>
+   1  y[0] + y[3]
+   2  y[1] + y[2]
 
 Finally, the accessors allow constraints to be added to the model using the resulting expressions:
 

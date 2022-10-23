@@ -160,17 +160,17 @@ class GRBDataFrameAccessor:
 
         >>> df4 = df.assign(expr=df["x"] + df["y"])
         >>> df4
-           c                  x                  y                           expr
-        0  1  <gurobi.Var x[0]>  <gurobi.Var y[0]>  <gurobi.LinExpr: x[0] + y[0]>
-        1  2  <gurobi.Var x[1]>  <gurobi.Var y[1]>  <gurobi.LinExpr: x[1] + y[1]>
-        2  3  <gurobi.Var x[2]>  <gurobi.Var y[2]>  <gurobi.LinExpr: x[2] + y[2]>
+           c                  x                  y         expr
+        0  1  <gurobi.Var x[0]>  <gurobi.Var y[0]>  x[0] + y[0]
+        1  2  <gurobi.Var x[1]>  <gurobi.Var y[1]>  x[1] + y[1]
+        2  3  <gurobi.Var x[2]>  <gurobi.Var y[2]>  x[2] + y[2]
         >>> df4 = df4.gppd.add_constrs(m, "expr", GRB.LESS_EQUAL, 1, name="c4")
         >>> m.update()
         >>> df4[["expr", "c4"]]
-                                    expr                     c4
-        0  <gurobi.LinExpr: x[0] + y[0]>  <gurobi.Constr c4[0]>
-        1  <gurobi.LinExpr: x[1] + y[1]>  <gurobi.Constr c4[1]>
-        2  <gurobi.LinExpr: x[2] + y[2]>  <gurobi.Constr c4[2]>
+                  expr                     c4
+        0  x[0] + y[0]  <gurobi.Constr c4[0]>
+        1  x[1] + y[1]  <gurobi.Constr c4[1]>
+        2  x[2] + y[2]  <gurobi.Constr c4[2]>
         """
         constrseries = add_constrs_from_dataframe(
             model,
