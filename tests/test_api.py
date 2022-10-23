@@ -3,6 +3,7 @@ Tests for the public API. These are intentionally simple, more careful
 tests of data types, errors, etc, are done on the lower-level functions.
 """
 
+from contextlib import contextmanager
 import pandas as pd
 from gurobipy import GRB
 import gurobipy_pandas as gppd
@@ -251,3 +252,114 @@ class TestAddConstrs(GurobiTestCase):
             self.model.update()
             names = list(constrs.gppd.ConstrName)
             self.assertEqual(names, ["c[2]", "c[4]", "c[8]"])
+
+
+class TestNonInteractiveMode(GurobiTestCase):
+    # Check that no updates are run by default.
+    # Test all add_vars / add_constrs entry points.
+
+    def test_add_vars_function_index(self):
+        gppd.add_vars(self.model, pd.RangeIndex(5))
+        self.assertEqual(self.model.NumVars, 0)
+        self.model.update()
+        self.assertEqual(self.model.NumVars, 5)
+
+    def test_add_vars_function_series(self):
+        gppd.add_vars(self.model, pd.Series(list(range(10))))
+        self.assertEqual(self.model.NumVars, 0)
+        self.model.update()
+        self.assertEqual(self.model.NumVars, 10)
+
+    def test_add_vars_function_dataframe(self):
+        gppd.add_vars(
+            self.model, pd.DataFrame(index=[1, 2], columns=["a", "b"], data=1)
+        )
+        self.assertEqual(self.model.NumVars, 0)
+        self.model.update()
+        self.assertEqual(self.model.NumVars, 2)
+
+    def test_add_constrs_function(self):
+        x = gppd.add_vars(self.model, pd.RangeIndex(5))
+        y = gppd.add_vars(self.model, pd.RangeIndex(5))
+        gppd.add_constrs(self.model, x, GRB.EQUAL, y)
+        self.assertEqual(self.model.NumConstrs, 0)
+        self.model.update()
+        self.assertEqual(self.model.NumConstrs, 5)
+
+    def test_add_vars_accessor(self):
+        df = pd.DataFrame(index=[1, 2], columns=["a", "b"], data=1)
+        df.gppd.add_vars(self.model, name="x")
+        self.assertEqual(self.model.NumVars, 0)
+        self.model.update()
+        self.assertEqual(self.model.NumVars, 2)
+
+    def test_add_constrs_accessor_args(self):
+        df = pd.DataFrame(index=[1, 2, 3, 4], columns=["a"], data=1).gppd.add_vars(
+            self.model, name="x"
+        )
+        df.gppd.add_constrs(self.model, "x", GRB.EQUAL, 1.0, name="c")
+        self.assertEqual(self.model.NumConstrs, 0)
+        self.model.update()
+        self.assertEqual(self.model.NumConstrs, 4)
+
+    def test_add_constrs_accessor_expression(self):
+        df = pd.DataFrame(index=[1, 2, 3], columns=["a"], data=1).gppd.add_vars(
+            self.model, name="x"
+        )
+        df.gppd.add_constrs(self.model, "x <= 1", name="c")
+        self.assertEqual(self.model.NumConstrs, 0)
+        self.model.update()
+        self.assertEqual(self.model.NumConstrs, 3)
+
+
+class TestInteractiveMode(GurobiTestCase):
+    # Check that auto-updates are done when interactive mode is enabled.
+    # Test all add_vars / add_constrs entry points; changes should immediately
+    # be visible in the model.
+
+    def setUp(self):
+        super().setUp()
+        gppd.set_interactive()
+
+    def tearDown(self):
+        gppd.set_interactive(False)
+        super().tearDown()
+
+    def test_add_vars_function_index(self):
+        gppd.add_vars(self.model, pd.RangeIndex(5))
+        self.assertEqual(self.model.NumVars, 5)
+
+    def test_add_vars_function_series(self):
+        gppd.add_vars(self.model, pd.Series(list(range(10))))
+        self.assertEqual(self.model.NumVars, 10)
+
+    def test_add_vars_function_dataframe(self):
+        gppd.add_vars(
+            self.model, pd.DataFrame(index=[1, 2], columns=["a", "b"], data=1)
+        )
+        self.assertEqual(self.model.NumVars, 2)
+
+    def test_add_constrs_function(self):
+        x = gppd.add_vars(self.model, pd.RangeIndex(5))
+        y = gppd.add_vars(self.model, pd.RangeIndex(5))
+        gppd.add_constrs(self.model, x, GRB.EQUAL, y)
+        self.assertEqual(self.model.NumConstrs, 5)
+
+    def test_add_vars_accessor(self):
+        df = pd.DataFrame(index=[1, 2], columns=["a", "b"], data=1)
+        df.gppd.add_vars(self.model, name="x")
+        self.assertEqual(self.model.NumVars, 2)
+
+    def test_add_constrs_accessor_args(self):
+        df = pd.DataFrame(index=[1, 2, 3, 4], columns=["a"], data=1).gppd.add_vars(
+            self.model, name="x"
+        )
+        df.gppd.add_constrs(self.model, "x", GRB.EQUAL, 1.0, name="c")
+        self.assertEqual(self.model.NumConstrs, 4)
+
+    def test_add_constrs_accessor_expression(self):
+        df = pd.DataFrame(index=[1, 2, 3], columns=["a"], data=1).gppd.add_vars(
+            self.model, name="x"
+        )
+        df.gppd.add_constrs(self.model, "x <= 1", name="c")
+        self.assertEqual(self.model.NumConstrs, 3)

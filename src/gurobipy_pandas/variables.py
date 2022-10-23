@@ -10,6 +10,7 @@ from gurobipy import GRB
 import pandas as pd
 
 from gurobipy_pandas.index_mappers import create_mapper
+from gurobipy_pandas.util import gppd_global_options
 
 
 def prepare_series(series, index=None):
@@ -111,6 +112,8 @@ def add_vars_from_index(
     newvars = model.addVars(
         mapper(index), lb=lb, ub=ub, obj=obj, vtype=vtype, name=namearg
     )
+    if gppd_global_options["eager_updates"]:
+        model.update()
     return pd.Series(index=index, data=list(newvars.values()), name=seriesname)
 
 
@@ -173,4 +176,6 @@ def add_vars_from_dataframe(
     newvars = model.addVars(
         mapper(data.index), lb=lb, ub=ub, obj=obj, vtype=vtype, name=name
     )
+    if gppd_global_options["eager_updates"]:
+        model.update()
     return pd.Series(index=data.index, data=list(newvars.values()), name=name)

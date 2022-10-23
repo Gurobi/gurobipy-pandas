@@ -11,6 +11,7 @@ import gurobipy as gp
 from gurobipy import GRB
 
 from gurobipy_pandas.index_mappers import create_mapper
+from gurobipy_pandas.util import gppd_global_options
 
 
 CONSTRAINT_SENSES = frozenset([GRB.LESS_EQUAL, GRB.EQUAL, GRB.GREATER_EQUAL])
@@ -209,4 +210,6 @@ def _add_constrs_from_dataframe_args(
         )
         for row in reindexed.itertuples()
     ]
+    if gppd_global_options["eager_updates"]:
+        model.update()
     return pd.Series(index=data.index, data=constrs, name=name)

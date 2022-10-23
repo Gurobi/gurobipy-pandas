@@ -13,6 +13,56 @@ from gurobipy_pandas.variables import (
     add_vars_from_dataframe,
 )
 from gurobipy_pandas.constraints import add_constrs_from_series
+from gurobipy_pandas.util import gppd_global_options
+
+
+def set_interactive(flag: bool = True):
+    """Enables or disables interactive mode. In interactive mode, model
+    updates are run immediately after any invocation of add_vars or
+    add_constrs functions or accessors. This is useful when building models
+    in interactive code environments like Jupyter notebooks, since variable
+    and constraint names and attributes can be immediately queried after
+    they are created. Interactive mode is disabled by default, since frequent
+    update calls can be expensive.
+
+    >>> import gurobipy as gp
+    >>> import pandas as pd
+    >>> import gurobipy_pandas as gppd
+    >>> model = gp.Model()
+    >>> index = pd.RangeIndex(5)
+    >>> gppd.add_vars(model, index, name="x")
+    0    <gurobi.Var *Awaiting Model Update*>
+    1    <gurobi.Var *Awaiting Model Update*>
+    2    <gurobi.Var *Awaiting Model Update*>
+    3    <gurobi.Var *Awaiting Model Update*>
+    4    <gurobi.Var *Awaiting Model Update*>
+    Name: x, dtype: object
+    >>> gppd.set_interactive()
+    >>> gppd.add_vars(model, index, name="y")
+    0    <gurobi.Var y[0]>
+    1    <gurobi.Var y[1]>
+    2    <gurobi.Var y[2]>
+    3    <gurobi.Var y[3]>
+    4    <gurobi.Var y[4]>
+    Name: y, dtype: object
+    >>> gppd.set_interactive(False)
+    >>> gppd.add_vars(model, index, name="z")
+    0    <gurobi.Var *Awaiting Model Update*>
+    1    <gurobi.Var *Awaiting Model Update*>
+    2    <gurobi.Var *Awaiting Model Update*>
+    3    <gurobi.Var *Awaiting Model Update*>
+    4    <gurobi.Var *Awaiting Model Update*>
+    Name: z, dtype: object
+
+    Note that interactive mode only applies to gurobipy_pandas calls. If
+    you call methods of gurobipy.Model directly, updates will not be run
+    automatically.
+
+    :param flag: Pass True to enable interactive mode, False to disable.
+        Defaults to True.
+    :type flag: bool, optional
+    """
+    gppd_global_options["eager_updates"] = flag
 
 
 # Index/Series variant (attribute arguments must be values or series)

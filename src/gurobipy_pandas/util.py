@@ -1,6 +1,9 @@
 import pandas as pd
 
 
+gppd_global_options = {"eager_updates": False}
+
+
 def align_series(series: pd.Series, index: pd.Index, err_label: str):
     """
     Align :series with :index and return it.

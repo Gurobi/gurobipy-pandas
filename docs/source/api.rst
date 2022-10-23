@@ -5,6 +5,8 @@ API
 
 .. autofunction:: gurobipy_pandas.api.add_constrs
 
+.. autofunction:: gurobipy_pandas.api.set_interactive
+
 .. autoclass:: gurobipy_pandas.accessors.GRBDataFrameAccessor
     :members: add_vars, add_constrs
 
