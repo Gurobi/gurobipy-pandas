@@ -31,10 +31,10 @@ gppd.set_interactive()
 Read in the data. Preference data contains 3 columns: shift date, worker, and preference value. If a worker is not available for a given shift, then that work-shift combination does not appear in the table.
 
 ```{code-cell} ipython3
-preferences = (
-    pd.read_csv("data/preferences.csv")
-    .assign(Shift=lambda df: pd.to_datetime(df["Shift"]))
-    .set_index(["Worker", "Shift"])
+preferences = pd.read_csv(
+    "data/preferences.csv",
+    parse_dates=["Shift"],
+    index_col=['Worker', 'Shift']
 )
 preferences
 ```
@@ -42,10 +42,10 @@ preferences
 Shift requirements data indicates the number of required workers for each shift.
 
 ```{code-cell} ipython3
-shift_requirements = (
-    pd.read_csv("data/shift_requirements.csv")
-    .assign(Shift=lambda df: pd.to_datetime(df["Shift"]))
-    .set_index("Shift")
+shift_requirements = pd.read_csv(
+    "data/shift_requirements.csv",
+    parse_dates=["Shift"],
+    index_col="Shift"
 )
 shift_requirements
 ```
