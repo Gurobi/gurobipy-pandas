@@ -385,6 +385,30 @@ class TestAddVarsFromIndex(unittest.TestCase):
             expected = f"x[202204{dtvalue.day:02d},{strvalue}]"
             self.assertEqual(x[dtvalue, strvalue].VarName, expected)
 
+    def test_index_duplicates(self):
+        index = pd.Index([0, 1, 1, 2])
+        self.assertTrue(index.has_duplicates)
+
+        with self.assertRaisesRegex(ValueError, "Index contains duplicate entries"):
+            add_vars_from_index(self.model, index)
+
+    def test_naming_duplicates(self):
+        index = pd.RangeIndex(5)
+        self.assertFalse(index.has_duplicates)
+
+        # User provided index formatter which creates duplicates. This should
+        # go through ok (although they'll get a warning and reversion to default
+        # if they try to write to a file).
+        x = add_vars_from_index(
+            self.model,
+            index,
+            name="x",
+            index_formatter=lambda ind: ["label"] * len(ind),
+        )
+
+        self.model.update()
+        self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
+
 
 class TestAddVarsFromDataFrame(unittest.TestCase):
     def setUp(self):
@@ -599,3 +623,27 @@ class TestAddVarsFromDataFrame(unittest.TestCase):
         for dtvalue, strvalue in df.index:
             expected = f"x[2204{dtvalue.day:02d},{string_map[strvalue]}]"
             self.assertEqual(x[dtvalue, strvalue].VarName, expected)
+
+    def test_index_duplicates(self):
+        data = pd.DataFrame(index=pd.Index([0, 1, 1, 2]), data={"a": list(range(4))})
+        self.assertTrue(data.index.has_duplicates)
+
+        with self.assertRaisesRegex(ValueError, "Index contains duplicate entries"):
+            add_vars_from_dataframe(self.model, data)
+
+    def test_naming_duplicates(self):
+        data = pd.DataFrame(index=pd.RangeIndex(5), data={"a": list(range(5))})
+        self.assertFalse(data.index.has_duplicates)
+
+        # User provided index formatter which creates duplicates. This should
+        # go through ok (although they'll get a warning and reversion to default
+        # if they try to write to a file).
+        x = add_vars_from_dataframe(
+            self.model,
+            data,
+            name="x",
+            index_formatter=lambda ind: ["label"] * len(ind),
+        )
+
+        self.model.update()
+        self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
