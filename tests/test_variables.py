@@ -7,6 +7,8 @@ from gurobipy import GRB
 
 from gurobipy_pandas.variables import add_vars_from_index, add_vars_from_dataframe
 
+GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
+
 
 class TestAddVarsFromIndex(unittest.TestCase):
     def setUp(self):
@@ -407,7 +409,11 @@ class TestAddVarsFromIndex(unittest.TestCase):
         )
 
         self.model.update()
-        self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
+        self.assertEqual(self.model.NumVars, 5)
+        if GUROBIPY_MAJOR_VERSION >= 10:
+            self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
+        else:
+            self.assertEqual(list(x.gppd.VarName), [f"x[label][{i}]" for i in range(5)])
 
 
 class TestAddVarsFromDataFrame(unittest.TestCase):
@@ -646,4 +652,8 @@ class TestAddVarsFromDataFrame(unittest.TestCase):
         )
 
         self.model.update()
-        self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
+        self.assertEqual(self.model.NumVars, 5)
+        if GUROBIPY_MAJOR_VERSION >= 10:
+            self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
+        else:
+            self.assertEqual(list(x.gppd.VarName), [f"x[label][{i}]" for i in range(5)])
