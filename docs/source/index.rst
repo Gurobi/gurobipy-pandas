@@ -78,6 +78,7 @@ Rewrite/Reorganize
    - Read the examples
       - Put mathematical models next to their implementation in code
       - Emphasise data cleaning and where it should be done (before the model: this is model-data separation in python: do your cleaning steps first, then build the model in a quick pass with no intermingled data processing logic).
+   - Check antipatterns (list of bad performance code paths to watch out for)
 
 Index
 -----
