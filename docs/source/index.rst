@@ -64,22 +64,6 @@ Finally, the accessors allow constraints to be added to the model using the resu
 
 To get to grips with the operation of :code:`gurobipy-pandas`, first see the :doc:`walkthrough` which outlines key concepts and the design philosophy. Then, peruse our library of :doc:`examples` to see how complete models are built. The :doc:`api` documentation spells out the various accessor methods in more complete detail.
 
-Rewrite/Reorganize
-------------------
-
-1. Why this package?
-   - Pandas is great at manipulating column structured data. However when building optimization models, that data needs to interact with modelling objects / row-wise operations need to be performed. This is not pandas' core competency, and it's easy to create performance headaches.
-   - `gurobipy-pandas` provides a few simple functions/accessors/extensions to help build optimization models using pandas data structures (and query solutions, etc)
-2. How to read/use this doc?
-   - First read the pandas primer. Even if you're an experienced pandas user, have a read. Here we point out some key features and common pitfalls when ti comes to pandas and building optimization models in python.
-      - Primer will point out column-wise data storage and emphasise that with this package, we provide fast implementations and convenient syntax for the inevitable row-wise operations that you need to create interesting constraints.
-   - Read the API overview. `gurobipy-pandas`` consists of only two key methods, ...
-      - This page should also note that the 'glue' for arithmetic operations is provided by pandas itself, but again, you should work series-wise when doing this
-   - Read the examples
-      - Put mathematical models next to their implementation in code
-      - Emphasise data cleaning and where it should be done (before the model: this is model-data separation in python: do your cleaning steps first, then build the model in a quick pass with no intermingled data processing logic).
-   - Check antipatterns (list of bad performance code paths to watch out for)
-
 Index
 -----
 
