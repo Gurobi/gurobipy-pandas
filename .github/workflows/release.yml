@@ -4,10 +4,9 @@
 name: Release
 
 on:
-  workflow_dispatch:
-  # push:
-  #   tags:
-  #     - v*
+  push:
+    tags:
+      - v*
 
 jobs:
   code-quality:
