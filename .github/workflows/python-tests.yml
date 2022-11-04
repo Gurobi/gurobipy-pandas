@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  python-tests:
 
     runs-on: ubuntu-latest
     strategy:
