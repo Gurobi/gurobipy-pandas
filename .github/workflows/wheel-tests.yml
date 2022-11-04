@@ -1,23 +1,24 @@
-name: Wheel packaging tests
+# Run the unit tests against several pythons and platforms
+# using a built wheel to install the package.
+
+name: Test wheels
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_call:
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  test-wheels:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
+        os: [ubuntu-latest]
         python: ["3.8"]
+        gurobipy: ["9.5.2", "10.0.0b1"]
 
     steps:
       - uses: actions/checkout@v3
@@ -30,16 +31,16 @@ jobs:
           python -m pip install --upgrade pip build
       - name: Build wheel
         run: |
-          python -m build --wheel
-      - name: Fetch dependencies
+          python -m build
+      - name: Fetch dependencies for offline install
         run: |
-          python -m pip wheel --wheel-dir=dist dist/*.whl
-      - name: Install wheel
+          pip wheel --wheel-dir=dist gurobipy==${{ matrix.gurobipy }} pandas
+      - name: Install from built wheel
         run: |
-          python -m pip install -f dist --no-index gurobipy-pandas
+          python -m pip install --find-links dist --no-index --only-binary=:all: gurobipy-pandas
       - name: Test import
         run: |
           python -c "import gurobipy_pandas"
-      - name: Run unittest
+      - name: Run unittests
         run: |
           python -m unittest discover -b
