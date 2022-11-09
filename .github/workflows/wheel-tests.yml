@@ -5,6 +5,7 @@ name: Test wheels
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,9 +17,12 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        python: ["3.8"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.8", "3.9", "3.10", "3.11"]
         gurobipy: ["9.5.2", "10.0.0"]
+        exclude:
+          - python: "3.11"
+            gurobipy: "9.5.2"
 
     steps:
       - uses: actions/checkout@v3
