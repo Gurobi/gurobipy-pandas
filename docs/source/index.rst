@@ -40,8 +40,8 @@ Documentation
    :maxdepth: 1
    :caption: Model Building
 
-   naming
    sparsity
+   naming
    performance
    advanced
 
@@ -49,6 +49,6 @@ Documentation
    :maxdepth: 1
    :caption: Reference
 
-   api
    license
    contact
+   api

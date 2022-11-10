@@ -69,7 +69,7 @@ Finally, the accessors allow constraints to be added to the model using the resu
    2    <gurobi.Constr c[2]>
    Name: c, dtype: object
 
-To get to grips with the operation of :code:`gurobipy-pandas`, first see the :doc:`walkthrough` which outlines key concepts and the design philosophy. Then, peruse our library of :doc:`examples` to see how complete models are built. The :doc:`api` documentation spells out the various accessor methods in more complete detail.
+To get to grips with the operation of :code:`gurobipy-pandas`, first see the xxxx which outlines key concepts and the design philosophy. Then, peruse our library of :doc:`examples` to see how complete models are built. The :doc:`api` documentation spells out the various accessor methods in more complete detail.
 
 
 Function Patterns
