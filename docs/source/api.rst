@@ -1,5 +1,5 @@
-API
-===
+API Reference
+=============
 
 .. autofunction:: gurobipy_pandas.api.add_vars
 

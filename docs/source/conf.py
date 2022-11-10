@@ -18,6 +18,7 @@ extensions = [
     "sphinx.ext.doctest",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.extlinks",
     "sphinx.ext.intersphinx",
     "sphinx_tabs.tabs",
     "sphinx_toolbox.collapse",
@@ -46,6 +47,11 @@ templates_path = ["_templates"]
 autodoc_typehints = "none"
 
 copybutton_prompt_text = ">>> "
+
+extlinks_detect_hardcoded_links = True
+extlinks = {
+    "pypi": ("https://pypi.org/project/%s/", "%s"),
+}
 
 # -- Options for EPUB output
 
