@@ -211,7 +211,7 @@ class TestSeriesGetAttrSetAttr(GurobiTestCase):
             self.model, name="x", lb="value", ub="value"
         )
         self.model.optimize()
-        solution = df["x"].gppd.getAttr("X")
+        solution = df["x"].gppd.get_attr("X")
         assert_series_equal(solution, series, check_names=False)
         self.assertEqual(solution.name, "x")
 
@@ -220,7 +220,7 @@ class TestSeriesGetAttrSetAttr(GurobiTestCase):
         x = gppd.add_vars(self.model, index, name="x")
         lb = 1.0
         ub = pd.Series(index=index, data=[2.0, 3.0, 4.0, 5.0, 6.0])
-        result = x.gppd.setAttr("LB", lb).gppd.setAttr("UB", ub)
+        result = x.gppd.set_attr("LB", lb).gppd.set_attr("UB", ub)
         self.model.update()
         for i in range(5):
             self.assertEqual(result.loc[i + 5].lb, 1.0)
@@ -234,12 +234,12 @@ class TestSeriesGetAttrSetAttr(GurobiTestCase):
         # Missing entries for some values in the index
         ub = pd.Series(index=pd.RangeIndex(1, 4), data=[1, 2, 3])
         with self.assertRaises(KeyError):
-            x.gppd.setAttr("UB", ub)
+            x.gppd.set_attr("UB", ub)
 
         # Too many values (require exact alignment)
         lb = pd.Series(index=pd.RangeIndex(6), data=list(range(6)))
         with self.assertRaises(KeyError):
-            x.gppd.setAttr("LB", lb)
+            x.gppd.set_attr("LB", lb)
 
     def test_setattr_series_missing_values(self):
 
@@ -250,7 +250,7 @@ class TestSeriesGetAttrSetAttr(GurobiTestCase):
         # Missing data (series must be complete if on the same index)
         obj = pd.Series(index=index, data=[1, 2, None, 4, None])
         with self.assertRaisesRegex(ValueError, "'Obj' series has missing values"):
-            x.gppd.setAttr("Obj", obj)
+            x.gppd.set_attr("Obj", obj)
 
     def test_var_set_obj_index_mismatch(self):
         # Old example that we want to error our
@@ -270,7 +270,7 @@ class TestSeriesGetAttrSetAttr(GurobiTestCase):
         with self.assertRaisesRegex(KeyError, "'Obj' series not aligned with index"):
             # Attempts to align a multi-index with a single index. The accessor
             # should complain of the mismatch.
-            x.gppd.setAttr("Obj", item_data["value"])
+            x.gppd.set_attr("Obj", item_data["value"])
 
     def test_setattr_dataframe(self):
         # Must be a scalar or series, not a dataframe
@@ -279,7 +279,7 @@ class TestSeriesGetAttrSetAttr(GurobiTestCase):
         self.model.update()
 
         with self.assertRaises(TypeError):
-            x.gppd.setAttr(
+            x.gppd.set_attr(
                 "Start", pd.DataFrame(index=index, data={"start": [1, 2, 3, 4, 5]})
             )
 
@@ -503,7 +503,7 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
         df = df.gppd.add_constrs(self.model, "x <= 2", name="c1")
         self.model.update()
 
-        names = df["c1"].gppd.getAttr("ConstrName")
+        names = df["c1"].gppd.get_attr("ConstrName")
         expected = pd.Series(
             index=pd.MultiIndex.from_product([[0, 1], [0, 1]]),
             data=["c1[0,0]", "c1[0,1]", "c1[1,0]", "c1[1,1]"],
@@ -570,3 +570,27 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.size(), 1)
             self.assertIs(row.getVar(0), df.loc[ind, "ab cd"])
             self.assertEqual(row.getCoeff(0), 1.0)
+
+
+class TestSeriesCaseError(GurobiTestCase):
+    def test_get_attr(self):
+        x = gppd.add_vars(self.model, pd.RangeIndex(5))
+        self.model.update()
+        msg = ".*no attribute 'getAttr'. Did you mean: 'get_attr'"
+        with self.assertRaisesRegex(AttributeError, msg):
+            x.gppd.getAttr("UB")
+
+    def test_set_attr(self):
+        x = gppd.add_vars(self.model, pd.RangeIndex(5))
+        self.model.update()
+        msg = ".*no attribute 'setAttr'. Did you mean: 'set_attr'"
+        with self.assertRaisesRegex(AttributeError, msg):
+            x.gppd.setAttr("Obj", [1, 2, 3, 4, 5])
+
+    def test_get_value(self):
+        x = gppd.add_vars(self.model, pd.RangeIndex(5))
+        expr = x + 2
+        self.model.optimize()
+        msg = ".*no attribute 'getValue'. Did you mean: 'get_value'"
+        with self.assertRaisesRegex(AttributeError, msg):
+            expr.gppd.getValue()

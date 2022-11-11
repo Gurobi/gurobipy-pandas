@@ -14,6 +14,13 @@ from gurobipy_pandas.variables import add_vars_from_dataframe
 from gurobipy_pandas.util import align_series
 
 
+CASE_MAPPING = {
+    "getAttr": "get_attr",
+    "setAttr": "set_attr",
+    "getValue": "get_value",
+}
+
+
 @pd.api.extensions.register_dataframe_accessor("gppd")
 class GRBDataFrameAccessor:
     """Accessor class for methods invoked as :code:`pd.DataFrame(...).gppd.*`.
@@ -199,7 +206,7 @@ class GRBSeriesAccessor:
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
 
-    def getAttr(self, attr):
+    def get_attr(self, attr):
         """Retrieve the given Gurobi attribute for every object in the Series
         held by this accessor. Analogous to Var.getAttr, series-wise.
 
@@ -216,7 +223,7 @@ class GRBSeriesAccessor:
         >>> x = gppd.add_vars(m, pd.RangeIndex(3), name='x')
         >>> m.optimize()  # doctest: +ELLIPSIS
         Gurobi Optimizer version...
-        >>> x.gppd.getAttr("X")
+        >>> x.gppd.get_attr("X")
         0    0.0
         1    0.0
         2    0.0
@@ -258,9 +265,13 @@ class GRBSeriesAccessor:
         3    1.0
         Name: x, dtype: float64
         """
-        return self.getAttr(attr)
+        if attr in CASE_MAPPING:
+            raise AttributeError(
+                f"Series accessor no attribute '{attr}'. Did you mean: '{CASE_MAPPING[attr]}'"
+            )
+        return self.get_attr(attr)
 
-    def setAttr(self, attr, value):
+    def set_attr(self, attr, value):
         """Change the given Gurobi attribute for every object in the Series
         held by this accessor. Analogous to Var.setAttr, series-wise.
 
@@ -277,18 +288,18 @@ class GRBSeriesAccessor:
         >>> m = gp.Model()
         >>> x = gppd.add_vars(m, pd.RangeIndex(3), name='x')
         >>> m.update()
-        >>> x.gppd.setAttr("LB", 3.0).gppd.setAttr("UB", 5.0)
+        >>> x.gppd.set_attr("LB", 3.0).gppd.set_attr("UB", 5.0)
         0    <gurobi.Var x[0]>
         1    <gurobi.Var x[1]>
         2    <gurobi.Var x[2]>
         Name: x, dtype: object
         >>> m.update()
-        >>> x.gppd.getAttr("LB")
+        >>> x.gppd.get_attr("LB")
         0    3.0
         1    3.0
         2    3.0
         Name: x, dtype: float64
-        >>> x.gppd.getAttr("UB")
+        >>> x.gppd.get_attr("UB")
         0    5.0
         1    5.0
         2    5.0
@@ -352,7 +363,7 @@ class GRBSeriesAccessor:
         if attr == "_obj":
             super().__setattr__(attr, value)
         else:
-            self.setAttr(attr, value)
+            self.set_attr(attr, value)
 
     def get_value(self):
         """Return a new series, on the same index, containing the result of

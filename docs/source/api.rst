@@ -11,4 +11,4 @@ API Reference
     :members: add_vars, add_constrs
 
 .. autoclass:: gurobipy_pandas.accessors.GRBSeriesAccessor
-    :members: getAttr, __getattr__, setAttr, __setattr__, get_value
+    :members: get_attr, set_attr, get_value
