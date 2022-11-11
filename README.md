@@ -32,8 +32,16 @@ pip install gurobipy-pandas
 
 ## Documentation
 
-Full documentation for `gurobipy-pandas` is hosted on [readthedocs](https://gurobi-optimization-gurobipy-pandas.readthedocs-hosted.com/en/beta)
+Full documentation for `gurobipy-pandas` is hosted on [readthedocs](https://gurobi-optimization-gurobipy-pandas.readthedocs-hosted.com/en/latest)
 
 ## License
 
 `gurobipy-pandas` is distributed under the terms of the [Apache License 2.0](https://spdx.org/licenses/Apache-2.0.html).
+
+## Contact Us
+
+For questions related to using gurobipy-pandas please use the [Gurobi Community Forum](https://support.gurobi.com/hc/en-us/community/topics/10373864542609-GitHub-Projects>)
+
+For reporting bugs, issues and feature requests please [open an issue](https://github.com/Gurobi/gurobipy-pandas/issues)
+
+If you encounter issues with Gurobi or `gurobipy` please contact [Gurobi Support](https://support.gurobi.com/hc/en-us)
