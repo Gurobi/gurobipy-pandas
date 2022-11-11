@@ -10,6 +10,7 @@ develop:
 	python -m pip install -e .
 	python -m pip install -r docs/requirements.txt
 	python -m pip install black==22.6.0
+	pre-commit install
 
 test:
 	python -m unittest discover -b
