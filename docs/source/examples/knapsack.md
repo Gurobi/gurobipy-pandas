@@ -93,25 +93,23 @@ assignable_pairs
 From the above dataframe, `gurobipy_pandas` provides an accessor to create a corresponding series of variables. We first create a gurobipy Model, then call `.gppd.add_vars` on our new dataframe to create a Gurobi variable for every entry in the index. The result is a Pandas dataframe containing Gurobi variables. Note the objective coefficients can be set directly on the variables as they are created, using the aligned item value data.
 
 ```{code-cell} ipython3
-m = gp.Model()
-df_assign = assignable_pairs.gppd.add_vars(
-    m, name='x', vtype=GRB.BINARY, obj="value"
-)
-m.ModelSense = GRB.MAXIMIZE
-df_assign
+model = gp.Model()
+model.ModelSense = GRB.MAXIMIZE
+x = gppd.add_vars(model, assignable_pairs, vtype=GRB.BINARY, obj="value", name="x")
+x
 ```
 
 Check the constructed objective function:
 
 ```{code-cell} ipython3
-m.getObjective()
+model.getObjective()
 ```
 
 Finally, we can build the capacity constraints by using the "knapsack" index to group variables along with their weights:
 
 ```{code-cell} ipython3
 total_weight = (
-    (df_assign["weight"] * df_assign["x"])
+    (items['weight'] * x)
     .groupby("knapsack").sum()
 )
 total_weight
@@ -121,7 +119,7 @@ and use the function `gppd.add_constrs` to create constraints by aligning these 
 
 ```{code-cell} ipython3
 capconstr = gppd.add_constrs(
-    m, total_weight, GRB.LESS_EQUAL, knapsacks["capacity"],
+    model, total_weight, GRB.LESS_EQUAL, knapsacks["capacity"],
     name='capconstr',
 )
 capconstr
@@ -131,19 +129,27 @@ We also need constraints that each item only appears in one knapsack. This can b
 
 ```{code-cell} ipython3
 gppd.add_constrs(
-    m, df_assign['x'].groupby('item').sum(),
+    model, x.groupby('item').sum(),
     GRB.LESS_EQUAL, 1.0, name="pack_once",
 )
 ```
 
 ```{code-cell} ipython3
-m.optimize()
+model.optimize()
 ```
 
 Finally, we use the series accessor `.gppd.X` to retrieve solution values. Using Pandas functions we can transform the result into a more readable form. Below shows that items 1 and 5 are packed into knapsack 1, while only item 2 is packed into knapsack 2.
 
 ```{code-cell} ipython3
-df_assign['x'].gppd.X.to_frame().query("x >= 0.9").sort_values("knapsack")
+x.gppd.X
+```
+
+```{code-cell} ipython3
+(
+    x.gppd.X.to_frame()
+    .query("x >= 0.9").reset_index()
+    .groupby("knapsack").agg({"item": list})
+)
 ```
 
 We can also use the series accessor `.gppd.Slack` on constraint series to determine constraint slacks. For example, the following shows spare capacity in each knapsack based on the capacity constraint.
