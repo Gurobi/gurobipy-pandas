@@ -10,9 +10,12 @@ GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
 
 def setup(arg):
     """Ensure the default environment is started. Any license messages will
-    be printed here so that they don't mess up the doctests."""
+    be printed here so that they don't mess up the doctests. Also set some
+    pandas display options for consistency."""
     with arg.globs["gp"].Model():
         pass
+    arg.globs["pd"].set_option("display.width", 120)
+    arg.globs["pd"].set_option("display.max_columns", 10)
 
 
 # Load doctests as unittest, see https://docs.python.org/3/library/doctest.html#unittest-api
