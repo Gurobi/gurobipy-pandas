@@ -51,6 +51,7 @@ copybutton_prompt_text = ">>> "
 extlinks_detect_hardcoded_links = True
 extlinks = {
     "pypi": ("https://pypi.org/project/%s/", "%s"),
+    "ghsrc": ("https://github.com/Gurobi/gurobipy-pandas/tree/main/%s", "%s"),
 }
 
 # -- Options for EPUB output
