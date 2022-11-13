@@ -38,7 +38,6 @@ Documentation
    :caption: Model Building
 
    performance
-   sparsity
    naming
    advanced
 
