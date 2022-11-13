@@ -114,6 +114,8 @@ And you can use groupby and aggregate to build summations across different level
    2    <gurobi.Var x[0,2]>
    Name: x, dtype: object
 
+Note that the builtin ``.sum`` in pandas can be slow when working with ``gurobipy`` modelling objects. In many applications, you should use ``.agg(gp.quicksum)`` instead. See :doc:`the performance section<performance>` of the documentation for further details.
+
 Adding Constraints
 ------------------
 
