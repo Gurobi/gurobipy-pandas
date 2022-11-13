@@ -5,10 +5,7 @@ Welcome to gurobipy-pandas's documentation!
 
 -----
 
-.. - Goals/intention: create gurobipy variables and constraints simply/cleanly/efficiently from pandas data structures
-.. - Target audience: familiar with pandas, comfortable transforming data in pandas, some familiarity with Gurobi/gurobipy
-
-:code:`gurobipy-pandas` is a convenient (optional) wrapper to connect pandas with gurobipy. It enables users to more easily and cleanly build mathematical optimization models from data stored in pandas objects.
+:code:`gurobipy-pandas` is a convenient (optional) wrapper to connect pandas with gurobipy. It enables users to more easily and efficiently build mathematical optimization models from data stored in pandas objects.
 
 :code:`gurobipy-pandas` is aimed at experienced pandas users who are familiar with methods to transform, group, and aggregate data stored in dataframes. It expects some familiarity with optimization modelling, but does not require deep experience with gurobipy.
 
@@ -40,9 +37,9 @@ Documentation
    :maxdepth: 1
    :caption: Model Building
 
+   performance
    sparsity
    naming
-   performance
    advanced
 
 .. toctree::

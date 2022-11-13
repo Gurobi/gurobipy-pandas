@@ -1,6 +1,3 @@
-.. - Variable and constraint names
-..    - See naming.rst
-
 Variable & Constraint Naming
 ============================
 
