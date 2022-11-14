@@ -26,8 +26,8 @@ issue.
 Before submitting a pull request:
 - install the [pre-commit](https://pre-commit.com) package to enable the automatic
   running of the pre-commit hooks in the `.pre-commit-config.yaml` file,
-- make sure all tests pass by running `pytest` in the root folder of the `gurobipy-pandas`.
-- add other relevant checks for the gurobipy-pandas
+- make sure all tests pass by running `python -m unittest discover` in the root folder of
+  `gurobipy-pandas`.
 
 After a pull request is submitted, the tests will be run automatically, and the status
 will appear on the pull request page. If the tests failed, there is a link which can be
