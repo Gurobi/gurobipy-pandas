@@ -24,6 +24,15 @@ pd.options.display.max_rows = 8
 gppd.set_interactive()
 ```
 
+```{code-cell}
+:nbsphinx: hidden
+
+# Hidden cell to avoid licensing messages
+# when docs are generated.
+with gp.Model():
+    pass
+```
+
 Read in the data. Preference data contains 3 columns: shift date, worker, and preference value. If a worker is not available for a given shift, then that work-shift combination does not appear in the table.
 
 ```{code-cell}

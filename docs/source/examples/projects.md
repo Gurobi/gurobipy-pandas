@@ -42,6 +42,15 @@ import gurobipy_pandas as gppd
 gppd.set_interactive()
 ```
 
+```{code-cell}
+:nbsphinx: hidden
+
+# Hidden cell to avoid licensing messages
+# when docs are generated.
+with gp.Model():
+    pass
+```
+
 We will first read in the data for both projects and teams. To match our mathematical model, which is indexed based on projects $i$ and teams $j$, we will set the indexes of our pandas dataframes in the same way.
 
 ```{code-cell}

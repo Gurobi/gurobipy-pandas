@@ -44,6 +44,15 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 ```
 
+```{code-cell}
+:nbsphinx: hidden
+
+# Hidden cell to avoid licensing messages
+# when docs are generated.
+with gp.Model():
+    pass
+```
+
 We first load the diabetes regression dataset into pandas dataframes, then perform scaling and a train-test split. Additionally, we add a constant column to capture an intercept term.
 
 ```{code-cell}
@@ -64,15 +73,6 @@ X_train
 ## Model Formulation
 
 Create the Gurobi model:
-
-```{code-cell}
-:nbsphinx: hidden
-
-# Hidden cell to avoid licensing messages
-# when docs are generated.
-with gp.Model():
-    pass
-```
 
 ```{code-cell}
 model = gp.Model()
