@@ -6,10 +6,6 @@ jupytext:
     format_name: myst
     format_version: 0.13
     jupytext_version: 1.14.1
-kernelspec:
-  display_name: gurobipy-pandas
-  language: python
-  name: gurobipy-pandas
 ---
 
 # Project-Team Allocation
@@ -37,7 +33,7 @@ This model has a slight twist: since the teams are heterogeneous, not all teams 
 
 For all `gurobipy_pandas` applications, we start with the standard imports:
 
-```{code-cell} ipython3
+```{code-cell}
 import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
@@ -48,19 +44,19 @@ gppd.set_interactive()
 
 We will first read in the data for both projects and teams. To match our mathematical model, which is indexed based on projects $i$ and teams $j$, we will set the indexes of our pandas dataframes in the same way.
 
-```{code-cell} ipython3
+```{code-cell}
 projects = pd.read_csv("data/projects.csv", index_col="project")
 projects.head()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 teams = pd.read_csv("data/teams.csv", index_col="team")
 teams.head()
 ```
 
 We first do some quick quality and size checks on the data. Clearly, it will not be possible to complete all projects with the available resource.
 
-```{code-cell} ipython3
+```{code-cell}
 print(f"There are {len(projects)} projects and {len(teams)} teams.")
 print(f"Total project resource required: {projects.resource.sum():.1f}")
 print(f"Total team resource available: {teams.capacity.sum():.1f}")
@@ -68,17 +64,17 @@ print(f"Total team resource available: {teams.capacity.sum():.1f}")
 
 We also check the heterogeneous nature of the projects and teams. This model follows a simple rule: team $j$ can complete project $i$ if $\text{skill}_j \ge \text{difficulty}_i$. So, we can see that the available teams (and therefore capacity) for projects with difficulty 3 is far less than the available capacity for projects with difficulty 1.
 
-```{code-cell} ipython3
+```{code-cell}
 projects.difficulty.value_counts()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 teams.skill.value_counts()
 ```
 
 When formulating the model, we could create a variable for *every* index pair $(i, j)$, and later disallow the invalid assignments using constraints. But this would introduce redundant variables, creating a model which is larger than needed. We should instead exploit the natural sparsity of the problem by filtering on the data to find only the variables we need, *before we start to create variables*.
 
-```{code-cell} ipython3
+```{code-cell}
 # Pandas does not have a conditional join, but we can use a
 # cross join + query to create the list of allowed pairs.
 # For larger datasets, this data filtering might be better
@@ -111,7 +107,7 @@ The new dataframe we have constructed has a sparse index, which represents the s
 
 From the `allowed_pairs` dataframe, `gurobipy_pandas` provides a free function to create a corresponding series of variables on our new index. We first create a gurobipy Model, then call `gppd.add_vars` to create a Gurobi variable for every entry in the index. Since the `value` column exists in this dataframe, we can reference this column directly to use it as the linear objective coefficient for each variable.
 
-```{code-cell} ipython3
+```{code-cell}
 model = gp.Model()
 model.ModelSense = GRB.MAXIMIZE
 x = gppd.add_vars(model, allowed_pairs, vtype=GRB.BINARY, obj="value", name="x")
@@ -120,7 +116,7 @@ x
 
 To add the necessary constraints to the model, we use pandas native groupby and aggregate operations to group our binary assignment variables along with their resource requirements. The result is a Series of expressions capturing the total resource requirement allocated to a team based on the selected assignments:
 
-```{code-cell} ipython3
+```{code-cell}
 total_resource = (
     (projects["resource"] * x)
     .groupby("team").sum()
@@ -130,7 +126,7 @@ total_resource
 
 We then use the free function `gppd.add_constrs` to create constraints by aligning these expressions with capacity data:
 
-```{code-cell} ipython3
+```{code-cell}
 capacity_constraints = gppd.add_constrs(
     model, total_resource, GRB.LESS_EQUAL, teams["capacity"],
     name='capacity',
@@ -140,7 +136,7 @@ capacity_constraints.head()
 
 We also need to constrain that each project is allocated to at most one team. This is done using the same function:
 
-```{code-cell} ipython3
+```{code-cell}
 allocate_once = gppd.add_constrs(
     model, x.groupby('project').sum(),
     GRB.LESS_EQUAL, 1.0, name="allocate_once",
@@ -152,19 +148,19 @@ allocate_once.head()
 
 With the model formulated, we solve it using the Gurobi Optimizer:
 
-```{code-cell} ipython3
+```{code-cell}
 model.optimize()
 ```
 
 To extract the solution, we use the series accessor `.gppd.X` to retrieve solution values for all variables in the series `x`:
 
-```{code-cell} ipython3
+```{code-cell}
 x.gppd.X
 ```
 
 Notice that the result is returned on the same index as `x` so we can directly apply pandas tranformations, so we can immediately use pandas methods to transform the result into a more readable form. We could also directly write the result to another file or result API. In this example, we will perform a simple aggregation to show the list of projects allocated to each team:
 
-```{code-cell} ipython3
+```{code-cell}
 (
     x.gppd.X.to_frame()
     .query("x >= 0.9").reset_index()
@@ -174,6 +170,6 @@ Notice that the result is returned on the same index as `x` so we can directly a
 
 To aid in follow-up analysis, we can also use the series accessor `.gppd.Slack` on any constraint series to determine the slack in inequality constraints. For example, the following shows the spare capacity of each team in the current assignment:
 
-```{code-cell} ipython3
+```{code-cell}
 capacity_constraints.gppd.Slack
 ```

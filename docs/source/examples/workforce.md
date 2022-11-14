@@ -5,11 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.0
-kernelspec:
-  display_name: gurobipy-pandas
-  language: python
-  name: gurobipy-pandas
+    jupytext_version: 1.14.1
 ---
 
 # Workforce Scheduling
@@ -18,7 +14,7 @@ Assigning shifts to maximize worker happiness!!
 
 Basic code done, need to document the mathematical model in mathjax alongside (index corresponds directly to sets, column corresponds directly to data defined over that set).
 
-```{code-cell} ipython3
+```{code-cell}
 import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
@@ -30,7 +26,7 @@ gppd.set_interactive()
 
 Read in the data. Preference data contains 3 columns: shift date, worker, and preference value. If a worker is not available for a given shift, then that work-shift combination does not appear in the table.
 
-```{code-cell} ipython3
+```{code-cell}
 preferences = pd.read_csv(
     "data/preferences.csv",
     parse_dates=["Shift"],
@@ -41,7 +37,7 @@ preferences
 
 Shift requirements data indicates the number of required workers for each shift.
 
-```{code-cell} ipython3
+```{code-cell}
 shift_requirements = pd.read_csv(
     "data/shift_requirements.csv",
     parse_dates=["Shift"],
@@ -58,7 +54,7 @@ Note: binary vars can be relaxed without issue in this model, but we should keep
 
 Note: in the gurobipy-pandas API, we only use Model() and Env() calls from gurobipy
 
-```{code-cell} ipython3
+```{code-cell}
 m = gp.Model()
 df = (
     preferences
@@ -78,7 +74,7 @@ Fixme: .update() calls just to show naming are annoying to have to include... ne
 
 Also would be useful to format dates cleanly. Must remove spacing, maybe remove time if date is the only distinction.
 
-```{code-cell} ipython3
+```{code-cell}
 shift_cover = gppd.add_constrs(
     m,
     df['assign'].groupby('Shift').sum(),
@@ -90,27 +86,27 @@ shift_cover = gppd.add_constrs(
 shift_cover
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 m.optimize()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 solution = df['assign'].gppd.X
 solution
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 assigned_shifts = solution.reset_index().query("assign == 1")
 assigned_shifts
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 shift_table = solution.unstack(0).fillna("-").replace({0.0: "-", 1.0: "Y"})
 pd.options.display.max_rows = 15
 shift_table
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 :nbsphinx: hidden
 
 # Tests

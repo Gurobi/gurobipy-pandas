@@ -5,11 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.0
-kernelspec:
-  display_name: gurobipy-pandas
-  language: python
-  name: gurobipy-pandas
+    jupytext_version: 1.14.1
 ---
 
 # Portfolio selection
@@ -20,7 +16,7 @@ Adapted from the Gurobi examples. This does not illustrate the accessor API sinc
 
 Point to think about though: when we do construct a single expression by applying pandas operations to series, the user has to fall back onto gurobipy methods.
 
-```{code-cell} ipython3
+```{code-cell}
 import gurobipy as gp
 from gurobipy import GRB
 from math import sqrt
@@ -33,13 +29,13 @@ import matplotlib.pyplot as plt
 
 Import (normalized) historical return data using pandas
 
-```{code-cell} ipython3
+```{code-cell}
 data = pd.read_csv('data/portfolio.csv', index_col=0)
 ```
 
 Create a new model and add a variable for each stock. The columns in our dataframe correspond to stocks, so the columns can be used directly (as a pandas index) to construct the necessary variable.
 
-```{code-cell} ipython3
+```{code-cell}
 model = gp.Model('Portfolio')
 stocks = gppd.add_vars(model, data.columns, name="Stock")
 model.update()
@@ -48,7 +44,7 @@ stocks
 
 Objective is to minimize risk (squared).  This is modeled using the covariance matrix, which measures the historical correlation between stocks.
 
-```{code-cell} ipython3
+```{code-cell}
 sigma = data.cov()
 portfolio_risk = sigma.dot(stocks).dot(stocks)
 model.setObjective(portfolio_risk, GRB.MINIMIZE)
@@ -56,25 +52,25 @@ model.setObjective(portfolio_risk, GRB.MINIMIZE)
 
 Fix budget with a constraint. For summation over series, we get back just a single expression, so this constraint is added directly to the model (not through the accessors).
 
-```{code-cell} ipython3
+```{code-cell}
 model.addConstr(stocks.sum() == 1, name='budget');
 ```
 
 Optimize model to find the minimum risk portfolio.
 
-```{code-cell} ipython3
+```{code-cell}
 model.optimize()
 ```
 
 Display the minimum risk portfolio.
 
-```{code-cell} ipython3
+```{code-cell}
 stocks.gppd.X.round(3)
 ```
 
 Key metrics
 
-```{code-cell} ipython3
+```{code-cell}
 minrisk_volatility = sqrt(portfolio_risk.getValue())
 print('\nVolatility      = %g' % minrisk_volatility)
 
@@ -88,7 +84,7 @@ Solve for the efficient frontier by varying the target return (sampling).
 
 One useful point here could be the ability to specify scenarios by mapping onto constraints
 
-```{code-cell} ipython3
+```{code-cell}
 scenarios = pd.DataFrame(dict(target_return=np.linspace(stock_return.min(), stock_return.max())))
 target_return = model.addConstr(portfolio_return == minrisk_return, 'target_return')
 
@@ -113,7 +109,7 @@ scenarios['volatility'] = scenarios['ObjVal'].apply(sqrt)
 scenarios.head()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # Plot volatility versus expected return for individual stocks
 stock_volatility = data.std()
 ax = plt.gca()

@@ -6,10 +6,6 @@ jupytext:
     format_name: myst
     format_version: 0.13
     jupytext_version: 1.14.1
-kernelspec:
-  display_name: gurobipy-pandas
-  language: python
-  name: gurobipy-pandas
 ---
 
 # L1 Norm Regression
@@ -37,7 +33,7 @@ $$
 
 We start with the usual imports for `gurobipy-pandas` models. Additionally, we import some `sklearn` modules, both to load an example dataset and to help perform model validation.
 
-```{code-cell} ipython3
+```{code-cell}
 import gurobipy as gp
 from gurobipy import GRB
 import gurobipy_pandas as gppd
@@ -50,7 +46,7 @@ from sklearn.model_selection import train_test_split
 
 We first load the diabetes regression dataset into pandas dataframes, then perform scaling and a train-test split. Additionally, we add a constant column to capture an intercept term.
 
-```{code-cell} ipython3
+```{code-cell}
 diabetes_X, diabetes_y = datasets.load_diabetes(return_X_y=True, as_frame=True)
 scaler = StandardScaler()
 diabetes_X_scaled = pd.DataFrame(
@@ -69,7 +65,7 @@ X_train
 
 Create the Gurobi model:
 
-```{code-cell} ipython3
+```{code-cell}
 :nbsphinx: hidden
 
 # Hidden cell to avoid licensing messages
@@ -78,13 +74,13 @@ with gp.Model():
     pass
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 model = gp.Model()
 ```
 
 Then we create an unbounded variable for each column coefficient. Here we use the free function `gppd.add_vars` to create these variables. Note that what we want here is one variable per column, and in pandas, the column labels are also an index. So, we can pass this index directly to the `gurobipy-pandas` function to create a Series of variables aligned to this column index.
 
-```{code-cell} ipython3
+```{code-cell}
 coeffs = gppd.add_vars(model, X_train.columns, name="coeff", lb=-GRB.INFINITY)
 model.update()
 coeffs
@@ -92,14 +88,14 @@ coeffs
 
 Given this column-oriented series and our training dataset, we can formulate the linear relationships representing the regression formula using native pandas operations:
 
-```{code-cell} ipython3
+```{code-cell}
 relation = (X_train * coeffs).sum(axis="columns")
 relation
 ```
 
 To incorporate the absolute error component, we need to introduce the variables $u_i$ and $v_i$, and constrain them such that they measure the error for each data point. This can be done compactly using the `gppd` dataframe accessor and method chaining:
 
-```{code-cell} ipython3
+```{code-cell}
 fit = (
     relation.to_frame(name="MX")
     .gppd.add_vars(model, name="u")
@@ -121,7 +117,7 @@ Each step of the above code appends a new column to the returned dataframe:
 
 Now we are in a position to formulate the mean absolute error expression, and minimize it in the objective function:
 
-```{code-cell} ipython3
+```{code-cell}
 abs_error = fit["u"] + fit["v"]
 mean_abs_error = abs_error.sum() / fit.shape[0]
 model.setObjective(mean_abs_error, sense=GRB.MINIMIZE)
@@ -131,29 +127,29 @@ model.setObjective(mean_abs_error, sense=GRB.MINIMIZE)
 
 With the model formulated, we solve it using the Gurobi Optimizer:
 
-```{code-cell} ipython3
+```{code-cell}
 model.optimize()
 ```
 
 Using the series accessor, we can extract the result coefficients as a series and display them on a plot:
 
-```{code-cell} ipython3
+```{code-cell}
 coeffs.gppd.X.plot.bar()
 ```
 
 We can also extract the distribution of errors from the `abs_error` series we constructed, and plot the results as a histogram:
 
-```{code-cell} ipython3
+```{code-cell}
 # abs_error is a Series of linear expressions
 abs_error.head()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # .gppd.get_value() evaluates these expressions at the current solution
 abs_error.gppd.get_value().plot.hist();
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 :nbsphinx: hidden
 
 assert model.ObjVal <= 44

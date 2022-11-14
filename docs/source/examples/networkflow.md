@@ -5,16 +5,12 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.0
-kernelspec:
-  display_name: gurobipy-pandas
-  language: python
-  name: gurobipy-pandas
+    jupytext_version: 1.14.1
 ---
 
 # Network flow modelling examples
 
-```{code-cell} ipython3
+```{code-cell}
 import numpy as np
 import pandas as pd
 import gurobipy as gp
@@ -24,7 +20,7 @@ import gurobipy_pandas as gppd
 
 ## Min-cost flow network for max-flow computation
 
-```{code-cell} ipython3
+```{code-cell}
 arc_data = pd.DataFrame([
     {"from": 0, "to": 1, "capacity": 16, "cost": 0},
     {"from": 0, "to": 2, "capacity": 13, "cost": 0},
@@ -42,7 +38,7 @@ arc_data = pd.DataFrame([
 arc_data
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 model = gp.Model("max-flow")
 model.ModelSense = GRB.MINIMIZE
 
@@ -53,7 +49,7 @@ model.update()
 arc_df
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 constrs = (
     pd.DataFrame({
         "outflow": arc_df["flow"].groupby("from").sum(),
@@ -65,15 +61,15 @@ model.update()
 constrs
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 model.optimize()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 arc_df["flow"].gppd.X
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 (
     constrs
     .assign(
@@ -85,7 +81,7 @@ arc_df["flow"].gppd.X
 
 ## Transshipment / sources / sinks
 
-```{code-cell} ipython3
+```{code-cell}
 arc_data = pd.DataFrame([
     {"from": 0, "to": 1, "capacity": 16, "cost": 0},
     {"from": 0, "to": 2, "capacity": 13, "cost": 0},
@@ -102,7 +98,7 @@ arc_data = pd.DataFrame([
 arc_data
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 demand_data = pd.DataFrame([
     {"node": 0, "demand": -23},
     {"node": 5, "demand": 23}
@@ -110,7 +106,7 @@ demand_data = pd.DataFrame([
 demand_data
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 model = gp.Model("supply-demand")
 model.ModelSense = GRB.MINIMIZE
 
@@ -119,7 +115,7 @@ model.update()
 arc_df
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 balance_df = (
     pd.DataFrame({
         "inflow": arc_df["flow"].groupby("to").sum(),
@@ -136,7 +132,7 @@ model.update()
 balance_df
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # With the dataframe, but without the accessors?
 
 # tmp_df = (       # Already yuck, throwaway object
@@ -158,7 +154,7 @@ balance_df
 # )
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # The alternative feels artificial, I don't really need
 # the node set anywhere. And to build it automatically
 # I need to do lots of unions...
@@ -189,16 +185,16 @@ balance_df
 # )
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 model.optimize()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # Check flows against bounds
 arc_df.assign(result=lambda df: df['flow'].gppd.X)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # balance_df has the constraint expression components alongside
 # the dataframe, so we can sense check results or gather other stats
 
