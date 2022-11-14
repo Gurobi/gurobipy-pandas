@@ -1,4 +1,4 @@
-__version__ = "0.2.1b0"
+__version__ = "1.0.0"
 
 # Import public API functions
 from gurobipy_pandas.api import add_vars
