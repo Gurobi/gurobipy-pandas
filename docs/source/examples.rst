@@ -6,6 +6,6 @@ This section provides complete modelling examples to demonstrate the capabilitie
 .. toctree::
    :maxdepth: 1
 
-   examples/knapsack
+   examples/projects
    examples/workforce
    examples/regression

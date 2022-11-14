@@ -16,7 +16,7 @@ Take advantage of sparsity
 
 Most mathematical optimization models have sparse index sets. Pandas indexes provide a flexible and powerful way to represent this sparsity, and to filter datasets down to only those records needed for modelling.  ``gurobipy-pandas`` users can leverage this to avoid the creation of redundant variables and constraints, reducing the size of their models.
 
-This is best illustrated by example. In the :doc:`knapsack example <examples/knapsack>`, pandas' filtering mechanisms are used to compute the subset of allowed assignments *before* formulating the model. In the :doc:`workforce allocation example<examples/workforce>`, the input dataset is already sparse, which dictates the variables that need to be created. By setting up appropriate indices for the data, we only create those variables necessary to represent valid decisions in the model.
+This is best illustrated by example. In the :doc:`project allocation example <examples/projects>`, pandas' filtering mechanisms are used to compute the subset of allowed assignments *before* formulating the model. In the :doc:`workforce management example<examples/workforce>`, the input dataset is already sparse, which dictates the variables that need to be created. By setting up appropriate indices for the data, we only create those variables necessary to represent valid decisions in the model.
 
 Avoid iterating over DataFrames
 -------------------------------
