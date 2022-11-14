@@ -35,4 +35,5 @@ Documentation
 
    license
    contact
+   acknowledgements
    api
