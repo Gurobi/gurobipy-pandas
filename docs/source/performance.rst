@@ -25,7 +25,7 @@ Row-wise operations which mix data types in pandas can be slow. However, this is
 
 So, in general, you should avoid iterating manually over rows in a dataframe in your own code. Patterns to avoid are:
 
-- Using a for loop and indexing into a dataframe or series using ``.iloc``, ``.loc``, or ``[]`` [#f1]_
+- Using a for loop and indexing into a dataframe or series using ``.iloc``, ``.loc``, or ``[]``
 - Using ``.iterrows()`` (see :doc:`advanced patterns<advanced>`: ``itertuples()`` is preferred)
 - Using ``.apply()`` with a user-defined function which processes rows
 
@@ -50,7 +50,3 @@ For summations over series of ``gurobipy`` variables, pandas' built-in implement
     <gurobi.LinExpr: x[0] + x[1] + x[2]>
     >>> x.agg(gp.quicksum)
     <gurobi.LinExpr: x[0] + x[1] + x[2]>
-
-.. rubric::Footnotes
-
-.. [#f1] Pandas is designed to efficiently vectorize operations along columns, but there is overhead to handling each call, so such operations can be slower than their equivalents on python lists or dictionaries.
