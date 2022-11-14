@@ -2,8 +2,6 @@
 
 -----
 
-**This package is in beta development and not supported. The API may change without warning.**
-
 -----
 
 [![PyPI - Version](https://img.shields.io/pypi/v/gurobipy-pandas.svg)](https://pypi.org/project/gurobipy-pandas)
@@ -28,7 +26,7 @@ pip install gurobipy-pandas
 ## Dependencies
 
 - [gurobipy: Python modelling interface for the Gurobi Optimizer](https://pypi.org/project/gurobipy/)
-- [pandas: powerful Python data analysis toolkit](https://github.com/pandas-dev/pandas)
+- [pandas: powerful Python data analysis toolkit](https://pypi.org/project/pandas/)
 
 ## Documentation
 

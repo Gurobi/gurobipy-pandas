@@ -1,8 +1,6 @@
 Welcome to gurobipy-pandas's documentation!
 ===========================================
 
-**This package is in beta development and not supported. The API may change without warning.**
-
 -----
 
 ``gurobipy-pandas`` is a convenient (optional) wrapper to connect pandas with gurobipy. It enables users to more easily and efficiently build mathematical optimization models from data stored in DataFrames and Series, and to read solutions back directly as pandas objects.
