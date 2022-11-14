@@ -3,6 +3,10 @@
 [![Tests](https://github.com/Gurobi/gurobipy-pandas/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/Gurobi/gurobipy-pandas/actions/workflows/test.yml?query=branch%3Amain++)
 [![Docs](https://readthedocs.com/projects/gurobi-optimization-gurobipy-pandas/badge/?version=latest)](https://gurobi-optimization-gurobipy-pandas.readthedocs-hosted.com/en/latest)
 
+**⚠ Warning**
+
+```This code is in a pre-release state. It may not be fully functional and breaking changes can occur without notice.```
+
 # gurobipy-pandas: Convenience wrapper for building optimization models from pandas data
 
 `gurobipy-pandas` is a convenient (optional) wrapper to connect pandas with gurobipy. It enables users to more easily and efficiently build mathematical optimization models from data stored in DataFrames and Series, and to read solutions back directly as pandas objects.
