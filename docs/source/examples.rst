@@ -7,5 +7,5 @@ This section provides complete modelling examples to demonstrate the capabilitie
    :maxdepth: 1
 
    examples/projects
-   examples/workforce
    examples/regression
+   examples/workforce

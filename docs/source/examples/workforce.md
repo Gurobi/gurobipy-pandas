@@ -10,9 +10,7 @@ jupytext:
 
 # Workforce Scheduling
 
-Assigning shifts to maximize worker happiness!!
-
-Basic code done, need to document the mathematical model in mathjax alongside (index corresponds directly to sets, column corresponds directly to data defined over that set).
+This example implements a simple workforce scheduling model: assigning workers to shifts in order to maximize a total preference score.
 
 ```{code-cell}
 import gurobipy as gp
@@ -33,7 +31,7 @@ with gp.Model():
     pass
 ```
 
-Read in the data. Preference data contains 3 columns: shift date, worker, and preference value. If a worker is not available for a given shift, then that work-shift combination does not appear in the table.
+First read in preference data. The preference data contains 3 columns: a shift date, worker name, and a preference value. If a worker is not available for a given shift, then that work-shift combination does not appear in the data (i.e. only preferenced shifts are valid).
 
 ```{code-cell}
 preferences = pd.read_csv(
@@ -44,7 +42,13 @@ preferences = pd.read_csv(
 preferences
 ```
 
-Shift requirements data indicates the number of required workers for each shift.
+Unstacking the data, we can see that the dataset is sparse: not all worker-shift combinations are possible. When constructing the model, we should take care that decision variables are only created for the valid combinations.
+
+```{code-cell}
+preferences.unstack(0).head()
+```
+
+Next load the shift requirements data, which indicates the number of required workers for each shift.
 
 ```{code-cell}
 shift_requirements = pd.read_csv(
@@ -55,13 +59,11 @@ shift_requirements = pd.read_csv(
 shift_requirements
 ```
 
-Our goal is to fill all available shifts with the required number of workers, while maximising the total preference values of assignments. To do this, we'll create a binary variable for each worker (1 = shift assigned) and use preferences as the objective.
+## Model Formulation
 
-Semantics: worker and shift are index sets in the model, we should put these in the index of the dataframe.
+Our goal is to fill all available shifts with the required number of workers, while maximising the sum of preference values over all assignments. To do this, will create a binary variable for each valid worker-shift pairing (1 = shift assigned) and use preference values as linear coefficients in the objective.
 
-Note: binary vars can be relaxed without issue in this model, but we should keep them binary so that the modelling is clear to newbies.
-
-Note: in the gurobipy-pandas API, we only use Model() and Env() calls from gurobipy
+There are three pandas indices involved in creating this model: workers, shifts, and preference pairings. While variables are added for the preference pairings, we will see that the worker and shift indexes emerge when aggregating.
 
 ```{code-cell}
 m = gp.Model()
@@ -75,13 +77,7 @@ df = (
 df
 ```
 
-By grouping variables across one of our indices, we can efficiently construct the shift requirement constraints. This involves a few transform steps.
-
-Todo: explain each column, constraint w.r.t mathematical model
-
-Fixme: .update() calls just to show naming are annoying to have to include... need to think about how to include (to show naming effect) while indicating to users that they should not update() during formulation in general. Perhaps we could include that as an `interactive` flag in gurobipy_pandas?
-
-Also would be useful to format dates cleanly. Must remove spacing, maybe remove time if date is the only distinction.
+By grouping variables across the shift indices, we can efficiently construct the shift requirement constraints.
 
 ```{code-cell}
 shift_cover = gppd.add_constrs(
@@ -95,19 +91,29 @@ shift_cover = gppd.add_constrs(
 shift_cover
 ```
 
+## Extracting Solutions
+
+With the model formulated, we solve it using the Gurobi Optimizer:
+
 ```{code-cell}
 m.optimize()
 ```
+
+Extract the solution using the series accessor `.gppd.X`:
 
 ```{code-cell}
 solution = df['assign'].gppd.X
 solution
 ```
 
+Since the result is returned as a pandas series, we can easily filter down to the selected assignments:
+
 ```{code-cell}
 assigned_shifts = solution.reset_index().query("assign == 1")
 assigned_shifts
 ```
+
+Additionally, we can unstack the result and transform it to produce a roster table:
 
 ```{code-cell}
 shift_table = solution.unstack(0).fillna("-").replace({0.0: "-", 1.0: "Y"})
