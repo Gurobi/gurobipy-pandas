@@ -47,3 +47,10 @@ For questions related to using gurobipy-pandas please use the [Gurobi Community 
 For reporting bugs, issues and feature requests please [open an issue](https://github.com/Gurobi/gurobipy-pandas/issues).
 
 If you encounter issues with Gurobi or `gurobipy` please contact [Gurobi Support](https://support.gurobi.com/hc/en-us).
+
+## Contributors
+
+- Simon Bowly (maintainer)
+- Robert Luce (maintainer)
+- Irv Lustig
+- Robert Randall
