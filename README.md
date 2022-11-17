@@ -40,7 +40,7 @@ Full documentation for `gurobipy-pandas` is hosted on [readthedocs](https://guro
 
 For questions related to using gurobipy-pandas please use the [Gurobi Community Forum](https://support.gurobi.com/hc/en-us/community/topics/10373864542609-GitHub-Projects>).
 
-For reporting bugs, issues and feature requests please [open an issue](https://github.com/Gurobi/gurobipy-pandas/issues).
+For reporting bugs, issues and feature requests, specific to `gurobipy-pandas`, please [open an issue](https://github.com/Gurobi/gurobipy-pandas/issues).
 
 If you encounter issues with Gurobi or `gurobipy` please contact [Gurobi Support](https://support.gurobi.com/hc/en-us).
 
