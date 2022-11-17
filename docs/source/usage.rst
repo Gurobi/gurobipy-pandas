@@ -1,7 +1,7 @@
 Usage
 =====
 
-This page gives a brief run through of methods used to build optimization models in ``gurobipy-pandas`` and extract solutions. ``gurobipy-pandas`` provides several global functions for model building, and implements pandas' `accessors <https://pandas.pydata.org/docs/ecosystem.html#accessors>`_ to facilitate building models and querying results from dataframes and series respectively.
+This page gives a brief run through of methods used to build optimization models in ``gurobipy-pandas`` and extract solutions. ``gurobipy-pandas`` provides several free functions for model building, and implements pandas' `accessors <https://pandas.pydata.org/docs/ecosystem.html#accessors>`_ to facilitate building models and querying results from dataframes and series respectively.
 
 Standard Imports
 ----------------
@@ -119,7 +119,7 @@ Note that the builtin ``.sum`` in pandas can be slow when working with ``gurobip
 Adding Constraints
 ------------------
 
-Constraints are added row-wise. Similarly to adding variables, you have the option of using a global function or a dataframe accessor. The global function accepts series aligned on the same index to construct constraints, returning new constraints as a series. The following expresses the constraint :math:`x \le y` for each entry in the index:
+Constraints are added row-wise. Similarly to adding variables, you have the option of using a free function or a dataframe accessor. The free function accepts series aligned on the same index to construct constraints, returning new constraints as a series. The following expresses the constraint :math:`x \le y` for each entry in the index:
 
 .. doctest:: [usage]
 

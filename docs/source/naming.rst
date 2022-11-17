@@ -5,7 +5,7 @@ It's good practice to name variables and constraints in optimization models. One
 
 Of course, when working with large series and dataframes, we don't want to name every variable individually. So, :code:`gurobipy-pandas` generates names for variables and constraints automatically based on the index passed in. The behaviour is similar to :code:`addVars` and :code:`addConstrs` in :code:`gurobipy`.
 
-Note that the conventions below apply to all methods for adding variables and constraints (using global functions or accessors, from a series, dataframe, or index). If using a series or dataframe, naming will be based on the index of that series or dataframe.
+Note that the conventions below apply to all methods for adding variables and constraints (using free functions or accessors, from a series, dataframe, or index). If using a series or dataframe, naming will be based on the index of that series or dataframe.
 
 .. doctest:: [naming]
 
