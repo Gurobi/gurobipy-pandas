@@ -27,13 +27,15 @@ Documentation
 
    performance
    naming
+   development
    advanced
 
 .. toctree::
    :maxdepth: 1
    :caption: Reference
 
+   api
+   typing
    license
    contact
    acknowledgements
-   api
