@@ -57,8 +57,3 @@ extlinks = {
 # -- Options for EPUB output
 
 epub_show_urls = "footnote"
-
-rst_prolog = """.. warning::
-    This code is in a pre-release state. It may not be fully functional and breaking changes
-    can occur without notice.
-"""
