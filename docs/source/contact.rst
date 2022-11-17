@@ -4,7 +4,7 @@ Contact Us
 For questions related to using gurobipy-pandas please use the
 `Gurobi Community Forum <https://support.gurobi.com/hc/en-us/community/topics/10373864542609-GitHub-Projects>`_.
 
-For reporting bugs, issues and feature requests please
+For reporting bugs, issues and feature requests, specific to ``gurobipy-pandas``, please
 `open an issue <https://github.com/Gurobi/gurobipy-pandas/issues>`_.
 
 If you encounter issues with Gurobi or ``gurobipy`` please contact
