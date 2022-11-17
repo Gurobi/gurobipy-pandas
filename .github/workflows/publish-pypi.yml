@@ -1,6 +1,5 @@
 # Build and upload a wheel. No tests run, this should be
 # handled via a larger workflow.
-# FIXME: currently points at testpypi
 
 name: Upload wheel to PyPI
 

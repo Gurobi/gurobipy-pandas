@@ -103,9 +103,7 @@ def _create_expressions_dataframe(df, expr):
     is essentially none. So we have to roll our own here.
 
     TODO add query-like abilty to pull variables from the enclosing
-    scope (uses leading @).
-
-    TODO handle backtick syntax for columns containing spaces
+    scope (uses leading @). Not sure how this is done.
     """
     # Input dataframe acts as the variable scope for evaluating lhs and rhs
     scope = df
@@ -177,7 +175,8 @@ def _add_constrs_from_dataframe_args(
     # Mappers from itertuple 'Pandas' objects to lhs/rhs values.
     # Index into them numerically.
     # TODO: it's possible adding a data column for lhs/rhs constants
-    # would be faster than the extra python function call?
+    # would be faster than the extra python function call? Revisit
+    # when we have better performance tests
 
     if isinstance(lhs, str):
         lhs_index = list(data.columns).index(lhs)

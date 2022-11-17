@@ -81,8 +81,7 @@ class GRBDataFrameAccessor:
             name=name,
             index_formatter=index_formatter,
         )
-        # FIXME: better error messages
-        # :name cannot overlap with existing columns in the dataframe
+        # Note: 'name' cannot overlap with existing columns in the dataframe
         return self._obj.join(varseries)
 
     def add_constrs(
