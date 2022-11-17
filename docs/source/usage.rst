@@ -165,6 +165,8 @@ You can also use a string syntax similar to pandas' eval method to build the sam
    2 0  0.9  1.1  <gurobi.Var y[2,0]>  <gurobi.Var z[2,0]>  <gurobi.Constr c1[2,0]>
      1  1.2  0.9  <gurobi.Var y[2,1]>  <gurobi.Var z[2,1]>  <gurobi.Constr c1[2,1]>
 
+Note that you *must* correctly align all data, and fill values when necessary, when adding constraints. Missing data is not allowed and will throw an error. This is by design, as misaligned data and variables likely indicates a bug in model building logic.
+
 ``gurobipy`` methods
 --------------------
 
