@@ -6,7 +6,7 @@ This page gives a brief run through of methods used to build optimization models
 Standard Imports
 ----------------
 
-Most `gurobipy-pandas` applications will start with the following imports.
+Most ``gurobipy-pandas`` applications will start with the following imports.
 
 .. doctest:: [usage]
 
