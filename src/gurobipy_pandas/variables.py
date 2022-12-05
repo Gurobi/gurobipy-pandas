@@ -9,6 +9,7 @@ import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
 
+import gurobipy_pandas.extension
 from gurobipy_pandas.util import gppd_global_options, create_names, align_series
 
 
