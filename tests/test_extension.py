@@ -6,6 +6,8 @@ import pandas as pd
 
 from gurobipy_pandas.extension import GurobipyArray, GurobipyDtype
 
+from .utils import GurobiTestCase
+
 
 class TestGurobipyDtype(unittest.TestCase):
     def test_properties(self):
@@ -128,7 +130,7 @@ class TestGurobipyArray(unittest.TestCase):
         self.assertIs(series.loc[5], x[5])
 
 
-class TestArithmenticOps(unittest.TestCase):
+class TestArithmenticOps(GurobiTestCase):
     """Not so thorough; these ops are installed for free."""
 
     def setUp(self):
@@ -149,11 +151,7 @@ class TestArithmenticOps(unittest.TestCase):
         for i in range(10):
             le = result[i]
             self.assertIsInstance(le, gp.LinExpr)
-            self.assertEqual(le.size(), 2)
-            self.assertIs(le.getVar(0), x[i])
-            self.assertEqual(le.getCoeff(0), 1.0)
-            self.assertIs(le.getVar(1), y[i])
-            self.assertEqual(le.getCoeff(1), 1.0)
+            self.assert_linexpr_equal(le, x[i] + y[i])
 
     def test_add_var_numeric(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
@@ -165,10 +163,7 @@ class TestArithmenticOps(unittest.TestCase):
         for i in range(10):
             le = result[i]
             self.assertIsInstance(le, gp.LinExpr)
-            self.assertEqual(le.size(), 1)
-            self.assertEqual(le.getConstant(), float(i))
-            self.assertIs(le.getVar(0), x[i])
-            self.assertEqual(le.getCoeff(0), 1.0)
+            self.assert_linexpr_equal(le, x[i] + i)
 
     def test_add_var_scalarvar(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
@@ -179,12 +174,7 @@ class TestArithmenticOps(unittest.TestCase):
         for i in range(10):
             le = result[i]
             self.assertIsInstance(le, gp.LinExpr)
-            self.assertEqual(le.size(), 2)
-            self.assertEqual(le.getConstant(), 0)
-            self.assertIs(le.getVar(0), x[i])
-            self.assertEqual(le.getCoeff(0), 1.0)
-            self.assertIs(le.getVar(1), x[0])
-            self.assertEqual(le.getCoeff(1), 1.0)
+            self.assert_linexpr_equal(le, x[i] + x[0])
 
     def test_add_scalar_var(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
@@ -195,10 +185,7 @@ class TestArithmenticOps(unittest.TestCase):
         for i in range(10):
             le = result[i]
             self.assertIsInstance(le, gp.LinExpr)
-            self.assertEqual(le.size(), 1)
-            self.assertEqual(le.getConstant(), 2.0)
-            self.assertIs(le.getVar(0), x[i])
-            self.assertEqual(le.getCoeff(0), 1.0)
+            self.assert_linexpr_equal(le, x[i] + 2.0)
 
     def test_add_scalarvar_var(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
@@ -210,12 +197,7 @@ class TestArithmenticOps(unittest.TestCase):
         for i in range(10):
             le = result[i]
             self.assertIsInstance(le, gp.LinExpr)
-            self.assertEqual(le.size(), 2)
-            self.assertEqual(le.getConstant(), 0)
-            self.assertIs(le.getVar(0), x[0])
-            self.assertEqual(le.getCoeff(0), 1.0)
-            self.assertIs(le.getVar(1), x[i])
-            self.assertEqual(le.getCoeff(1), 1.0)
+            self.assert_linexpr_equal(le, x[0] + x[i])
 
     def test_add_numeric_var(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
@@ -227,10 +209,7 @@ class TestArithmenticOps(unittest.TestCase):
         for i in range(10):
             le = result[i]
             self.assertIsInstance(le, gp.LinExpr)
-            self.assertEqual(le.size(), 1)
-            self.assertEqual(le.getConstant(), float(i))
-            self.assertIs(le.getVar(0), x[i])
-            self.assertEqual(le.getCoeff(0), 1.0)
+            self.assert_linexpr_equal(le, x[i] + i)
 
     def test_mul_numeric_var(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
@@ -242,10 +221,7 @@ class TestArithmenticOps(unittest.TestCase):
         for i in range(10):
             le = result[i]
             self.assertIsInstance(le, gp.LinExpr)
-            self.assertEqual(le.size(), 1)
-            self.assertIs(le.getVar(0), x[i])
-            self.assertEqual(le.getCoeff(0), float(i))
-            self.assertEqual(le.getConstant(), 0.0)
+            self.assert_linexpr_equal(le, i * x[i])
 
     def test_mul_var_var(self):
         x = pd.Series(self.model.addVars(10)).astype("gpobj")
@@ -257,13 +233,10 @@ class TestArithmenticOps(unittest.TestCase):
         for i in range(10):
             qe = result[i]
             self.assertIsInstance(qe, gp.QuadExpr)
-            self.assertEqual(qe.size(), 1)
-            self.assertIs(qe.getVar1(0), x[i])
-            self.assertIs(qe.getVar2(0), y[i])
-            self.assertEqual(qe.getCoeff(0), 1.0)
+            self.assert_quadexpr_equal(qe, x[i] * y[i])
 
 
-class TestCommonOps(unittest.TestCase):
+class TestCommonOps(GurobiTestCase):
     def setUp(self):
         self.env = gp.Env()
         self.model = gp.Model(env=self.env)
@@ -273,28 +246,27 @@ class TestCommonOps(unittest.TestCase):
         self.env.close()
 
     def test_sum(self):
-        xs = pd.Series(self.model.addVars(3)).astype("gpobj")
+        x = self.model.addVars(3)
+        xs = pd.Series(x).astype("gpobj")
         result = xs.sum()
         self.assertIsInstance(result, gp.LinExpr)
-        self.assertEqual(result.size(), 3)
-        for i in range(3):
-            self.assertIs(result.getVar(i), xs[i])
-            self.assertEqual(result.getCoeff(i), 1.0)
+        self.assert_linexpr_equal(result, x[0] + x[1] + x[2])
 
     def test_groupby(self):
+        x = self.model.addVars(3)
         df = pd.DataFrame(
             {
                 "group": [1, 2, 1],
-                "x": pd.Series(self.model.addVars(3)).astype("gpobj"),
+                "x": pd.Series(x).astype("gpobj"),
             }
         )
+        self.model.update()
         result = df.groupby("group")["x"].sum()
 
         le1 = result[1]
-        self.assertEqual(le1.size(), 2)
-        self.assertIs(le1.getVar(0), df["x"][0])
-        self.assertEqual(le1.getCoeff(0), 1.0)
-        self.assertIs(le1.getVar(1), df["x"][2])
-        self.assertEqual(le1.getCoeff(1), 1.0)
+        self.assertIsInstance(le1, gp.LinExpr)
+        self.assert_linexpr_equal(le1, x[0] + x[2])
 
-        self.assertIs(result[2], df["x"][1])
+        le2 = result[2]
+        self.assertIsInstance(le1, gp.LinExpr)
+        self.assert_linexpr_equal(le2, x[1] * 1.0)
