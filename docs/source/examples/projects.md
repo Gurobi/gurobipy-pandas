@@ -20,7 +20,7 @@ $$
 \begin{alignat}{2}
 \max \quad        & \sum_{i \in I} \sum_{j \in J} p_{i} x_{ij} \\
 \mbox{s.t.} \quad & \sum_{i \in I} w_{i} x_{ij} \le c_{j} & \forall j \in J \\
-                  & \sum_{j \in J} x_{ik} \le 1 & \forall i \in I \\\
+                  & \sum_{j \in J} x_{ij} \le 1 & \forall i \in I \\\
                   & x_{ij} \in \lbrace 0, 1 \rbrace & \forall i \in I, j \in J \\
 \end{alignat}
 $$
