@@ -50,3 +50,7 @@ If you encounter issues with Gurobi or `gurobipy` please contact [Gurobi Support
 - Robert Luce (maintainer)
 - Irv Lustig
 - Robert Randall
+
+## Webinar
+
+Slides for the 2023 webinars presenting this package can be found at [webinar/webinar.ipynb](https://github.com/Gurobi/gurobipy-pandas/blob/main/webinar/webinar.ipynb). The notebook will be presented as RISE slides, but can also be executed in Jupyter.
