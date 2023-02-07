@@ -48,8 +48,8 @@ If you encounter issues with Gurobi or `gurobipy` please contact [Gurobi Support
 
 - Simon Bowly (maintainer)
 - Robert Luce (maintainer)
-- Irv Lustig
-- Robert Randall
+- [Irv Lustig](https://github.com/Dr-Irv) [Princeton Consultants](http://www.princetonoptimization.com) 
+- [Robert Randall](https://github.com/rrandall1471) [Princeton Consultants](http://www.princetonoptimization.com)
 
 ## Webinar
 
