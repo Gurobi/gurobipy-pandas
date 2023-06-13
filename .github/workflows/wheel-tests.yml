@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python: ["3.8", "3.9", "3.10", "3.11"]
-        gurobipy: ["9.5.2", "10.0.0"]
+        gurobipy: ["9.5.2", "10.0.2"]
         exclude:
           - python: "3.11"
             gurobipy: "9.5.2"
