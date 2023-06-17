@@ -130,3 +130,9 @@ dmypy.json
 
 # Ignore jupyter notebook examples, these should be committed as MyST markdown
 docs/source/examples/*.ipynb
+
+# Vscode config
+.vscode/
+
+# Vim swap files
+*.swp
