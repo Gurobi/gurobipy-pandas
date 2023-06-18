@@ -6,12 +6,11 @@ These are used to build the actual API methods.
 import re
 from typing import Optional, Union
 
-import pandas as pd
 import gurobipy as gp
+import pandas as pd
 from gurobipy import GRB
 
 from gurobipy_pandas.util import create_names, gppd_global_options
-
 
 CONSTRAINT_SENSES = frozenset([GRB.LESS_EQUAL, GRB.EQUAL, GRB.GREATER_EQUAL])
 

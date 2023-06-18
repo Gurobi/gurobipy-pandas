@@ -2,18 +2,15 @@
 Top-level API functions
 """
 
-from typing import overload, Union, Optional, Mapping, Callable
+from typing import Callable, Mapping, Optional, Union, overload
 
 import gurobipy as gp
-from gurobipy import GRB
 import pandas as pd
+from gurobipy import GRB
 
-from gurobipy_pandas.variables import (
-    add_vars_from_index,
-    add_vars_from_dataframe,
-)
 from gurobipy_pandas.constraints import add_constrs_from_series
 from gurobipy_pandas.util import gppd_global_options
+from gurobipy_pandas.variables import add_vars_from_dataframe, add_vars_from_index
 
 
 def set_interactive(flag: bool = True):

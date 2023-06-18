@@ -1,16 +1,17 @@
 import unittest
-import pandas as pd
-from pandas.testing import assert_index_equal, assert_frame_equal
-import numpy as np
-import gurobipy as gp
-from gurobipy import GRB
 
-from gurobipy_pandas.variables import add_vars_from_index
+import gurobipy as gp
+import numpy as np
+import pandas as pd
+from gurobipy import GRB
+from pandas.testing import assert_frame_equal, assert_index_equal
+
 from gurobipy_pandas.constraints import (
+    _create_expressions_dataframe,
     add_constrs_from_dataframe,
     add_constrs_from_series,
-    _create_expressions_dataframe,
 )
+from gurobipy_pandas.variables import add_vars_from_index
 
 from .utils import GurobiModelTestCase
 

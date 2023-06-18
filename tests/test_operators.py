@@ -5,8 +5,9 @@ import operator
 import unittest
 
 import gurobipy as gp
-import gurobipy_pandas as gppd
 import pandas as pd
+
+import gurobipy_pandas as gppd
 
 from .utils import GurobiModelTestCase
 

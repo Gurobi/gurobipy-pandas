@@ -2,7 +2,6 @@ import pandas as pd
 
 from gurobipy_pandas.index_mappers import create_mapper
 
-
 gppd_global_options = {"eager_updates": False}
 
 

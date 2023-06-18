@@ -2,17 +2,15 @@
 Accessor methods bound to pd.Index.gppd, pd.Series.gppd, pd.DataFrame.gppd
 """
 
-from typing import Union, Optional
-
-import pandas as pd
+from typing import Optional, Union
 
 import gurobipy as gp
+import pandas as pd
 from gurobipy import GRB
+
 from gurobipy_pandas.constraints import add_constrs_from_dataframe
-
-from gurobipy_pandas.variables import add_vars_from_dataframe
 from gurobipy_pandas.util import align_series
-
+from gurobipy_pandas.variables import add_vars_from_dataframe
 
 CASE_MAPPING = {
     "getAttr": "get_attr",

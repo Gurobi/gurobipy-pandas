@@ -1,7 +1,7 @@
-import numpy as np
 import gurobipy as gp
-from gurobipy import GRB
+import numpy as np
 import pandas as pd
+from gurobipy import GRB
 from pandas.testing import assert_index_equal, assert_series_equal
 
 import gurobipy_pandas as gppd

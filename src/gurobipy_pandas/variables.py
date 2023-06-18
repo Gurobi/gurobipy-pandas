@@ -3,13 +3,13 @@ Internal methods for adding variables to a model using a pandas structure.
 These are used to build the actual API methods.
 """
 
-from typing import Union, Optional
+from typing import Optional, Union
 
 import gurobipy as gp
-from gurobipy import GRB
 import pandas as pd
+from gurobipy import GRB
 
-from gurobipy_pandas.util import gppd_global_options, create_names, align_series
+from gurobipy_pandas.util import align_series, create_names, gppd_global_options
 
 
 def prepare_series(series: pd.Series, index: pd.Index, err_label: str):

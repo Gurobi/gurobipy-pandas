@@ -1,9 +1,9 @@
-import pandas as pd
-from pandas.testing import assert_index_equal
 import gurobipy as gp
+import pandas as pd
 from gurobipy import GRB
+from pandas.testing import assert_index_equal
 
-from gurobipy_pandas.variables import add_vars_from_index, add_vars_from_dataframe
+from gurobipy_pandas.variables import add_vars_from_dataframe, add_vars_from_index
 
 from .utils import GurobiModelTestCase
 

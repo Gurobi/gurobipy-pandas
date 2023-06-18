@@ -5,9 +5,9 @@ tests of data types, errors, etc, are done on the lower-level functions.
 
 import pandas as pd
 from gurobipy import GRB
-import gurobipy_pandas as gppd
-
 from pandas.testing import assert_index_equal, assert_series_equal
+
+import gurobipy_pandas as gppd
 from tests.utils import GurobiModelTestCase
 
 
