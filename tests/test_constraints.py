@@ -258,12 +258,12 @@ class TestAddConstrsFromDataFrame(GurobiModelTestCase):
 
         # Check data in model
         for i, (index, constr) in enumerate(constrs.items()):
-            self.assertEqual(constr.ConstrName, f"C[{i}]")
+            self.assertEqual(constr.ConstrName, f"R{i}")
             self.assertEqual(constr.Sense, GRB.GREATER_EQUAL)
             self.assertEqual(constr.RHS, a[index] - 2.0)
             self.assert_linexpr_equal(self.model.getRow(constr), -1.0 * x[index])
 
-    def test_expression_3(self):
+    def test_expression_4(self):
         # quadratic series >= linear series
 
         x = add_vars_from_index(self.model, pd.RangeIndex(5, 9), name="x")
