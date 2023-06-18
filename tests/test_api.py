@@ -9,10 +9,10 @@ from gurobipy import GRB
 import gurobipy_pandas as gppd
 
 from pandas.testing import assert_index_equal, assert_series_equal
-from tests.utils import GurobiTestCase
+from tests.utils import GurobiModelTestCase
 
 
-class TestAddVars(GurobiTestCase):
+class TestAddVars(GurobiModelTestCase):
     def test_from_dataframe(self):
 
         data = pd.DataFrame(
@@ -192,7 +192,7 @@ class TestAddVars(GurobiTestCase):
                 self.assertEqual(x[ind].VarName, name)
 
 
-class TestAddConstrs(GurobiTestCase):
+class TestAddConstrs(GurobiModelTestCase):
     def test_from_series(self):
 
         index = pd.RangeIndex(10)
@@ -254,7 +254,7 @@ class TestAddConstrs(GurobiTestCase):
             self.assertEqual(names, ["c[2]", "c[4]", "c[8]"])
 
 
-class TestNonInteractiveMode(GurobiTestCase):
+class TestNonInteractiveMode(GurobiModelTestCase):
     # Check that no updates are run by default.
     # Test all add_vars / add_constrs entry points.
 
@@ -312,7 +312,7 @@ class TestNonInteractiveMode(GurobiTestCase):
         self.assertEqual(self.model.NumConstrs, 3)
 
 
-class TestInteractiveMode(GurobiTestCase):
+class TestInteractiveMode(GurobiModelTestCase):
     # Check that auto-updates are done when interactive mode is enabled.
     # Test all add_vars / add_constrs entry points; changes should immediately
     # be visible in the model.

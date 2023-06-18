@@ -6,10 +6,10 @@ from pandas.testing import assert_index_equal, assert_series_equal
 
 import gurobipy_pandas as gppd
 
-from .utils import GurobiTestCase
+from .utils import GurobiModelTestCase
 
 
-class TestDataFrameAddVars(GurobiTestCase):
+class TestDataFrameAddVars(GurobiModelTestCase):
     def setUp(self):
         super().setUp()
         self.df = pd.DataFrame(
@@ -97,7 +97,7 @@ class TestDataFrameAddVars(GurobiTestCase):
             self.assertEqual(names, ["x[a  b]", "x[c*d]", "x[e:f]"])
 
 
-class TestSeriesAttributes(GurobiTestCase):
+class TestSeriesAttributes(GurobiModelTestCase):
     def test_var_get_X(self):
         # Map Var -> X in a series. Use the same name in the result.
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
@@ -203,7 +203,7 @@ class TestSeriesAttributes(GurobiTestCase):
             x.gppd.Start = pd.DataFrame(index=index, data={"start": [1, 2, 3, 4, 5]})
 
 
-class TestSeriesGetAttrSetAttr(GurobiTestCase):
+class TestSeriesGetAttrSetAttr(GurobiModelTestCase):
     def test_var_getattr_X(self):
         # Map Var -> X in a series. Use the same name in the result.
         series = pd.Series(index=list("abc"), data=[1, 2, 3]).astype(float)
@@ -284,7 +284,7 @@ class TestSeriesGetAttrSetAttr(GurobiTestCase):
             )
 
 
-class TestDataFrameAddConstrsByArgs(GurobiTestCase):
+class TestDataFrameAddConstrsByArgs(GurobiModelTestCase):
     def setUp(self):
         super().setUp()
         self.df = pd.DataFrame(
@@ -409,7 +409,7 @@ class TestDataFrameAddConstrsByArgs(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
 
-class TestDataFrameAddConstrsByExpression(GurobiTestCase):
+class TestDataFrameAddConstrsByExpression(GurobiModelTestCase):
     def setUp(self):
         super().setUp()
         self.df = pd.DataFrame(
@@ -572,7 +572,7 @@ class TestDataFrameAddConstrsByExpression(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
 
-class TestSeriesCaseError(GurobiTestCase):
+class TestSeriesCaseError(GurobiModelTestCase):
     def test_get_attr(self):
         x = gppd.add_vars(self.model, pd.RangeIndex(5))
         self.model.update()

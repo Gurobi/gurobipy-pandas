@@ -12,10 +12,10 @@ from gurobipy_pandas.constraints import (
     _create_expressions_dataframe,
 )
 
-from .utils import GurobiTestCase
+from .utils import GurobiModelTestCase
 
 
-class TestAddConstrsFromDataFrame(GurobiTestCase):
+class TestAddConstrsFromDataFrame(GurobiModelTestCase):
     def test_scalar_rhs(self):
         x = add_vars_from_index(self.model, pd.RangeIndex(5, 10), name="x")
         df = x.to_frame()
@@ -316,7 +316,7 @@ class TestAddConstrsFromDataFrame(GurobiTestCase):
             self.assertEqual(row.getCoeff(0), 1.0)
 
 
-class TestAddConstrsFromSeries(GurobiTestCase):
+class TestAddConstrsFromSeries(GurobiModelTestCase):
     def test_bothseries(self):
         # linear series <= linear series
 

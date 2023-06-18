@@ -8,12 +8,12 @@ import gurobipy as gp
 import gurobipy_pandas as gppd
 import pandas as pd
 
-from .utils import GurobiTestCase
+from .utils import GurobiModelTestCase
 
 GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
 
 
-class TestAdd(GurobiTestCase):
+class TestAdd(GurobiModelTestCase):
 
     op = operator.add
 
@@ -104,7 +104,7 @@ class TestSub(TestAdd):
     op = operator.sub
 
 
-class TestIadd(GurobiTestCase):
+class TestIadd(GurobiModelTestCase):
 
     op = operator.iadd
     checkop = operator.add
@@ -189,7 +189,7 @@ class TestIsub(TestIadd):
     checkop = operator.sub
 
 
-class TestMul(GurobiTestCase):
+class TestMul(GurobiModelTestCase):
     def test_varseries_var(self):
         x = gppd.add_vars(self.model, pd.RangeIndex(5), name="x")
         y = self.model.addVar(name="y")

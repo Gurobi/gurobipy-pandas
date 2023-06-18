@@ -7,18 +7,12 @@ from gurobipy import GRB
 
 from gurobipy_pandas.variables import add_vars_from_index, add_vars_from_dataframe
 
+from .utils import GurobiModelTestCase
+
 GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
 
 
-class TestAddVarsFromIndex(unittest.TestCase):
-    def setUp(self):
-        self.env = gp.Env()
-        self.model = gp.Model(env=self.env)
-
-    def tearDown(self):
-        self.model.close()
-        self.env.close()
-
+class TestAddVarsFromIndex(GurobiModelTestCase):
     def test_rangeindex_noargs(self):
         # Variables are created for each entry in index, with default names
         # from Gurobi
@@ -416,10 +410,9 @@ class TestAddVarsFromIndex(unittest.TestCase):
             self.assertEqual(list(x.gppd.VarName), [f"x[label][{i}]" for i in range(5)])
 
 
-class TestAddVarsFromDataFrame(unittest.TestCase):
+class TestAddVarsFromDataFrame(GurobiModelTestCase):
     def setUp(self):
-        self.env = gp.Env()
-        self.model = gp.Model(env=self.env)
+        super().setUp()
         self.data = pd.DataFrame(
             {
                 "str1": ["a", "b", "c", "d"],
@@ -428,10 +421,6 @@ class TestAddVarsFromDataFrame(unittest.TestCase):
                 "float2": [1.1, 2.1, 4.3, 1.5],
             }
         )
-
-    def tearDown(self):
-        self.model.close()
-        self.env.close()
 
     def test_noargs(self):
         # Variables are created for each entry in index, with default names

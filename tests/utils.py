@@ -3,7 +3,7 @@ import unittest
 import gurobipy as gp
 
 
-class GurobiTestCase(unittest.TestCase):
+class GurobiModelTestCase(unittest.TestCase):
     def setUp(self):
         self.env = gp.Env()
         self.model = gp.Model(env=self.env)
