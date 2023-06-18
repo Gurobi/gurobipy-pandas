@@ -36,3 +36,6 @@ Source = "https://github.com/Gurobi/gurobipy-pandas"
 
 [tool.hatch.version]
 path = "src/gurobipy_pandas/__init__.py"
+
+[tool.isort]
+profile = "black"
