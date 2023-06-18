@@ -422,7 +422,6 @@ class TestAddConstrsFromSeries(GurobiModelTestCase):
             self.assert_quadexpr_equal(self.model.getQCRow(qconstr), ref)
 
     def test_misaligned_series(self):
-
         x = add_vars_from_index(self.model, pd.RangeIndex(5))
         y = add_vars_from_index(self.model, pd.RangeIndex(1, 4))
 
@@ -433,7 +432,6 @@ class TestAddConstrsFromSeries(GurobiModelTestCase):
             add_constrs_from_series(self.model, y, GRB.EQUAL, x)
 
     def test_missingvalues(self):
-
         y = add_vars_from_index(self.model, pd.RangeIndex(1, 4))
         a = pd.Series(index=y.index, data=[1, None, 2], dtype=float)
 

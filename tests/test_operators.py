@@ -14,7 +14,6 @@ GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
 
 
 class TestAdd(GurobiModelTestCase):
-
     op = operator.add
 
     def test_varseries_var(self):
@@ -99,13 +98,11 @@ class TestAdd(GurobiModelTestCase):
 
 
 class TestSub(TestAdd):
-
     # Replace operator in TestAdd for sub tests
     op = operator.sub
 
 
 class TestIadd(GurobiModelTestCase):
-
     op = operator.iadd
     checkop = operator.add
 
@@ -183,7 +180,6 @@ class TestIadd(GurobiModelTestCase):
 
 
 class TestIsub(TestIadd):
-
     # Replace operator in TestIadd for isub tests
     op = operator.isub
     checkop = operator.sub

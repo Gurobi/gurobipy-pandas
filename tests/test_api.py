@@ -14,7 +14,6 @@ from tests.utils import GurobiModelTestCase
 
 class TestAddVars(GurobiModelTestCase):
     def test_from_dataframe(self):
-
         data = pd.DataFrame(
             {
                 "source": [1, 2, 1, 0],
@@ -46,7 +45,6 @@ class TestAddVars(GurobiModelTestCase):
         assert_series_equal(flow.gppd.Obj, data["cost"], check_names=False)
 
     def test_from_series(self):
-
         series = pd.Series(index=pd.RangeIndex(5), data=[1, 2, 3, 4, 5])
 
         x = gppd.add_vars(self.model, series, name="x", vtype="B")
@@ -71,7 +69,6 @@ class TestAddVars(GurobiModelTestCase):
         self.assertTrue((x.gppd.Obj == 0.0).all())
 
     def test_from_index(self):
-
         index = pd.RangeIndex(5)
         objseries = pd.Series(index=index, data=[1, 2, 3, 4, 5], dtype=float)
 
@@ -194,7 +191,6 @@ class TestAddVars(GurobiModelTestCase):
 
 class TestAddConstrs(GurobiModelTestCase):
     def test_from_series(self):
-
         index = pd.RangeIndex(10)
 
         x = gppd.add_vars(self.model, index, name="x")

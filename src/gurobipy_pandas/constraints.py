@@ -68,7 +68,6 @@ def add_constrs_from_series(
     name: Optional[str] = None,
     index_formatter="default",
 ) -> pd.Series:
-
     if isinstance(lhs, pd.Series) and isinstance(rhs, pd.Series):
         if not lhs.index.sort_values().equals(rhs.index.sort_values()):
             raise KeyError("series must be aligned")

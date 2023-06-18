@@ -149,7 +149,6 @@ class TestSeriesAttributes(GurobiModelTestCase):
             self.assertEqual(x.loc[i].Start, start)
 
     def test_setattr_series_mismatch(self):
-
         x = gppd.add_vars(self.model, pd.RangeIndex(5))
         self.model.update()
 
@@ -227,7 +226,6 @@ class TestSeriesGetAttrSetAttr(GurobiModelTestCase):
             self.assertEqual(result.loc[i + 5].ub, i + 2)
 
     def test_setattr_series_mismatch(self):
-
         x = gppd.add_vars(self.model, pd.RangeIndex(5))
         self.model.update()
 
@@ -242,7 +240,6 @@ class TestSeriesGetAttrSetAttr(GurobiModelTestCase):
             x.gppd.set_attr("LB", lb)
 
     def test_setattr_series_missing_values(self):
-
         index = pd.RangeIndex(5)
         x = gppd.add_vars(self.model, index)
         self.model.update()

@@ -180,7 +180,6 @@ class TestCustomMapperDict(unittest.TestCase):
     # by name. Any unnamed index levels will have default formatting applied.
 
     def setUp(self):
-
         self.dtindex = pd.date_range(
             start=pd.Timestamp(2022, 6, 5), freq="D", periods=5, name="date"
         )

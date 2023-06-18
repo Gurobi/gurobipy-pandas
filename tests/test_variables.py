@@ -140,7 +140,6 @@ class TestAddVarsFromIndex(GurobiModelTestCase):
             self.assertEqual(v.VarName, name)
 
     def test_name_series_mismatch(self):
-
         index = pd.RangeIndex(5)
 
         # Missing entries for some values in the index
@@ -154,7 +153,6 @@ class TestAddVarsFromIndex(GurobiModelTestCase):
             add_vars_from_index(self.model, index, name=names)
 
     def test_name_series_missing_values(self):
-
         index = pd.RangeIndex(5)
 
         # Missing data (series must be complete if on the same index)
