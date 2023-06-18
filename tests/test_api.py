@@ -3,7 +3,6 @@ Tests for the public API. These are intentionally simple, more careful
 tests of data types, errors, etc, are done on the lower-level functions.
 """
 
-from contextlib import contextmanager
 import pandas as pd
 from gurobipy import GRB
 import gurobipy_pandas as gppd

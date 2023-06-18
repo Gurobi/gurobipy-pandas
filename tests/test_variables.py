@@ -1,5 +1,3 @@
-import unittest
-
 import pandas as pd
 from pandas.testing import assert_index_equal
 import gurobipy as gp
