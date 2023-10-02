@@ -61,7 +61,7 @@ def add_constrs_from_dataframe(
 def add_constrs_from_series(
     model: gp.Model,
     lhs: Union[pd.Series, float],
-    sense: str,
+    sense: Union[pd.Series, str],
     rhs: Union[pd.Series, float],
     *,
     name: Optional[str] = None,
@@ -77,12 +77,14 @@ def add_constrs_from_series(
     if isinstance(rhs, pd.Series) and rhs.isnull().any():
         raise ValueError("rhs series has missing values")
 
-    data = pd.DataFrame(
-        {
-            "lhs": lhs,
-            "rhs": rhs,
-        }
-    )
+    if isinstance(sense, pd.Series):
+        data = pd.DataFrame({"lhs": lhs, "sense": sense, "rhs": rhs})
+        sense = "sense"
+    else:
+        assert isinstance(sense, str)
+        sense = sense[0]
+        assert sense in CONSTRAINT_SENSES
+        data = pd.DataFrame({"lhs": lhs, "rhs": rhs})
 
     return add_constrs_from_dataframe(
         model, data, "lhs", sense, "rhs", name=name, index_formatter=index_formatter
@@ -182,6 +184,18 @@ def _add_constrs_from_dataframe_args(
     else:
         lhs_value = lambda _: lhs
 
+    # Hopefully this is not an ambiguous rule: if sense is a valid Gurobi
+    # sense character (i.e. '<', '>', or '=') then use it as the sense for
+    # all constraints. Otherwise, assume it is a column name in the input
+    # dataframe and take the sense strings from that column.
+    assert isinstance(sense, str)
+    if sense in CONSTRAINT_SENSES:
+        sense_value = lambda _: sense
+    else:
+        assert sense in data.columns
+        sense_index = list(data.columns).index(sense)
+        sense_value = lambda row: row[sense_index]
+
     if isinstance(rhs, str):
         rhs_index = list(data.columns).index(rhs)
         rhs_value = lambda row: row[rhs_index]
@@ -192,7 +206,7 @@ def _add_constrs_from_dataframe_args(
         _add_constr(
             model,
             lhs_value(row),
-            sense,
+            sense_value(row),
             rhs_value(row),
             name=name,
         )
