@@ -248,6 +248,26 @@ class TestAddConstrs(GurobiModelTestCase):
             names = list(constrs.gppd.ConstrName)
             self.assertEqual(names, ["c[2]", "c[4]", "c[8]"])
 
+    def test_sense_series(self):
+        index = pd.Index(["a", "e", "g"])
+
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
+        sense = pd.Series(index=index, data=["<=", ">", "="])
+
+        constrs = gppd.add_constrs(self.model, 2 * x + 1, sense, y)
+        self.model.update()
+
+        for ind, sense in zip(
+            ["a", "e", "g"], [GRB.LESS_EQUAL, GRB.GREATER_EQUAL, GRB.EQUAL]
+        ):
+            constr = constrs.loc[ind]
+            self.assert_linexpr_equal(
+                self.model.getRow(constr), 2 * x.loc[ind] - y.loc[ind]
+            )
+            self.assertEqual(constr.Sense, sense)
+            self.assertEqual(constr.RHS, -1.0)
+
 
 class TestNonInteractiveMode(GurobiModelTestCase):
     # Check that no updates are run by default.

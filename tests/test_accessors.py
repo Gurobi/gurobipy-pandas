@@ -405,6 +405,35 @@ class TestDataFrameAddConstrsByArgs(GurobiModelTestCase):
             self.assertIs(row.getVar(0), df.loc[ind, "ab cd"])
             self.assertEqual(row.getCoeff(0), 1.0)
 
+    def test_sense_column(self):
+        frame = (
+            pd.Series(index=[5, 3, 1, 2, 4], data=["==", "<", ">=", "==", ">"])
+            .to_frame(name="bar")
+            .gppd.add_vars(self.model, name="x")
+            .gppd.add_vars(self.model, name="y")
+            .assign(foo=lambda df: df["x"] + 2 * df["y"])
+            .gppd.add_constrs(self.model, lhs="foo", sense="bar", rhs=5.0, name="baz")
+        )
+
+        self.model.update()
+
+        for ind, sense in zip(
+            [5, 3, 1, 2, 4],
+            [
+                GRB.EQUAL,
+                GRB.LESS_EQUAL,
+                GRB.GREATER_EQUAL,
+                GRB.EQUAL,
+                GRB.GREATER_EQUAL,
+            ],
+        ):
+            constr = frame.loc[ind, "baz"]
+            x = frame.loc[ind, "x"]
+            y = frame.loc[ind, "y"]
+            self.assert_linexpr_equal(self.model.getRow(constr), x + 2 * y)
+            self.assertEqual(constr.Sense, sense)
+            self.assertEqual(constr.RHS, 5.0)
+
 
 class TestDataFrameAddConstrsByExpression(GurobiModelTestCase):
     def setUp(self):
