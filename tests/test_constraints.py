@@ -442,11 +442,11 @@ class TestAddConstrsFromSeries(GurobiModelTestCase):
         with self.assertRaises(ValueError):
             add_constrs_from_series(self.model, a, GRB.EQUAL, y)
 
-    def test_sense_series(self):
+    def test_sense_series_1(self):
         index = pd.RangeIndex(5)
         x = add_vars_from_index(self.model, index)
         y = add_vars_from_index(self.model, index)
-        sense = pd.Series(index=index, data=list("<=>=<"), dtype=object)
+        sense = pd.Series(index=index, data=["<", "=", ">", "=", "<"], dtype=object)
 
         constrs = add_constrs_from_series(self.model, x + 1, sense, y)
 
@@ -458,6 +458,25 @@ class TestAddConstrsFromSeries(GurobiModelTestCase):
 
         for i in index:
             self.assertEqual(constrs[i].Sense, sense[i])
+            self.assertEqual(constrs[i].RHS, -1.0)
+            self.assert_linexpr_equal(self.model.getRow(constrs[i]), x[i] - y[i])
+
+    def test_sense_series_2(self):
+        index = pd.RangeIndex(5)
+        x = add_vars_from_index(self.model, index)
+        y = add_vars_from_index(self.model, index)
+        sense = pd.Series(index=index, data=["<", "==", ">=", "=", "<"], dtype=object)
+
+        constrs = add_constrs_from_series(self.model, x + 1, sense, y)
+
+        self.model.update()
+        self.assertEqual(self.model.NumConstrs, 5)
+
+        self.assertIsInstance(constrs, pd.Series)
+        assert_index_equal(constrs.index, index)
+
+        for i in index:
+            self.assertEqual(constrs[i].Sense, sense[i][0])
             self.assertEqual(constrs[i].RHS, -1.0)
             self.assert_linexpr_equal(self.model.getRow(constrs[i]), x[i] - y[i])
 
