@@ -34,4 +34,4 @@ jobs:
       - name: Publish with twine
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: twine upload -u __token__ -p $PYPI_TOKEN dist/*
+        run: twine upload -r testpypi -u __token__ -p $PYPI_TOKEN dist/*
