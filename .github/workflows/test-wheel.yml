@@ -16,7 +16,7 @@ jobs:
 
     uses: ./.github/workflows/build-wheel.yml
 
-  test-wheels:
+  test-wheel:
 
     needs: [build-wheel]
 

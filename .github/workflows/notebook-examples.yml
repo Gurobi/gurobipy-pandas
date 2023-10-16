@@ -1,7 +1,7 @@
 # Run the unit tests against python3.8 on ubuntu, from
 # a direct install. Execute the example notebooks.
 
-name: Test notebook examples
+name: Notebook examples
 
 on:
   workflow_call:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  unit-tests:
+  notebook-examples:
 
     runs-on: ${{ matrix.os }}
 
