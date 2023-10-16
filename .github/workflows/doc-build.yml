@@ -27,6 +27,8 @@ jobs:
           python -m pip install --upgrade pip
       - name: Install docs build dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install pandoc
           python -m pip install -rdocs/requirements.txt
           python -m pip install .
       - name: Build docs (fail on warnings)
