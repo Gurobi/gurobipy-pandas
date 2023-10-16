@@ -1,0 +1,55 @@
+# Run the unit tests against several pythons and platforms
+# using a pre-built wheel artifact to install the package.
+
+name: Test wheel
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  build-wheel:
+
+    uses: ./.github/workflows/build-wheel.yml
+
+  test-wheel:
+
+    needs: [build-wheel]
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Checkout unit tests
+        uses: actions/checkout@v3
+        with:
+          sparse-checkout: |
+            tests
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      - name: File listing
+        run: ls -R
+      - name: Fetch built wheel
+        uses: actions/download-artifact@v3
+        with:
+          name: wheel-artifact
+          path: dist
+      - name: File listing
+        run: ls -R
+      - name: Install wheel
+        run: |
+          # Workaround for globbing the wheel on windows
+          python -c "import glob, subprocess, sys; subprocess.check_call((sys.executable, '-m', 'pip', 'install', glob.glob('dist/*.whl')[0]))"
+      - name: Run unittests
+        run: |
+          python -m unittest discover -v
