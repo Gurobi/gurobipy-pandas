@@ -1,7 +1,7 @@
 # Build and upload a wheel. No tests run, this should be
 # handled via a larger workflow
 
-name: Upload wheel to PyPI
+name: Publish to PyPI
 
 on:
   workflow_call:

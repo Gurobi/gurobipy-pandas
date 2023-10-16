@@ -1,7 +1,7 @@
 # Run syntax checks against min python version (3.8).
 # Check that commit authors ran pre-commit hooks.
 
-name: Basic code quality checks
+name: Code quality
 
 on:
   workflow_call:
