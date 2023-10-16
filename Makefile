@@ -6,8 +6,12 @@ wheel:
 develop:
 	python -m pip install -e .
 	python -m pip install -r docs/requirements.txt
-	python -m pip install black==22.6.0
+	python -m pip install black==22.6.0 flake8
 	pre-commit install
+
+check:
+	python -m flake8 . --count --select=E9,F63,F7,F82,F811,F401 --show-source --statistics
+	pre-commit run --all-files
 
 test:
 	python -m unittest discover -b
