@@ -1,7 +1,7 @@
-# Run the unit tests and example tests against python 3.8 +
-# gurobipy 9.5/10.0, from a direct installation.
+# Run the unit tests against python3.8 on ubuntu, from
+# a direct install. Execute the example notebooks.
 
-name: Unit tests and examples
+name: Unit tests
 
 on:
   workflow_call:
@@ -10,13 +10,15 @@ permissions:
   contents: read
 
 jobs:
-  python-tests:
+  unit-tests:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
+        os: [ubuntu-latest]
         python: ["3.8"]
-        gurobipy: ["9.5.2", "10.0.2"]
+        gurobipy: ["9.5.2", "10.0.3"]
 
     steps:
       - uses: actions/checkout@v3
@@ -32,7 +34,7 @@ jobs:
           python -m pip install gurobipy==${{ matrix.gurobipy }}
           python -m pip install .
       - name: Run unittest
-        run: python -m unittest discover -b
+        run: python -m unittest discover -v
       - name: Install jupytext dependencies
         run: |
           python -m pip install -r docs/requirements-examples.txt

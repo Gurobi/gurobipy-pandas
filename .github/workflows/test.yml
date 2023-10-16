@@ -1,18 +1,19 @@
 # Regular QA workflow (pull requests, main branch)
 
-name: tests
+name: Test
 
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   code-quality:
     uses: ./.github/workflows/code-quality.yml
-  python-tests:
-    uses: ./.github/workflows/python-tests.yml
-    needs: [code-quality]
+  unit-tests:
+    uses: ./.github/workflows/unit-tests.yml
+  doc-build:
+    uses: ./.github/workflows/doc-build.yml
