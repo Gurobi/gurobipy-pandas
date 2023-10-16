@@ -1,7 +1,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/gurobipy-pandas.svg)](https://pypi.org/project/gurobipy-pandas)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gurobipy-pandas.svg)](https://pypi.org/project/gurobipy-pandas)
 [![Tests](https://github.com/Gurobi/gurobipy-pandas/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/Gurobi/gurobipy-pandas/actions/workflows/test.yml?query=branch%3Amain++)
-[![Docs](https://readthedocs.com/projects/gurobi-optimization-gurobipy-pandas/badge/?version=latest)](https://gurobi-optimization-gurobipy-pandas.readthedocs-hosted.com/en/latest)
+[![Docs](https://readthedocs.com/projects/gurobi-optimization-gurobipy-pandas/badge/?version=latest)](https://gurobipy-pandas.readthedocs.io/en/stable/)
 
 # gurobipy-pandas: Convenience wrapper for building optimization models from pandas data
 
@@ -30,7 +30,7 @@ pip install gurobipy-pandas
 
 ## Documentation
 
-Full documentation for `gurobipy-pandas` is hosted on [readthedocs](https://gurobi-optimization-gurobipy-pandas.readthedocs-hosted.com/en/latest).
+Full documentation for `gurobipy-pandas` is hosted on [readthedocs](https://gurobipy-pandas.readthedocs.io/en/stable/).
 
 ## License
 

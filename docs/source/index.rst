@@ -27,7 +27,6 @@ Documentation
 
    performance
    naming
-   development
    advanced
 
 .. toctree::

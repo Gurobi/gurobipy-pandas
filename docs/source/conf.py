@@ -33,6 +33,8 @@ nbsphinx_custom_formats = {
     ".md": ["jupytext.reads", {"fmt": "myst"}],
 }
 
+html_theme = "sphinx_rtd_theme"
+
 nbsphinx_kernel_name = "python3"
 
 intersphinx_mapping = {
