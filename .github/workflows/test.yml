@@ -15,5 +15,5 @@ jobs:
     uses: ./.github/workflows/code-quality.yml
   unit-tests:
     uses: ./.github/workflows/unit-tests.yml
-  doc-build:
-    uses: ./.github/workflows/doc-build.yml
+  test-examples:
+    uses: ./.github/workflows/test-examples.yml
