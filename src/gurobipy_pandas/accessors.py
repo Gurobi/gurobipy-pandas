@@ -97,32 +97,6 @@ class GRBDataFrameAccessor:
         """Add a constraint to the model for each row in the dataframe
         referenced by this accessor.
 
-        Parameters
-        ----------
-        model : Model
-            A Gurobi model to which new constraints will be added
-        lhs : str
-            A string representation of the entire constraint
-            expression, or the name of a column
-        sense : str, optional
-            Constraint sense. Required if lhs is not a complete
-            expression including a comparator
-        rhs : str or float, optional
-            Constraint right hand side. Can be a column name or
-            float value. Required if lhs is not a complete expression
-            including a comparator
-        name : str
-            Used as the appended column name, as well as the base
-            name for added Gurobi constraints. Constraint name suffixes
-            come from the dataframe index.
-
-        Returns
-        -------
-        DataFrame
-            A new DataFrame with new Constrs appended as a column
-
-        Using some simple example data and variables to demo:
-
         >>> import pandas as pd
         >>> import gurobipy as gp
         >>> from gurobipy import GRB
@@ -182,6 +156,32 @@ class GRBDataFrameAccessor:
         0  x[0] + y[0]  <gurobi.Constr c4[0]>
         1  x[1] + y[1]  <gurobi.Constr c4[1]>
         2  x[2] + y[2]  <gurobi.Constr c4[2]>
+
+        Parameters
+        ----------
+        model : Model
+            A Gurobi model to which new constraints will be added
+        lhs : str
+            A string representation of the entire constraint
+            expression, or the name of a column
+        sense : str, optional
+            Constraint sense. Required if lhs is not a complete
+            expression including a comparator
+        rhs : str or float, optional
+            Constraint right hand side. Can be a column name or
+            float value. Required if lhs is not a complete expression
+            including a comparator
+        name : str
+            Used as the appended column name, as well as the base
+            name for added Gurobi constraints. Constraint name suffixes
+            come from the dataframe index.
+
+        Returns
+        -------
+        DataFrame
+            A new DataFrame with new Constrs appended as a column
+
+        Using some simple example data and variables to demo:
         """
         constrseries = add_constrs_from_dataframe(
             model,
@@ -211,9 +211,6 @@ class GRBSeriesAccessor:
         """Retrieve the given Gurobi attribute for every object in the Series
         held by this accessor. Analogous to Var.getAttr, series-wise.
 
-        :return: A new series with the evaluated attributes
-        :rtype: :class:`pd.Series`
-
         For example, after solving a model, the solution can be retrieved
 
         >>> import pandas as pd
@@ -229,6 +226,16 @@ class GRBSeriesAccessor:
         1    0.0
         2    0.0
         Name: x, dtype: float64
+
+        Parameters
+        ----------
+        attr : str
+            The name of the Gurobi attribute to retrieve
+
+        Returns
+        -------
+        Series
+            A new series with the evaluated attributes
         """
         return pd.Series(
             index=self._obj.index,
@@ -239,9 +246,6 @@ class GRBSeriesAccessor:
     def __getattr__(self, attr):
         """Retrieve the given Gurobi attribute for every object in the
         Series held by this accessor
-
-        :return: A series with the evaluated attributes
-        :rtype: :class:`pd.Series`
 
         For example, after solving a model, solution values can be read
         using the :code:`X` attribute.
@@ -276,18 +280,6 @@ class GRBSeriesAccessor:
         """Change the given Gurobi attribute for every object in the Series
         held by this accessor. Analogous to Var.setAttr, series-wise.
 
-        Parameters
-        ----------
-        attr : str
-            The name of the Gurobi attribute to be modified
-        value : int, float, str, or Series
-            The value(s) to which the attributes should be set
-
-        Returns
-        -------
-        Series
-            The original series (allowing method chaining)
-
         For example, after creating a series of variables, their upper
         bounds can be set and retrieved.
 
@@ -314,6 +306,18 @@ class GRBSeriesAccessor:
         1    5.0
         2    5.0
         Name: x, dtype: float64
+
+        Parameters
+        ----------
+        attr : str
+            The name of the Gurobi attribute to be modified
+        value : int, float, str, or Series
+            The value(s) to which the attributes should be set
+
+        Returns
+        -------
+        Series
+            The original series (allowing method chaining)
         """
         if isinstance(value, pd.Series):
             aligned = align_series(value, self._obj.index, attr)
