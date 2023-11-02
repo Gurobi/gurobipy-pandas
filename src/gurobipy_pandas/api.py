@@ -55,9 +55,11 @@ def set_interactive(flag: bool = True):
     you call methods of gurobipy.Model directly, updates will not be run
     automatically.
 
-    :param flag: Pass True to enable interactive mode, False to disable.
+    Parameters
+    ----------
+    flag : bool, optional
+        Pass True to enable interactive mode, False to disable.
         Defaults to True.
-    :type flag: bool, optional
     """
     gppd_global_options["eager_updates"] = flag
 
@@ -108,19 +110,25 @@ def add_vars(
     """Add a variable to the given model for each entry in the given pandas
     Index, Series, or DataFrame.
 
-    :param model: A Gurobi model to which new variables will be added
-    :type model: :class:`gurobipy.Model`
-    :param pandas_obj: A pandas Index, Series, or DataFrame
-    :param name: If provided, used as base name for new Gurobi variables
-        and the name of the returned series
-    :type name: str, optional
-    :param lb: Lower bound for created variables. Can be a single numeric
-        value. If :pandas_obj is an Index or Series, can be a Series aligned
-        with :pandas_obj. If :pandas_obj is a dataframe, can be a string
-        referring to a column of :pandas_obj. Defaults to 0.0
-    :type lb: float, str, or pd.Series, optional
-    :return: A Series of vars with the the index of :pandas_obj
-    :rtype: :class:`pd.Series`
+    Parameters
+    ----------
+    model : Model
+        A Gurobi model to which new variables will be added
+    pandas_obj : Index, Series, or DataFrame
+        A pandas Index, Series, or DataFrame
+    name : str, optional
+        If provided, used as base name for new Gurobi variables and the name
+        of the returned series
+    lb : float, str, or Series, optional
+        Lower bound for created variables. Can be a single numeric
+        value. If ``pandas_obj`` is an Index or Series, can be a Series
+        aligned with ``pandas_obj``. If ``pandas_obj`` is a dataframe,
+        can be a string referring to a column of ``pandas_obj``. Defaults to 0.0.
+
+    Returns
+    -------
+    Series
+        A Series of vars with the the index of `pandas_obj`
     """
     if isinstance(pandas_obj, pd.Index):
         # Use the given index as the base object. All attribute arguments must
@@ -177,20 +185,26 @@ def add_constrs(
 ) -> pd.Series:
     """Add a constraint to the model for each row in lhs & rhs.
 
-    :param model: A Gurobi model to which new constraints will be added
-    :type model: :class:`gurobipy.Model`
-    :param lhs: A series or numeric value
-    :type lhs: pd.Series
-    :param sense: Constraint sense
-    :type sense: str
-    :param rhs: A series or numeric value
-    :type rhs: pd.Series
-    :param name: Used as the returned series name, as well as the base
-        name for added Gurobi constraints. Constraint name suffixes
-        come from the lhs/rhs index.
-    :type name: str
-    :return: A Series of Constr objects
-    :rtype: :class:`pd.Series`
+    Parameters
+    ----------
+    model : Model
+        A Gurobi model to which new constraints will be added
+    lhs : Series
+        A series of expressions forming the left hand side of constraints
+    sense : str
+        Constraint sense
+    rhs : Series or float
+        A series of expressions forming the right hand side of constraints,
+        or a common constant
+    name : str
+        Used as the returned series name, as well as the base name for added
+        Gurobi constraints. Constraint name suffixes come from the lhs/rhs
+        index.
+
+    Returns
+    -------
+    Series
+           A Series of Constr objects
     """
     return add_constrs_from_series(
         model, lhs, sense, rhs, name=name, index_formatter=index_formatter
