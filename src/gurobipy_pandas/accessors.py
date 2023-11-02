@@ -25,9 +25,6 @@ class GRBDataFrameAccessor:
     The accessor does not expect particular types in the dataframe. This
     class should not be instantiated directly; it should be used via Pandas'
     accessor API
-
-    :param pandas_obj: A pandas dataframe
-    :type pandas_obj: :class:`pd.DataFrame`
     """
 
     def __init__(self, pandas_obj: pd.DataFrame):
@@ -47,27 +44,32 @@ class GRBDataFrameAccessor:
         """Add a variable to the given model for each row in the dataframe
         referenced by this accessor.
 
-        :param model: A Gurobi model to which new variables will be added
-        :type model: :class:`gurobipy.Model`
-        :param name: Used as the appended column name, as well as the base
+        Parameters
+        ----------
+        model : Model
+            A Gurobi model to which new variables will be added
+        name : str
+            Used as the appended column name, as well as the base
             name for added Gurobi variables
-        :type name: str
-        :param lb: Lower bound for created variables. May be a single value
+        lb : float or str, optional
+            Lower bound for created variables. May be a single value
             or the name of a column in the dataframe, defaults to 0.0
-        :type lb: float or str, optional
-        :param ub: Upper bound for created variables. May be a single value
+        ub : float or str, optional
+            Upper bound for created variables. May be a single value
             or the name of a column in the dataframe, defaults to
             :code:`GRB.INFINITY`
-        :type ub: float or str, optional
-        :param obj: Objective function coefficient for created variables.
+        obj: float or str, optional
+            Objective function coefficient for created variables.
             May be a single value, or the name of a column in the dataframe,
             defaults to 0.0
-        :type obj: float or str, optional
-        :param vtype: Gurobi variable type for created variables, defaults
+        vtype: str, optional
+            Gurobi variable type for created variables, defaults
             to :code:`GRB.CONTINUOUS`
-        :type vtype: str, optional
-        :return: A new DataFrame with new Vars appended as a column
-        :rtype: :class:`pd.DataFrame`
+
+        Returns
+        -------
+        DataFrame
+            A new DataFrame with new Vars appended as a column
         """
         varseries = add_vars_from_dataframe(
             model,
@@ -95,24 +97,29 @@ class GRBDataFrameAccessor:
         """Add a constraint to the model for each row in the dataframe
         referenced by this accessor.
 
-        :param model: A Gurobi model to which new constraints will be added
-        :type model: :class:`gurobipy.Model`
-        :param lhs: A string representation of the entire constraint
+        Parameters
+        ----------
+        model : Model
+            A Gurobi model to which new constraints will be added
+        lhs : str
+            A string representation of the entire constraint
             expression, or the name of a column
-        :type lhs: str
-        :param sense: Constraint sense. Required if lhs is not a complete
+        sense : str, optional
+            Constraint sense. Required if lhs is not a complete
             expression including a comparator
-        :type sense: str, optional
-        :param rhs: Constraint right hand side. Can be a column name or
+        rhs : str or float, optional
+            Constraint right hand side. Can be a column name or
             float value. Required if lhs is not a complete expression
             including a comparator
-        :type rhs: str or float, optional
-        :param name: Used as the appended column name, as well as the base
+        name : str
+            Used as the appended column name, as well as the base
             name for added Gurobi constraints. Constraint name suffixes
             come from the dataframe index.
-        :type name: str
-        :return: A new DataFrame with new Constrs appended as a column
-        :rtype: :class:`pd.DataFrame`
+
+        Returns
+        -------
+        DataFrame
+            A new DataFrame with new Constrs appended as a column
 
         Using some simple example data and variables to demo:
 
@@ -195,9 +202,6 @@ class GRBSeriesAccessor:
     series by evaluating a target value across all objects in the series. This
     class should not be instantiated directly; it should be used via Pandas'
     accessor API
-
-    :param pandas_obj: A pandas series
-    :type pandas_obj: :class:`pd.Series`
     """
 
     def __init__(self, pandas_obj):
@@ -272,8 +276,17 @@ class GRBSeriesAccessor:
         """Change the given Gurobi attribute for every object in the Series
         held by this accessor. Analogous to Var.setAttr, series-wise.
 
-        :return: The original series (allowing method chaining)
-        :rtype: :class:`pd.Series`
+        Parameters
+        ----------
+        attr : str
+            The name of the Gurobi attribute to be modified
+        value : int, float, str, or Series
+            The value(s) to which the attributes should be set
+
+        Returns
+        -------
+        Series
+            The original series (allowing method chaining)
 
         For example, after creating a series of variables, their upper
         bounds can be set and retrieved.
@@ -320,9 +333,6 @@ class GRBSeriesAccessor:
         given Gurobi attribute for every object in the Series held by this
         accessor
 
-        :return: A new series with the evaluated attributes
-        :rtype: :class:`pd.Series`
-
         For example, after creating a series of variables, their upper
         bounds can be set and retrieved.
 
@@ -368,8 +378,10 @@ class GRBSeriesAccessor:
         by this accessor. Note that this assumes that the wrapped objects are
         gurobipy expressions (:class:`LinExpr` or :class:`QuadExpr`)
 
-        :return: A series with the evaluated expression values
-        :rtype: :class:`pd.Series`
+        Returns
+        -------
+        Series
+            A series with the evaluated expression values
         """
         return pd.Series(
             index=self._obj.index,
