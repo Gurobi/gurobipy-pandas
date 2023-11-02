@@ -248,6 +248,63 @@ class TestAddConstrs(GurobiModelTestCase):
             names = list(constrs.gppd.ConstrName)
             self.assertEqual(names, ["c[2]", "c[4]", "c[8]"])
 
+    def test_sense_series(self):
+        index = pd.Index(["a", "e", "g"])
+
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
+        sense = pd.Series(index=index, data=["<=", ">", "="])
+
+        constrs = gppd.add_constrs(self.model, 2 * x + 1, sense, y)
+        self.model.update()
+
+        for ind, sense in zip(
+            ["a", "e", "g"], [GRB.LESS_EQUAL, GRB.GREATER_EQUAL, GRB.EQUAL]
+        ):
+            constr = constrs.loc[ind]
+            self.assert_linexpr_equal(
+                self.model.getRow(constr), 2 * x.loc[ind] - y.loc[ind]
+            )
+            self.assertEqual(constr.Sense, sense)
+            self.assertEqual(constr.RHS, -1.0)
+
+
+class TestDataValidation(GurobiModelTestCase):
+    # Test that we throw some more informative errors, instead of obscure
+    # ones from the underlying gurobipy library
+
+    def test_bad_sense_1(self):
+        index = pd.Index(["a", "e", "g"])
+
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
+
+        with self.assertRaisesRegex(
+            ValueError, "'less' is not a valid constraint sense"
+        ):
+            gppd.add_constrs(self.model, x, "less", y)
+
+    def test_bad_sense_2(self):
+        index = pd.Index(["a", "e", "g"])
+
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
+        sense = pd.Series(index=index, data=["<=", "a", "="])
+
+        with self.assertRaisesRegex(ValueError, "'a' is not a valid constraint sense"):
+            gppd.add_constrs(self.model, x, sense, y)
+
+    def test_bad_sense_3(self):
+        index = pd.Index(["a", "e", "g"])
+
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
+
+        with self.assertRaisesRegex(
+            ValueError, "'3.5' is not a valid constraint sense"
+        ):
+            gppd.add_constrs(self.model, x, 3.5, y)
+
 
 class TestNonInteractiveMode(GurobiModelTestCase):
     # Check that no updates are run by default.

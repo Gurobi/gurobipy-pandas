@@ -165,7 +165,8 @@ class GRBDataFrameAccessor:
             A string representation of the entire constraint
             expression, or the name of a column
         sense : str, optional
-            Constraint sense. Required if lhs is not a complete
+            Constraint sense. Can be a column name or a string value
+            representing the sense. Required if lhs is not a complete
             expression including a comparator
         rhs : str or float, optional
             Constraint right hand side. Can be a column name or
