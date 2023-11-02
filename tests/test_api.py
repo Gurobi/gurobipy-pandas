@@ -294,6 +294,17 @@ class TestDataValidation(GurobiModelTestCase):
         with self.assertRaisesRegex(ValueError, "'a' is not a valid constraint sense"):
             gppd.add_constrs(self.model, x, sense, y)
 
+    def test_bad_sense_3(self):
+        index = pd.Index(["a", "e", "g"])
+
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
+
+        with self.assertRaisesRegex(
+            ValueError, "'3.5' is not a valid constraint sense"
+        ):
+            gppd.add_constrs(self.model, x, 3.5, y)
+
 
 class TestNonInteractiveMode(GurobiModelTestCase):
     # Check that no updates are run by default.
