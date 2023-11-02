@@ -177,7 +177,7 @@ def add_vars(
 def add_constrs(
     model: gp.Model,
     lhs: Union[pd.Series, float],
-    sense: str,
+    sense: Union[pd.Series, str],
     rhs: Union[pd.Series, float],
     *,
     name: Optional[str] = None,
@@ -191,8 +191,9 @@ def add_constrs(
         A Gurobi model to which new constraints will be added
     lhs : Series
         A series of expressions forming the left hand side of constraints
-    sense : str
-        Constraint sense
+    sense : Series or str
+        Constraint sense; can be a series if senses vary, or a single string
+        if all constraints have the same sense
     rhs : Series or float
         A series of expressions forming the right hand side of constraints,
         or a common constant
