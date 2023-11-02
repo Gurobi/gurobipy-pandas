@@ -269,6 +269,32 @@ class TestAddConstrs(GurobiModelTestCase):
             self.assertEqual(constr.RHS, -1.0)
 
 
+class TestDataValidation(GurobiModelTestCase):
+    # Test that we throw some more informative errors, instead of obscure
+    # ones from the underlying gurobipy library
+
+    def test_bad_sense_1(self):
+        index = pd.Index(["a", "e", "g"])
+
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
+
+        with self.assertRaisesRegex(
+            ValueError, "'less' is not a valid constraint sense"
+        ):
+            gppd.add_constrs(self.model, x, "less", y)
+
+    def test_bad_sense_2(self):
+        index = pd.Index(["a", "e", "g"])
+
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
+        sense = pd.Series(index=index, data=["<=", "a", "="])
+
+        with self.assertRaisesRegex(ValueError, "'a' is not a valid constraint sense"):
+            gppd.add_constrs(self.model, x, sense, y)
+
+
 class TestNonInteractiveMode(GurobiModelTestCase):
     # Check that no updates are run by default.
     # Test all add_vars / add_constrs entry points.

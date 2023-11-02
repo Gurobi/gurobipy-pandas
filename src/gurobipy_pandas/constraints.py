@@ -82,8 +82,6 @@ def add_constrs_from_series(
         sense = "sense"
     else:
         assert isinstance(sense, str)
-        sense = sense[0]
-        assert sense in CONSTRAINT_SENSES
         data = pd.DataFrame({"lhs": lhs, "rhs": rhs})
 
     return add_constrs_from_dataframe(
@@ -139,6 +137,8 @@ def _add_constr(model, lhs, sense, rhs, name):
     function depending on the expression type."""
     if name is None:
         name = ""
+    if sense[0] not in CONSTRAINT_SENSES:
+        raise ValueError(f"'{sense}' is not a valid constraint sense")
     if isinstance(lhs, gp.QuadExpr) or isinstance(rhs, gp.QuadExpr):
         return model.addQConstr(lhs, sense, rhs, name=name)
     return model.addLConstr(lhs, sense, rhs, name=name)
@@ -189,12 +189,11 @@ def _add_constrs_from_dataframe_args(
     # all constraints. Otherwise, assume it is a column name in the input
     # dataframe and take the sense strings from that column.
     assert isinstance(sense, str)
-    if sense in CONSTRAINT_SENSES:
-        sense_value = lambda _: sense
-    else:
-        assert sense in data.columns
+    if sense in data.columns:
         sense_index = list(data.columns).index(sense)
         sense_value = lambda row: row[sense_index]
+    else:
+        sense_value = lambda _: sense
 
     if isinstance(rhs, str):
         rhs_index = list(data.columns).index(rhs)
