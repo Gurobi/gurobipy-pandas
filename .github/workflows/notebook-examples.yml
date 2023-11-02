@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.8"]
-        gurobipy: ["9.5.2", "10.0.3"]
+        gurobipy: ["10.0.3"]
 
     steps:
       - uses: actions/checkout@v3
