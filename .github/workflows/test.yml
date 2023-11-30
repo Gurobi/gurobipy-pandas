@@ -15,5 +15,7 @@ jobs:
     uses: ./.github/workflows/code-quality.yml
   unit-tests:
     uses: ./.github/workflows/unit-tests.yml
+    needs: [code-quality]
   notebook-examples:
     uses: ./.github/workflows/notebook-examples.yml
+    needs: [unit-tests]

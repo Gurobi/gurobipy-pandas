@@ -1,5 +1,4 @@
-# Run the unit tests against python3.8 on ubuntu, from
-# a direct install. Execute the example notebooks.
+# Run the example notebooks against python3.8 on ubuntu, from a direct install.
 
 name: Notebook examples
 
@@ -18,7 +17,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.8"]
-        gurobipy: ["10.0.3"]
+        gurobipy: ["10.0.3", "11.0.0"]
 
     steps:
       - uses: actions/checkout@v3
