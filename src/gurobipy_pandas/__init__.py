@@ -1,4 +1,4 @@
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 # Import public API functions
 # Import accessors module to register accessors.
