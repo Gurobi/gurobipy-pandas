@@ -19,6 +19,21 @@ CASE_MAPPING = {
 }
 
 
+def _convert_single_value(value):
+    """Return a numeric casted value if possible, otherwise return a string.
+    If value is neither a string nor something we can cast to numeric, then
+    raise a TypeError."""
+    try:
+        return float(value)
+    except ValueError:
+        pass
+
+    if isinstance(value, str):
+        return value
+
+    raise TypeError("Method requires a single numeric value or string")
+
+
 @pd.api.extensions.register_dataframe_accessor("gppd")
 class GRBDataFrameAccessor:
     """Accessor class for methods invoked as :code:`pd.DataFrame(...).gppd.*`.
@@ -327,7 +342,7 @@ class GRBSeriesAccessor:
             ):
                 entry.x.setAttr(attr, entry.v)
         else:
-            value = float(value)
+            value = _convert_single_value(value)
             for v in self._obj:
                 v.setAttr(attr, value)
         # Return the original series to allow method chaining

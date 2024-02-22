@@ -225,6 +225,31 @@ class TestSeriesGetAttrSetAttr(GurobiModelTestCase):
             self.assertEqual(result.loc[i + 5].lb, 1.0)
             self.assertEqual(result.loc[i + 5].ub, i + 2)
 
+    def test_var_setattr_vtype(self):
+        index = pd.RangeIndex(5, 10)
+        x = gppd.add_vars(self.model, index, name="x")
+        result = x.gppd.set_attr("VType", GRB.BINARY)
+        self.model.update()
+        for i in range(5):
+            self.assertEqual(result.loc[i + 5].vtype, GRB.BINARY)
+
+    def test_var_setattr_vtype_list(self):
+        # not allowed, we need series alignment or a scalar
+        index = pd.RangeIndex(5, 10)
+        x = gppd.add_vars(self.model, index, name="x")
+
+        with self.assertRaises(TypeError):
+            x.gppd.set_attr("VType", [GRB.BINARY] * len(x))
+
+    def test_var_setattr_vtype_series(self):
+        index = pd.RangeIndex(5, 10)
+        x = gppd.add_vars(self.model, index, name="x")
+        vtype = pd.Series(index=index, data=["C", "B", "I", "S", "N"])
+        result = x.gppd.set_attr("VType", vtype)
+        self.model.update()
+        for i in range(5):
+            self.assertEqual(result.loc[i + 5].vtype, vtype[i + 5])
+
     def test_setattr_series_mismatch(self):
         x = gppd.add_vars(self.model, pd.RangeIndex(5))
         self.model.update()
