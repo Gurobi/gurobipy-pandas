@@ -1,3 +1,4 @@
+# Packages required to execute notebook examples
 ipykernel>=6.15
 jupytext>=1.14
 matplotlib>=3.5
