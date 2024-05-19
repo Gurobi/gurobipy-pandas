@@ -117,13 +117,32 @@ def add_vars(
     pandas_obj : Index, Series, or DataFrame
         A pandas Index, Series, or DataFrame
     name : str, optional
-        If provided, used as base name for new Gurobi variables and the name
-        of the returned series
+        If provided, used as base name for new Gurobi variables and the name of
+        the returned series
     lb : float, str, or Series, optional
-        Lower bound for created variables. Can be a single numeric
-        value. If ``pandas_obj`` is an Index or Series, can be a Series
-        aligned with ``pandas_obj``. If ``pandas_obj`` is a dataframe,
-        can be a string referring to a column of ``pandas_obj``. Defaults to 0.0.
+        Lower bound for created variables. Can be a single numeric value. If
+        ``pandas_obj`` is an Index or Series, can be a Series aligned with
+        ``pandas_obj``. If ``pandas_obj`` is a dataframe, can be a string
+        referring to a column of ``pandas_obj``. Defaults to 0.0.
+    ub : float, str, or Series, optional
+        Upper bound for created variables. Can be a single numeric value. If
+        ``pandas_obj`` is an Index or Series, can be a Series aligned with
+        ``pandas_obj``. If ``pandas_obj`` is a dataframe, can be a string
+        referring to a column of ``pandas_obj``. Defaults to 0.0.
+    obj : float, str, or Series, optional
+        Linear objective function coefficient for created variables. Can be a
+        single numeric value. If ``pandas_obj`` is an Index or Series, can be a
+        Series aligned with ``pandas_obj``. If ``pandas_obj`` is a dataframe,
+        can be a string referring to a column of ``pandas_obj``. Defaults to
+        0.0.
+    vtype : str or Series, optional
+        Types of created variables. Can be a single string specifying the type
+        (e.g. ``GRB.BINARY``). If ``pandas_obj`` is an Index or Series, can be a
+        Series aligned with ``pandas_obj`` containing variable type string
+        values. Defaults to ``GRB.CONTINUOUS``.
+    index_formatter :
+        Can be used to provide custom conversion of index values to variable
+        names. The default behaviour is usually sufficient.
 
     Returns
     -------
@@ -201,6 +220,9 @@ def add_constrs(
         Used as the returned series name, as well as the base name for added
         Gurobi constraints. Constraint name suffixes come from the lhs/rhs
         index.
+    index_formatter :
+        Can be used to provide custom conversion of index values to variable
+        names. The default behaviour is usually sufficient.
 
     Returns
     -------
