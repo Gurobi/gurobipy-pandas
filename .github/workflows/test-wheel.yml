@@ -30,6 +30,8 @@ jobs:
         exclude:
           - python: "3.12"
             gurobipy: "10.0.3"
+          - os: "macos-latest"
+            python: "3.8"
 
     steps:
       - name: Checkout unit tests
