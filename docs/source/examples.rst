@@ -8,6 +8,7 @@ All example notebooks and input data files are available :ghsrc:`on Github <docs
 .. toctree::
    :maxdepth: 1
 
+   examples/portfolio
    examples/projects
    examples/regression
    examples/workforce
