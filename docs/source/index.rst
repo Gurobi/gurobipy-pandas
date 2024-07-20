@@ -55,17 +55,17 @@ Documentation
 
 .. toctree::
    :maxdepth: 1
-   :caption: Model Building
+   :caption: How To ...
 
-   performance
-   naming
-   advanced
+   Avoid Performance Pitfalls <performance>
+   Add Specialized Constraints <advanced>
 
 .. toctree::
    :maxdepth: 1
    :caption: Reference
 
    api
+   naming
    typing
    license
    contact
