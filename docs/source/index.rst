@@ -19,25 +19,43 @@ Installation
 
    python -m pip install gurobipy-pandas
 
-This will also install pandas and gurobipy as dependencies. Please note
-that gurobipy is commercial software and requires a license. The package
-ships with an evaluation license which is only for testing and can only
-solve models of limited size. You will be able to run all the examples
-given in this documentation using this evaluation license.
+This will also install pandas and gurobipy as dependencies.
 
-Getting Started
----------------
+Please note that gurobipy is commercial software and requires a license.
+The package ships with an evaluation license which is only for testing
+and can only solve models of limited size. You will be able to run all
+the examples given in this documentation using this evaluation license.
+
+A Simple Example
+----------------
+
+Build a simple optimization model!
+
+How to Use this Documentation
+-----------------------------
 
 ``gurobipy-pandas`` provides simple to use functions and pandas
 accessors to help build optimization models and query solutions. Read
 the :doc:`usage` page first for an overview of the key methods. Second,
 explore the :doc:`examples` which provide complete model implementations
-formatted as Jupyter notebooks. The later sections cover advanced
-techniques, and advice on writing clean and performant model building
-code using this library.
+formatted as Jupyter notebooks. The :doc:`howto` cover methods for
+specific use-cases and provide advice on writing clean and performant
+model building code using this library. The :doc:`api` provides complete
+reference documentation for the library.
 
-Documentation
--------------
+Contact Us
+----------
+
+For questions related to using gurobipy-pandas please use the
+`Gurobi Community Forum <https://support.gurobi.com/hc/en-us/community/topics/10373864542609-GitHub-Projects>`_.
+
+For reporting bugs, issues and feature requests, specific to ``gurobipy-pandas``, please
+`open an issue <https://github.com/Gurobi/gurobipy-pandas/issues>`_.
+
+If you encounter issues with Gurobi or ``gurobipy`` please contact
+`Gurobi Support <https://support.gurobi.com/hc/en-us>`_.
+
+
 
 .. toctree::
    :hidden:
@@ -45,7 +63,7 @@ Documentation
    installation
    usage
    examples
-   howto
+   How To ... <howto>
    api
    license
    contact
