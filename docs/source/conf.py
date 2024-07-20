@@ -7,6 +7,7 @@ import gurobipy_pandas
 project = "gurobipy-pandas"
 copyright = "2022, Gurobi Optimization"
 author = "Gurobi Optimization"
+html_title = "gurobipy-pandas documentation"
 
 version = gurobipy_pandas.__version__
 release = version
