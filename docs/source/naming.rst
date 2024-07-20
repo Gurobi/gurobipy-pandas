@@ -1,5 +1,5 @@
-Variable & Constraint Naming
-============================
+Variable & Constraint Names
+===========================
 
 It's good practice to name variables and constraints in optimization models. One good reason is that once a model is formulated from a dataset, you can write it to LP format for checking and debugging purposes.
 

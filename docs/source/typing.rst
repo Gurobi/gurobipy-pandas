@@ -1,5 +1,5 @@
-Typing
-======
+Type Hints
+==========
 
 The ``gurobipy-pandas`` API is partially typed. There is currently no
 mechanism in Python's type system to allow for type checking of the
