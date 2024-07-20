@@ -44,29 +44,9 @@ Documentation
 
    installation
    usage
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Examples
-
-   examples/projects
-   examples/regression
-   examples/workforce
-
-.. toctree::
-   :maxdepth: 1
-   :caption: How To ...
-
-   Avoid Performance Pitfalls <performance>
-   Add Specialized Constraints <advanced>
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Reference
-
+   examples
+   howto
    api
-   naming
-   typing
    license
    contact
    acknowledgements
