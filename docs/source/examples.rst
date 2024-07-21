@@ -11,3 +11,4 @@ All example notebooks and input data files are available :ghsrc:`on Github <docs
    examples/projects
    examples/regression
    examples/workforce
+   examples/netflow
