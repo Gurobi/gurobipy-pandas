@@ -19,3 +19,6 @@ jobs:
   notebook-examples:
     uses: ./.github/workflows/notebook-examples.yml
     needs: [unit-tests]
+  examples-artifact:
+    uses: ./.github/workflows/examples-artifact.yml
+    needs: [unit-tests]
