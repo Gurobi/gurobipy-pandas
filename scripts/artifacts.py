@@ -30,7 +30,7 @@ def download_executed_notebooks(runs_url, gh_token, head_sha):
     for run in runs_data["workflow_runs"]:
         print("Run id={id} event={event} status={status} path={path}".format(**run))
 
-        if run["path"] != ".github/workflows/test.yml":
+        if run["path"] != ".github/workflows/main.yml":
             continue
         if run["status"] != "completed":
             continue
