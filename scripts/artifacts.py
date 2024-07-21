@@ -13,6 +13,7 @@ import sys
 import requests
 
 docs_source = pathlib.Path(__file__).parent.parent.joinpath("docs/source").resolve()
+target = docs_source.joinpath("artifact/gurobipy-pandas-examples.zip")
 
 
 def download_executed_notebooks(runs_url, gh_token, head_sha):
@@ -51,7 +52,6 @@ def download_executed_notebooks(runs_url, gh_token, head_sha):
             response = requests.get(download_url, headers=headers)
             response.raise_for_status()
 
-            target = docs_source.joinpath("artifact/gurobipy-pandas-examples.zip")
             os.makedirs(target.parent, exist_ok=True)
             if target.exists():
                 target.unlink()
@@ -64,7 +64,13 @@ def download_executed_notebooks(runs_url, gh_token, head_sha):
     return False
 
 
-assert os.environ.get("READTHEDOCS") == "True"
+if not os.environ.get("GH_API_TOKEN"):
+    # Pull requests run in this configuration
+    print("No API token, can't fetch artifacts. Continuing build with dummy file.")
+    os.makedirs(target.parent, exist_ok=True)
+    with target.open("wb") as outfile:
+        outfile.write(b"")
+    sys.exit(0)
 
 success = download_executed_notebooks(
     runs_url="https://api.github.com/repos/Gurobi/gurobipy-pandas/actions/runs",
@@ -74,9 +80,11 @@ success = download_executed_notebooks(
 
 if success:
     # Success, RTD build can continue
+    print("Artifact retrieval succeeded.")
     sys.exit(0)
 else:
     # Cancels the RTD build (rely on a later trigger to rebuild)
+    print("Aritfact not found. Cancelling build.")
     sys.exit(183)
 
 # Any exception would be a build failure
