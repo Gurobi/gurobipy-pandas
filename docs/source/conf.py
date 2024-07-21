@@ -45,6 +45,8 @@ html_theme_options = {
 }
 html_favicon = "https://www.gurobi.com/favicon.ico"
 
+html_extra_path = ["artifact/gurobipy-pandas-examples.zip"]
+
 nbsphinx_kernel_name = "python3"
 
 intersphinx_mapping = {
