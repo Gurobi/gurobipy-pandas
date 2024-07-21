@@ -5,11 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.3
-kernelspec:
-  display_name: gppd-etl
-  language: python
-  name: gppd-etl
+    jupytext_version: 1.14.1
 ---
 
 # Multicommodity Flow Example Using `gurobipy-pandas`
@@ -32,7 +28,7 @@ This example is based on `netflow.py` that is supplied by Gurobi.
 - `IPython.display` is used to improve the display of `pandas` `Series` by converting them to `DataFrame` for output
 - `openpxyl` is required to read `xlsx` data files
 
-```{code-cell} ipython3
+```{code-cell}
 ---
 slideshow:
   slide_type: slide
@@ -45,7 +41,7 @@ import gurobipy_pandas as gppd
 
 #### Get the file from a prompt
 
-```{code-cell} ipython3
+```{code-cell}
 filename = "data/mcfdata.v1.xlsx"
 ```
 
@@ -53,7 +49,7 @@ filename = "data/mcfdata.v1.xlsx"
 
 Read in the data from an Excel file. Converts the data into a dictionary of `pandas` `Series`, with the assumption that the last column is the data column.
 
-```{code-cell} ipython3
+```{code-cell}
 ---
 slideshow:
   slide_type: slide
@@ -68,9 +64,9 @@ for k, v in data.items():
     display(v.to_frame())
 ```
 
-# Data Model
+## Data Model
 
-## Sets
+### Sets
 
 | Notation | Meaning |  Table Locations |
 | ---- | --------------------------- |  ----------- |
@@ -82,7 +78,7 @@ for k, v in data.items():
 
 
 
-## Numerical Input Values
+### Numerical Input Values
 
 The input data is converted to pandas `Series`, so the name of each `Series` is also the name of the value.
 
@@ -95,12 +91,12 @@ The input data is converted to pandas `Series`, so the name of each `Series` is 
 
 +++
 
-## Compute Sets
+### Compute Sets
 
 - The set $\mathcal P$ of products can appear in any of the tables `supply`, `demand` and `cost` .
 - The set $\mathcal N$ of nodes can appear in  any of the tables `capacity`, `supply`, `demand` and `cost`
 
-```{code-cell} ipython3
+```{code-cell}
 commodities = set(
     pd.concat(
         [
@@ -112,7 +108,7 @@ commodities = set(
 commodities
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 nodes = set(
     pd.concat(
         [
@@ -131,7 +127,7 @@ nodes
 
 The net flow $\mu_{pn}$ for each product $p\in\mathcal P$ and node $n\in\mathcal N$ is the sum of the supply less the demand.  For transshipment nodes, this value is 0.  This is called `inflow` in the code.
 
-```{code-cell} ipython3
+```{code-cell}
 inflow = pd.concat(
     [
         data["supply"].rename("net"),
@@ -150,7 +146,7 @@ inflow
 
 ## Create the Gurobi Model
 
-```{code-cell} ipython3
+```{code-cell}
 m = gp.Model("netflow")
 ```
 
@@ -168,7 +164,7 @@ $$
 \text{minimize}\quad\sum_{a\in\mathcal A}\sum_{p\in\mathcal P_a} \pi_{ap}X_{pa}
 $$
 
-```{code-cell} ipython3
+```{code-cell}
 flow = gppd.add_vars(m, data["cost"], obj=data["cost"], name="flow")
 m.update()
 flow
@@ -182,7 +178,7 @@ $$
 \sum_{p\in\mathcal P_a} X_{pa} \le \kappa_a\qquad\forall a\in\mathcal A
 $$
 
-```{code-cell} ipython3
+```{code-cell}
 capct = pd.concat(
     [flow.groupby(["From", "To"]).agg(gp.quicksum), data["capacity"]], axis=1
 ).gppd.add_constrs(m, "flow <= capacity", name="cap")
@@ -198,7 +194,7 @@ $$
 \sum_{(n, n_t)\in A_p} X_{p(n,n_t)} - \sum_{(n_f, n)} X_{p(n_f,n)} = \mu_{pn}\qquad\forall p\in\mathcal P, n\in\mathcal N
 $$
 
-```{code-cell} ipython3
+```{code-cell}
 flowct = pd.concat(
     [
         flow.rename_axis(index={"From": "Node"})
@@ -217,17 +213,17 @@ m.update()
 flowct
 ```
 
-# Optimize!
+## Optimize!
 
-```{code-cell} ipython3
+```{code-cell}
 m.optimize()
 ```
 
-# Get the Solution
+## Get the Solution
 
 Only print out arcs with flow, using pandas
 
-```{code-cell} ipython3
+```{code-cell}
 soln = flow.gppd.X
 soln.to_frame().query("flow > 0").sort_index()
 ```
