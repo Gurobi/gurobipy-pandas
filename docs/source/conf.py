@@ -83,3 +83,14 @@ numpydoc_class_members_toctree = False
 # -- Options for EPUB output
 
 epub_show_urls = "footnote"
+
+# -- Note pointing to notebook downloads
+
+nbsphinx_prolog = """
+
+.. note::
+
+   This is example is available as a Jupyter notebook. Download it and all
+   necessary data files :download:`here </gurobipy-pandas-examples.zip>`.
+
+"""
