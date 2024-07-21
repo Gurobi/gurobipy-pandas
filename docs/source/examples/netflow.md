@@ -8,9 +8,9 @@ jupytext:
     jupytext_version: 1.14.1
 ---
 
-# Multicommodity Flow Example Using `gurobipy-pandas`
+# Multicommodity Flow
 
-#### Author:  Irv Lustig, Optimization Principal, Princeton Consultants
+**Author**: Irv Lustig, Optimization Principal, Princeton Consultants
 
 Solve a multi-commodity flow problem.  There are multiple products, which can be
 produced in multiple locations, and have to be shipped over a network to other locations.
@@ -72,7 +72,7 @@ for k, v in data.items():
 | ---- | --------------------------- |  ----------- |
 | $\mathcal N$ | Set of network nodes | `cost`: Columns `From`, `To` <br>  `capacity`: Columns `From`, `To` <br> `supply`: Column `Node` <br> `demand`: Column `Node` |
 | $\mathcal P$ | Set of products (commodities) | `cost`: Column `Product` <br> `supply`: Column `Product` <br> `demand`: Column `Product` |
-| $\mathcal A$ | Set of arcs $(n_f,n_t)$, $n_f,n_t\in\mathcal A | `cost`: Columns `From`, `To` |
+|$\mathcal A$ | Set of arcs $(n_f,n_t)$, $n_f,n_t\in\mathcal A$ | `cost`: Columns `From`, `To` |
 | $\mathcal P_a$ | Set of products $p\in\mathcal P$ that can be carried on arc $a\in\mathcal A$ | `cost`: Columns `Product`, `From`, `To` |
 | $\mathcal A_p$ | Set of arcs $a\in\mathcal A$ that can carry product $p\in\mathcal P$ | `cost`: Columns `Product`, `From`, `To` |
 
