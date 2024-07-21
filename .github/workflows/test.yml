@@ -19,3 +19,17 @@ jobs:
   notebook-examples:
     uses: ./.github/workflows/notebook-examples.yml
     needs: [unit-tests]
+  examples-artifact:
+    uses: ./.github/workflows/examples-artifact.yml
+    needs: [unit-tests]
+  trigger-rtd-build:
+    runs-on: ubuntu-latest
+    needs: [examples-artifact]
+    steps:
+      - name: Trigger RTD build
+        env:
+          RTD_HOOK_TOKEN: ${{ secrets.RTD_HOOK_TOKEN }}
+        run: |
+          curl -X POST -d "branches=main" -d "token=$RTD_HOOK_TOKEN" \
+            -d "default_branch=main" \
+            https://readthedocs.com/api/v2/webhook/gurobi-optimization-gurobipy-pandas/11030/
