@@ -5,3 +5,4 @@ matplotlib>=3.5
 nbconvert>=6.5
 scikit-learn>=1.0
 gurobipy>=10.0
+openpyxl>=3.1
