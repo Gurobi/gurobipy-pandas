@@ -1,12 +1,9 @@
-# Regular QA workflow (pull requests, main branch)
+# Regular QA workflow for main branch
 
 name: Test
 
 on:
   push:
-    branches:
-      - main
-  pull_request_target:
     branches:
       - main
 
@@ -18,10 +15,10 @@ jobs:
     needs: [code-quality]
   notebook-examples:
     uses: ./.github/workflows/notebook-examples.yml
-    needs: [unit-tests]
+    needs: [code-quality]
   examples-artifact:
     uses: ./.github/workflows/examples-artifact.yml
-    needs: [unit-tests]
+    needs: [code-quality]
   trigger-rtd-build:
     runs-on: ubuntu-latest
     needs: [examples-artifact]

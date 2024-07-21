@@ -1,0 +1,21 @@
+# QA workflow for pull requests (no RTD trigger)
+
+name: Pull request
+
+on:
+  pull_request_target:
+    branches:
+      - main
+
+jobs:
+  code-quality:
+    uses: ./.github/workflows/code-quality.yml
+  unit-tests:
+    uses: ./.github/workflows/unit-tests.yml
+    needs: [code-quality]
+  notebook-examples:
+    uses: ./.github/workflows/notebook-examples.yml
+    needs: [unit-tests]
+  examples-artifact:
+    uses: ./.github/workflows/examples-artifact.yml
+    needs: [notebook-examples]
