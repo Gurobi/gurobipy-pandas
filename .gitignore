@@ -136,3 +136,6 @@ docs/source/examples/*.ipynb
 
 # Vim swap files
 *.swp
+
+# Downloaded zip artifact
+docs/source/artifact/*.zip
