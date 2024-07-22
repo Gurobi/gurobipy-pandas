@@ -1,5 +1,5 @@
-Usage
-=====
+Tutorial
+========
 
 This page gives a brief run through of methods used to build optimization models in ``gurobipy-pandas`` and extract solutions. ``gurobipy-pandas`` provides several free functions for model building, and implements pandas' `accessors <https://pandas.pydata.org/docs/ecosystem.html#accessors>`_ to facilitate building models and querying results from dataframes and series respectively.
 
