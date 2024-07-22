@@ -1,5 +1,5 @@
-Advanced Patterns
-=================
+Adding Specialized Constraints
+==============================
 
 ``gurobipy-pandas`` helper methods currently only cover building linear and quadratic constraints, i.e. those which can be expressed using pandas' built-in arithmetic, groupby, and aggregation methods. In some cases you may need to build other constraint types, such as SOS or general constraints, between different series of variables. This page provides some simple recipes for such operations.
 
