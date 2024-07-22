@@ -193,29 +193,63 @@ def add_vars(
         raise ValueError("`pandas_obj` must be an index, series, or dataframe")
 
 
+# Two overloads are used here to specify that at least one of the left- and
+# right-hand sides must be a series (the other can be a single expression).
+
+
+@overload
 def add_constrs(
     model: gp.Model,
-    lhs: Union[pd.Series, float],
+    lhs: pd.Series,
     sense: Union[pd.Series, str],
-    rhs: Union[pd.Series, float],
+    rhs: Union[pd.Series, gp.Var, gp.LinExpr, gp.QuadExpr, float],
     *,
     name: Optional[str] = None,
     index_formatter: Union[str, Callable, Mapping[str, Callable]] = "default",
 ) -> pd.Series:
-    """Add a constraint to the model for each row in lhs & rhs.
+    ...  # pragma: no cover
+
+
+@overload
+def add_constrs(
+    model: gp.Model,
+    lhs: Union[pd.Series, gp.Var, gp.LinExpr, gp.QuadExpr, float],
+    sense: Union[pd.Series, str],
+    rhs: pd.Series,
+    *,
+    name: Optional[str] = None,
+    index_formatter: Union[str, Callable, Mapping[str, Callable]] = "default",
+) -> pd.Series:
+    ...  # pragma: no cover
+
+
+def add_constrs(
+    model,
+    lhs,
+    sense,
+    rhs,
+    *,
+    name=None,
+    index_formatter="default",
+) -> pd.Series:
+    """Add a constraint to the model for each row in lhs & rhs. At least one of
+    `lhs` and `rhs` must be a Series, while the other side may be a constant or a
+    single gurobipy expression. If both sides are Series, then their indexes
+    must match.
 
     Parameters
     ----------
     model : Model
         A Gurobi model to which new constraints will be added
     lhs : Series
-        A series of expressions forming the left hand side of constraints
+        A series of expressions forming the left hand side of constraints, a
+        constant, or a single expression.
     sense : Series or str
         Constraint sense; can be a series if senses vary, or a single string
         if all constraints have the same sense
     rhs : Series or float
-        A series of expressions forming the right hand side of constraints,
-        or a common constant
+        A series of expressions forming the right hand side of constraints, a
+        constant, or a single expression.
     name : str
         Used as the returned series name, as well as the base name for added
         Gurobi constraints. Constraint name suffixes come from the lhs/rhs
