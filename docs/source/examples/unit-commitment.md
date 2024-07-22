@@ -8,6 +8,8 @@ jupytext:
     jupytext_version: 1.14.1
 ---
 
+# Unit Commitment
+
 ```{code-cell}
 import pandas as pd
 import gurobipy as gp

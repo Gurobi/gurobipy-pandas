@@ -16,4 +16,5 @@ the notebooks.
 
    examples/projects
    examples/regression
+   examples/unit-commitment
    examples/workforce
