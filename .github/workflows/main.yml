@@ -21,7 +21,8 @@ jobs:
     needs: [code-quality]
   trigger-rtd-build:
     runs-on: ubuntu-latest
-    needs: [examples-artifact]
+    # Job must be completed by the time RTD sees it
+    needs: [code-quality,unit-tests,notebook-examples,examples-artifact]
     steps:
       - name: Trigger RTD build
         env:
