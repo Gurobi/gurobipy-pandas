@@ -1,9 +1,15 @@
 Examples
 ========
 
-This section provides complete modelling examples to demonstrate the capabilities of ``gurobipy-pandas``. The examples are intentionally kept small so that they can be solved using the :doc:`gurobipy trial license<license>`.
+This section provides complete modelling examples to demonstrate the
+capabilities of ``gurobipy-pandas``. The examples are intentionally kept
+small so that they can be solved using the
+:doc:`gurobipy trial license<license>`.
 
-All example notebooks and input data files are available :ghsrc:`on Github <docs/source/examples>`. The notebooks are stored in MyST markdown format. To run them in a Jupyter environment, you will need to install `Jupytext <https://jupytext.readthedocs.io/en/latest/>`_.
+If you would like to run the examples as Jupyter notebooks yourself, you can
+:download:`download all examples and data </artifact/gurobipy-pandas-examples.zip>`
+as a zip archive. You will need a local Jupyter environment to view and run
+the notebooks.
 
 .. toctree::
    :maxdepth: 1
