@@ -1,9 +1,13 @@
 # QA workflow for pull requests (no RTD trigger)
+#
+# Using pull_request here. Ideally would use pull_request_target but that
+# requires some reworking of the callable workflows to make sure the right
+# commit is checked out in each case (TODO).
 
 name: Pull request
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
 
