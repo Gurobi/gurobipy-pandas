@@ -20,12 +20,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install twine
       - name: Fetch wheel artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: wheel-artifact
           path: dist
       - name: Fetch sdist artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: sdist-artifact
           path: dist
