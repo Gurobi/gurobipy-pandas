@@ -1,5 +1,5 @@
-Performance
-===========
+Improving Performance
+=====================
 
 This section contains general advice for improving the performance of model building code in ``gurobipy-pandas``.
 
