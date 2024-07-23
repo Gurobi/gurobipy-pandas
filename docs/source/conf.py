@@ -5,7 +5,7 @@
 import gurobipy_pandas
 
 project = "gurobipy-pandas"
-copyright = "2022, Gurobi Optimization"
+copyright = "Gurobi Optimization"
 author = "Gurobi Optimization"
 html_title = "gurobipy-pandas documentation"
 
