@@ -1,0 +1,4 @@
+generator_class,num_available,min_output,max_output,cost_per_hour,marginal_cost,startup_cost,state0
+thermal1,12,850.0,2000.0,1000.0,2.0,2000.0,0
+thermal2,10,1250.0,1750.0,2600.0,1.30,1000.0,0
+thermal3,5,1500.0,4000.0,3000.0,3.0,500.0,0
