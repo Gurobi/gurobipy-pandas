@@ -5,10 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.3
-kernelspec:
-  display_name: ''
-  name: ''
+    jupytext_version: 1.14.1
 ---
 
 # Unit Commitment
@@ -17,7 +14,7 @@ This examples covers Unit Commitment, a classical operations research problem th
 
 This model is based on example 15 from the fifth edition of Model Building in Mathematical Programming, by H. Paul Williams on pages 270-271 and 325-326, and is adapted from an existing Gurobi notebook [here](https://github.com/Gurobi/modeling-examples/tree/master/electrical_power_generation) which uses Python data structures to build the model.
 
-```{code-cell} ipython3
+```{code-cell}
 import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
@@ -26,7 +23,7 @@ import gurobipy_pandas as gppd
 gppd.set_interactive()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 :nbsphinx: hidden
 
 # Hidden cell to avoid licensing messages
@@ -49,7 +46,7 @@ Each generator has properties which remain fixed over all time periods:
 
 Input data for the generators is stored in a DataFrame with the generator class name as the index.
 
-```{code-cell} ipython3
+```{code-cell}
 # Load and check the generator data
 generator_data = pd.read_csv(
     "data/generators.csv",
@@ -65,7 +62,7 @@ Each time period has the following data:
 
 Input data for the time periods is stored in a DataFrame with the time periods as the index.
 
-```{code-cell} ipython3
+```{code-cell}
 # Load and check the time period data
 time_period_data = pd.read_csv(
     "data/time_periods.csv",
@@ -77,7 +74,7 @@ time_period_data
 
 ## Create the model
 
-```{code-cell} ipython3
+```{code-cell}
 model = gp.Model()
 ```
 
@@ -93,7 +90,7 @@ One variable of each type is needed for every generator class and time period. T
 
 Using this time-expanded index, we'll then use the DataFrame accessors from gurobipy-pandas to create our variables.
 
-```{code-cell} ipython3
+```{code-cell}
 # Simplifies variable names
 short_time = {"time_period": lambda index: index.strftime("%H%M")}
 
@@ -123,7 +120,7 @@ generators = (
 
 The resulting `generators` DataFrame will be used to create constraints. Note that it contains both data columns and Gurobi variables as columns. This allows us to use standard pandas operations to build constraint expressions.
 
-```{code-cell} ipython3
+```{code-cell}
 generators
 ```
 
@@ -134,7 +131,7 @@ There are two types of demand constraints:
 1. The total output of all generators in each time period must match the expected demand
 2. The active generators in each time period must be able to meet the reserve demand
 
-```{code-cell} ipython3
+```{code-cell}
 # Constrain that predicted demand is exactly satisfied
 demand_constraint = gppd.add_constrs(
     model,
@@ -145,7 +142,7 @@ demand_constraint = gppd.add_constrs(
 )
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # Constrain that the active generators during each time
 # period are capable of meeting the reserve demand.
 active_capacity = (
@@ -163,7 +160,7 @@ active_capacity_constraint = gppd.add_constrs(
 
 Note that we keep total online capacity as a series of expressions. This way we can directly use it in analysis of the results.
 
-```{code-cell} ipython3
+```{code-cell}
 active_capacity.to_frame()
 ```
 
@@ -171,7 +168,7 @@ active_capacity.to_frame()
 
 Each generator class is constrained within it's operating limits.
 
-```{code-cell} ipython3
+```{code-cell}
 df = (
     generators
     .gppd.add_constrs(
@@ -193,7 +190,7 @@ df = (
 
 The startup variables will be used to capture the cost associated with starting a generator during a time period. For this we need a rolling-window constraint such that startups capture the difference between the number of generators online in adjacent time periods.
 
-```{code-cell} ipython3
+```{code-cell}
 # Constrain the relationship between active generators and startups.
 
 def startup_constraints(group):
@@ -219,7 +216,7 @@ startup[thermal1,0900]: num_active[thermal1,0800]
 
 i.e. the number of generators started at 9am, is at least as large as difference between the number of active generators at 9am and the number of active generators at 8am. `num_startup` is a non-negative integer, and it has a cost penalty associated with it in the objective function, so we can be sure it will capture the number of startups correctly.
 
-```{code-cell} ipython3
+```{code-cell}
 # Separately capture the startups at time period 0.
 
 time_period_1 = generators.sort_index().groupby("generator_class").first()
@@ -237,7 +234,7 @@ initial_startup = gppd.add_constrs(
 
 The total cost objective is now easy to compute:
 
-```{code-cell} ipython3
+```{code-cell}
 # Minimize total cost objective
 model.setObjective(
     (
@@ -255,15 +252,15 @@ model.setObjective(
 
 ## Solve the model
 
-```{code-cell} ipython3
+```{code-cell}
 model.optimize()
 ```
 
 ## Extract results
 
-Results are extracted using Series accessors. Note that after extracting the results, we can `close()` the model and proceed to analyse results using only pandas operation.
+Results are extracted using Series accessors. Note that after extracting the results, we can `close()` the model and proceed to analyse results using only pandas operations.
 
-```{code-cell} ipython3
+```{code-cell}
 # Extract all variable values
 solution = pd.DataFrame(
     dict(
@@ -289,9 +286,9 @@ model.close()
 
 ## Analysis
 
-Briefly; show the solution meeting the reserve demand and the exceess capacity online.
+Briefly; show the solution meeting the reserve demand and the excess capacity online.
 
-```{code-cell} ipython3
+```{code-cell}
 %matplotlib inline
 %config InlineBackend.figure_formats = ['svg']
 
