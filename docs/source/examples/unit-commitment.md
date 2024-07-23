@@ -10,11 +10,9 @@ jupytext:
 
 # Unit Commitment
 
-Based on:
+This examples covers Unit Commitment, a classical operations research problem that arises in the operation of electrical networks. In this problem, multiple power generation units with different characteristics are dispatched to meet expected electricity demand. A unit can be on or off, with a startup cost associated with transitioning from off to on, and power output that must lie in a specified range while the unit is on. The model is specified over discrete time periods, and decides which units to turn on, and when, in order to satisfy demand for each time period. The model also captures a reserve requirement, where the selected power plants must be capable of increasing their output, while still respecting their maximum output, in order to cope with the situation where actual demand exceeds predicted demand.
 
-https://github.com/Gurobi/modeling-examples/tree/master/electrical_power_generation
-
-This model is example 15 from the fifth edition of Model Building in Mathematical Programming, by H. Paul Williams on pages 270-271 and 325-326.
+This model is based on example 15 from the fifth edition of Model Building in Mathematical Programming, by H. Paul Williams on pages 270-271 and 325-326, and is adapted from an existing Gurobi notebook [here](https://github.com/Gurobi/modeling-examples/tree/master/electrical_power_generation) which uses Python data structures to build the model.
 
 ```{code-cell}
 import pandas as pd
@@ -23,6 +21,15 @@ from gurobipy import GRB
 import gurobipy_pandas as gppd
 
 gppd.set_interactive()
+```
+
+```{code-cell}
+:nbsphinx: hidden
+
+# Hidden cell to avoid licensing messages
+# when docs are generated.
+with gp.Model():
+    pass
 ```
 
 ## Data Schema
@@ -111,7 +118,7 @@ generators = (
 )
 ```
 
-The resulting `generators` DataFrame will be used to create constraints.
+The resulting `generators` DataFrame will be used to create constraints. Note that it contains both data columns and Gurobi variables as columns. This allows us to use standard pandas operations to build constraint expressions.
 
 ```{code-cell}
 generators
@@ -200,7 +207,7 @@ def startup_constraints(group):
 startup = generators.groupby("generator_class").apply(startup_constraints).droplevel(0)
 ```
 
-This groupby + shift operation creates constraints of this form (best inspected using the LP file, see below):
+This groupby + shift operation creates constraints of this form (these can be inspected by writing the model to an LP file using `model.write("unit-commitment.lp")`):
 
 ```
 startup[thermal1,0900]: num_active[thermal1,0800]
@@ -211,7 +218,7 @@ i.e. the number of generators started at 9am, is at least as large as difference
 
 +++
 
-This groupby + shift operation creates constraints of this form (best inspected using the LP file, see below):
+This groupby + diff operation creates constraints of this form (best inspected using the LP file, see below):
 
 ```
 startup[thermal1,0900]: num_active[thermal1,0800]
@@ -254,15 +261,6 @@ model.setObjective(
 )
 ```
 
-## Inspect the Model
-
-Writing the model to an LP file can be a useful method to verify that the constraints are created as expected. This is a useful test to do for a small dataset before proceeding to a full-sized model.
-
-```{code-cell}
-# Write out the LP file for inspection
-model.write("unit-commitment.lp")
-```
-
 ## Solve the model
 
 ```{code-cell}
@@ -293,15 +291,8 @@ results = pd.DataFrame(
     }
 )
 
-# Free all resources associated with the model. We have already
-# extracted results. Assuming nothing went wrong and we don't need
-# to re-run anything, we should clean up here to create a clean
-# break.
+# After extracting all results, close the model.
 model.close()
-
-# Recommendation: wrap the modelling components up in a function
-# and context manager. This way everything associated with the model
-# is discarded once results are extracted.
 ```
 
 ## Analysis
