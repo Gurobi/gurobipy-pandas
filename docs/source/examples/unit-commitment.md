@@ -10,6 +10,8 @@ jupytext:
 
 # Unit Commitment
 
+Based on:
+
 https://github.com/Gurobi/modeling-examples/tree/master/electrical_power_generation
 
 This model is example 15 from the fifth edition of Model Building in Mathematical Programming, by H. Paul Williams on pages 270-271 and 325-326.
@@ -20,10 +22,6 @@ import gurobipy as gp
 from gurobipy import GRB
 import gurobipy_pandas as gppd
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-sns.set_palette(sns.color_palette("deep"))
 gppd.set_interactive()
 ```
 
@@ -194,7 +192,7 @@ def startup_constraints(group):
         model,
         group["num_startup"].iloc[1:],
         GRB.GREATER_EQUAL,
-        (group["num_active"] - group["num_active"].shift(1)).dropna(),
+        group["num_active"].diff().dropna(),
         name="startup",
         index_formatter=short_time,
     )
@@ -311,6 +309,19 @@ model.close()
 Briefly; show the solution meeting the reserve demand and the exceess capacity online.
 
 ```{code-cell}
+%matplotlib inline
+%config InlineBackend.figure_formats = ['svg']
+
+import matplotlib
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set_palette(sns.color_palette("deep"))
+
 plt.figure(figsize=(8, 4))
-results.plot.line(ax=plt.gca());
+results.plot.line(ax=plt.gca())
+plt.xlabel("Time")
+plt.ylabel("MWh")
+plt.ylim([0, 50000])
+plt.legend(loc=2);
 ```
