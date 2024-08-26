@@ -8,6 +8,8 @@ jupytext:
     jupytext_version: 1.14.1
 ---
 
+# The Stigler Diet Problem
+
 ```{code-cell}
 import pandas as pd
 import gurobipy as gp
