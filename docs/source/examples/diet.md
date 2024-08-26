@@ -67,9 +67,9 @@ gppd.add_constrs(
 
 gppd.add_constrs(
     model,
-    amounts,
+    amounts[limits["maximum"].notnull()],
     GRB.LESS_EQUAL,
-    limits["maximum"],
+    limits["maximum"].dropna(),
 )
 ```
 
