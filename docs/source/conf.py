@@ -1,8 +1,11 @@
 # Configuration file for the Sphinx documentation builder.
 
-# -- Project information -----------------------------------------------------
+import os
 
 import gurobipy_pandas
+
+# -- Project information -----------------------------------------------------
+
 
 project = "gurobipy-pandas"
 author = "Gurobi Optimization, LLC"
@@ -35,6 +38,8 @@ nbsphinx_custom_formats = {
 }
 
 html_theme = "gurobi_sphinxtheme"
+html_favicon = "https://www.gurobi.com/favicon.ico"
+html_show_sphinx = False
 
 nbsphinx_kernel_name = "python3"
 
@@ -83,3 +88,27 @@ nbsphinx_prolog = """
    necessary data files :download:`here </artifact/gurobipy-pandas-examples.zip>`.
 
 """
+
+# Customisation for Furo/gurobi-sphinxtheme
+
+html_sidebars = {
+    "**": [
+        "sidebar/brand.html",
+        "sidebar/search.html",
+        "sidebar/scroll-start.html",
+        "sidebar/navigation.html",
+        "sidebar/scroll-end.html",
+    ],
+}
+
+# Customisation for readthedocs
+
+if os.environ.get("READTHEDOCS", "") == "True":
+    # Tells Furo theme to enable readthedocs icons/links/etc
+    html_context = {"READTHEDOCS": True}
+
+    # Set the canonical URL to point to the stable version docs
+    html_context["READTHEDOCS"] = True
+    rtd_version = os.environ.get("READTHEDOCS_VERSION")
+    rtd_url = os.environ.get("READTHEDOCS_CANONICAL_URL")
+    html_baseurl = rtd_url.replace(rtd_version, "stable")
