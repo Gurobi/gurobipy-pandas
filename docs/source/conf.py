@@ -5,8 +5,8 @@
 import gurobipy_pandas
 
 project = "gurobipy-pandas"
-copyright = "Gurobi Optimization"
-author = "Gurobi Optimization"
+author = "Gurobi Optimization, LLC"
+copyright = "Gurobi Optimization, LLC"
 html_title = "gurobipy-pandas documentation"
 
 version = gurobipy_pandas.__version__
@@ -29,21 +29,12 @@ extensions = [
     "sphinx_toolbox.collapse",
 ]
 
-pygments_style = "vs"
 docutils_tab_width = 4
 nbsphinx_custom_formats = {
     ".md": ["jupytext.reads", {"fmt": "myst"}],
 }
 
 html_theme = "gurobi_sphinxtheme"
-html_theme_options = {
-    "version_warning": False,
-    "feedback_banner": False,
-    "construction_warning": False,
-    # Disable search '/' hotkey so readthedocs addons can use it
-    "enable_search_shortcuts": False,
-}
-html_favicon = "https://www.gurobi.com/favicon.ico"
 
 nbsphinx_kernel_name = "python3"
 
