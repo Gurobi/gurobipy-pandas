@@ -1,3 +1,10 @@
+.. meta::
+   :description lang=en:
+      Documentation for gurobipy-pandas, a convenient wrapper library to connect
+      pandas with gurobipy
+   :google-site-verification: nrAHRfMKqgdEBx5WPcZqaGtjYxrltrj0zmZlqyjpX0M
+   :msvalidate.01: 42A9D5ECA04631B06F9E55456EBBBED3
+
 gurobipy-pandas documentation
 =============================
 
