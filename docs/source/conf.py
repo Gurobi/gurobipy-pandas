@@ -104,11 +104,17 @@ html_sidebars = {
 # Customisation for readthedocs
 
 if os.environ.get("READTHEDOCS", "") == "True":
-    # Tells Furo theme to enable readthedocs icons/links/etc
-    html_context = {"READTHEDOCS": True}
+    # Date needed by Furo theme to enable icons/links/etc
+    html_context = {
+        "READTHEDOCS": True,
+        "github_user": "Gurobi",
+        "github_repo": "gurobipy-pandas",
+        "github_version": "main",
+        "display_github": True,
+        "conf_py_path": "/docs/source/",
+    }
 
     # Set the canonical URL to point to the stable version docs
-    html_context["READTHEDOCS"] = True
     rtd_version = os.environ.get("READTHEDOCS_VERSION")
     rtd_url = os.environ.get("READTHEDOCS_CANONICAL_URL")
     html_baseurl = rtd_url.replace(rtd_version, "stable")
