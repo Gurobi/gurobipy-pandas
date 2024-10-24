@@ -5,6 +5,7 @@ wheel:
 
 develop:
 	python -m pip install -e .
+	python -m pip uninstall -y -qq gurobi-sphinxtheme
 	python -m pip install -r docs/requirements.txt
 	python -m pip install flake8
 	pre-commit install
