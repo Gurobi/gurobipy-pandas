@@ -228,27 +228,28 @@ class TestMul(GurobiModelTestCase):
             self.assert_expression_equal(result[i], 2 * y * x[i])
 
     def test_dataseries_quadexpr(self):
-        s = pd.Series(list(range(5)))
+        s = pd.Series(list(range(1, 6)))
         y = self.model.addVar(name="y")
         qe = y * y
         self.model.update()
         result = s * qe
         self.assertIsInstance(result, pd.Series)
         for i in range(5):
-            self.assert_expression_equal(result[i], i * y * y)
+            self.assert_expression_equal(result[i], (i + 1) * y * y)
 
     @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 10, "Operator precedence in v9")
     def test_quadexpr_dataseries(self):
-        s = pd.Series(list(range(5)))
+        s = pd.Series(list(range(1, 6)))
         y = self.model.addVar(name="y")
         qe = y * y
         self.model.update()
         result = qe * s
         self.assertIsInstance(result, pd.Series)
         for i in range(5):
-            self.assert_expression_equal(result[i], i * y * y)
+            self.assert_expression_equal(result[i], (i + 1) * y * y)
 
-    def test_varseries_quadexpr(self):
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 12, "NLExpr takes over in v12")
+    def test_varseries_quadexpr_fail(self):
         # Cannot multiply, should get a GurobiError
         # (Note in gurobipy, QuadExpr * QuadExpr is technically allowed as long
         # as it won't introduce degree > 2 terms)
