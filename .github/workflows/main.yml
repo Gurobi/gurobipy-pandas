@@ -1,4 +1,4 @@
-# Regular QA workflow for main branch
+# Regular QA workflow for main and release branchs
 
 name: Test
 
@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - 'v*'
 
 jobs:
   code-quality:
