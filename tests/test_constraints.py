@@ -15,6 +15,8 @@ from gurobipy_pandas.variables import add_vars_from_index
 
 from .utils import GurobiModelTestCase
 
+GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
+
 
 class TestAddConstrsFromDataFrame(GurobiModelTestCase):
     def test_scalar_rhs(self):
@@ -315,6 +317,95 @@ class TestAddConstrsFromDataFrame(GurobiModelTestCase):
             self.assertEqual(row.size(), 1)
             self.assertIs(row.getVar(0), data.loc[ind, "ab cd"])
             self.assertEqual(row.getCoeff(0), 1.0)
+
+
+@unittest.skipIf(
+    GUROBIPY_MAJOR_VERSION < 12,
+    "Nonlinear constraints are only supported for Gurobi 12 and later",
+)
+class TestNonlinearFromDataFrame(GurobiModelTestCase):
+    def test_varseries_nlseries(self):
+        # y_i == exp(x_i)
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(5)
+        df = pd.DataFrame(
+            dict(
+                x=add_vars_from_index(self.model, index, name="x"),
+                y=add_vars_from_index(self.model, index, name="y"),
+            )
+        )
+
+        df["expr"] = df["x"].apply(nlfunc.exp)
+
+        constrs = add_constrs_from_dataframe(
+            self.model, df, "y", GRB.EQUAL, "expr", name="nonlinear"
+        )
+
+        # Constraints added to model
+        self.model.update()
+        self.assertEqual(self.model.NumGenConstrs, 5)
+
+        # Returned series has the right structure
+        self.assertIsInstance(constrs, pd.Series)
+        self.assertEqual(constrs.name, "nonlinear")
+        assert_index_equal(constrs.index, index)
+
+        # Check data in model
+        for ind, constr in constrs.items():
+            self.assertIsInstance(constr, gp.GenConstr)
+            self.assertEqual(constr.GenConstrName, f"nonlinear[{ind}]")
+            self.assertEqual(constr.GenConstrType, GRB.GENCONSTR_NL)
+            self.assert_nlconstr_equal(
+                constr,
+                df.loc[ind, "y"],
+                [
+                    (GRB.OPCODE_EXP, -1.0, -1),
+                    (GRB.OPCODE_VARIABLE, df.loc[ind, "x"], 0),
+                ],
+            )
+
+    def test_left_nlexpr(self):
+        # exp(x_i) == y_i
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(5)
+        df = pd.DataFrame(
+            dict(
+                x=add_vars_from_index(self.model, index, name="x"),
+                y=add_vars_from_index(self.model, index, name="y"),
+            )
+        )
+
+        df["expr"] = df["x"].apply(nlfunc.exp)
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            add_constrs_from_dataframe(
+                self.model, df, "expr", GRB.EQUAL, "y", name="nonlinear"
+            )
+
+    def test_inequality(self):
+        # y_i <= exp(x_i)
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(5)
+        df = pd.DataFrame(
+            dict(
+                x=add_vars_from_index(self.model, index, name="x"),
+                y=add_vars_from_index(self.model, index, name="y"),
+            )
+        )
+
+        df["expr"] = df["x"].apply(nlfunc.exp)
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            add_constrs_from_dataframe(
+                self.model, df, "y", GRB.LESS_EQUAL, "expr", name="nonlinear"
+            )
 
 
 class TestAddConstrsFromSeries(GurobiModelTestCase):
