@@ -29,6 +29,6 @@ jobs:
         env:
           RTD_HOOK_TOKEN: ${{ secrets.RTD_HOOK_TOKEN }}
         run: |
-          curl -X POST -d "branches=main" -d "token=$RTD_HOOK_TOKEN" \
+          curl -X POST -d "branches=${{ github.ref_name }}" -d "token=$RTD_HOOK_TOKEN" \
             -d "default_branch=main" \
             https://readthedocs.com/api/v2/webhook/gurobi-optimization-gurobipy-pandas/11030/
