@@ -13,6 +13,7 @@ from gurobipy import GRB
 from gurobipy_pandas.util import create_names, gppd_global_options
 
 CONSTRAINT_SENSES = frozenset([GRB.LESS_EQUAL, GRB.EQUAL, GRB.GREATER_EQUAL])
+GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
 
 
 def add_constrs_from_dataframe(
@@ -138,6 +139,15 @@ def _add_constr(model, lhs, sense, rhs, name):
         name = ""
     if not isinstance(sense, str) or sense[0] not in CONSTRAINT_SENSES:
         raise ValueError(f"'{sense}' is not a valid constraint sense")
+    if GUROBIPY_MAJOR_VERSION >= 12:
+        # Check for nonlinear constraints; accept only y = f(x)
+        if isinstance(lhs, gp.NLExpr):
+            raise ValueError("Nonlinear constraints must be in the form y = f(x)")
+        if isinstance(rhs, gp.NLExpr):
+            if isinstance(lhs, gp.Var) and sense == GRB.EQUAL:
+                return model.addGenConstrNL(lhs, rhs, name=name)
+            else:
+                raise ValueError("Nonlinear constraints must be in the form y = f(x)")
     if isinstance(lhs, gp.QuadExpr) or isinstance(rhs, gp.QuadExpr):
         return model.addQConstr(lhs, sense, rhs, name=name)
     return model.addLConstr(lhs, sense, rhs, name=name)
