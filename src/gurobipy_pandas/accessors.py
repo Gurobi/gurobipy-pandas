@@ -131,7 +131,7 @@ class GRBDataFrameAccessor:
 
         Constraints can be added using a :code:`pd.DataFrame.eval`-like
         syntax. In this case, a constraint is added to the model for each
-        row in the dataframe, specifying e.g. :math:`x_0 + y_0 \le 1` in the
+        row in the dataframe, specifying e.g. :math:`x_0 + y_0 <= 1` in the
         first row.
 
         >>> df2 = df.gppd.add_constrs(m, "x + y <= c", name="constr")
@@ -143,7 +143,7 @@ class GRBDataFrameAccessor:
         2  3  <gurobi.Var x[2]>  <gurobi.Var y[2]>  <gurobi.Constr constr[2]>
 
         Alternatively, you can use explicit column references in place of
-        a string expression. This case specifies that :math:`x_i \le y_i`
+        a string expression. This case specifies that :math:`x_i <= y_i`
         must hold for every row in the dataframe.
 
         >>> df3 = df.gppd.add_constrs(m, "x", GRB.LESS_EQUAL, "y", name="xy")
@@ -156,7 +156,7 @@ class GRBDataFrameAccessor:
 
         Scalar values can also be used in place of a column reference for
         either the left or right-hand sides. The following case specifies
-        that :math:`x_i + y_i \le 1` must hold for every row.
+        that :math:`x_i + y_i <= 1` must hold for every row.
 
         >>> df4 = df.assign(expr=df["x"] + df["y"])
         >>> df4
