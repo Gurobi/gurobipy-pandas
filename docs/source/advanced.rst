@@ -51,7 +51,8 @@ function of the Gurobi model.
    ...     constrs.append(constr)
    >>> indicators = pd.Series(index=df.index, data=constrs, name="ind")
 
-The resulting ``indicators`` series stores the indicator constraint objects.
+The resulting ``indicators`` series stores the newly added indicator constraint
+objects.
 
 SOS Constraints
 ---------------
@@ -93,4 +94,4 @@ rows, creating a constraint for each row. To iterate over rows efficiently, use
     ...     cs.append(c)
     >>> sos = pd.Series(index=df.index, data=cs, name="sos")
 
-The resulting ``sos`` series captures the newly added SOS constraint objects.
+The resulting ``sos`` series stores the newly added SOS constraint objects.
