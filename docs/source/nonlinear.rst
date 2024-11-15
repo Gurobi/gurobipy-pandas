@@ -1,10 +1,19 @@
 Adding Nonlinear Constraints
 ============================
 
+Gurobi 12 supports adding nonlinear constraints, using the ``NLExpr`` object to
+capture nonlinear expressions. ``gurobipy-pandas`` supports adding a ``Series``
+of nonlinear constraints to a model via ``add_constrs``. Note that ``gurobipy``
+only supports nonlinear constraints of the form :math:`y = f(x)`, and
+``gurobipy-pandas`` applies the same restriction.
+
 .. note::
 
    To add nonlinear constraints, you must have at least ``gurobipy`` version
    12.0.0 installed.
+
+Nonlinear Equality Constraints
+------------------------------
 
 This example builds the constraint set :math:`y_i = \log(x_i)`, for each
 :math:`i` in the index.
