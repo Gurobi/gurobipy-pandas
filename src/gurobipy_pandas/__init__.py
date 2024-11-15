@@ -1,4 +1,4 @@
-__version__ = "1.1.6"
+__version__ = "1.1.7.dev0"
 
 __all__ = ["add_constrs", "add_vars", "set_interactive"]
 
