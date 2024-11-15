@@ -1,12 +1,18 @@
 Adding Specialized Constraints
 ==============================
 
-``gurobipy-pandas`` helper methods currently only cover building linear and quadratic constraints, i.e. those which can be expressed using pandas' built-in arithmetic, groupby, and aggregation methods. In some cases you may need to build other constraint types, such as SOS or general constraints, between different series of variables. This page provides some simple recipes for such operations.
+``gurobipy-pandas`` helper methods currently only cover building linear and
+quadratic constraints, i.e. those which can be expressed using pandas' built-in
+arithmetic, groupby, and aggregation methods. In some cases you may need to
+build other constraint types, such as SOS or general constraints, between
+different series of variables. This page provides some simple recipes for such
+operations.
 
 SOS Constraints
 ---------------
 
-In this example, we wish to build the constraint set :math:`\text{SOS1}(x_i, y_i)` for each :math:`i` in the index.
+In this example, we wish to build the constraint set :math:`\text{SOS1}(x_i,
+y_i)` for each :math:`i` in the index.
 
 .. doctest:: [advanced]
 
@@ -21,7 +27,10 @@ In this example, we wish to build the constraint set :math:`\text{SOS1}(x_i, y_i
     >>> x = gppd.add_vars(m, index, name="x")
     >>> y = gppd.add_vars(m, index, name="y")
 
-There is no built-in ``gurobipy-pandas`` method for this, so we need to first align our variable series in a dataframe, then iterate over the rows in the result. To iterate over rows efficiently, we use ``.itertuples()``, and call the ``addSOS`` function on the Gurobi model.
+There is no built-in ``gurobipy-pandas`` method for this, so we need to first
+align our variable series in a dataframe, then iterate over the rows in the
+result. To iterate over rows efficiently, we use ``.itertuples()``, and call the
+``addSOS`` function on the Gurobi model.
 
 .. doctest:: [advanced]
 
