@@ -3,12 +3,18 @@ Tests for the public API. These are intentionally simple, more careful
 tests of data types, errors, etc, are done on the lower-level functions.
 """
 
+import math
+import unittest
+
+import gurobipy as gp
 import pandas as pd
 from gurobipy import GRB
 from pandas.testing import assert_index_equal, assert_series_equal
 
 import gurobipy_pandas as gppd
 from tests.utils import GurobiModelTestCase
+
+GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
 
 
 class TestAddVars(GurobiModelTestCase):
@@ -267,6 +273,136 @@ class TestAddConstrs(GurobiModelTestCase):
             )
             self.assertEqual(constr.Sense, sense)
             self.assertEqual(constr.RHS, -1.0)
+
+
+@unittest.skipIf(
+    GUROBIPY_MAJOR_VERSION < 12,
+    "Nonlinear constraints are only supported for Gurobi 12 and later",
+)
+class TestNonlinear(GurobiModelTestCase):
+    def assert_approx_equal(self, value, expected, tolerance=1e-6):
+        difference = abs(value - expected)
+        self.assertLessEqual(difference, tolerance)
+
+    def test_log(self):
+        # max sum y_i
+        # s.t. y_i = log(x_i)
+        #      1.0 <= x <= 2.0
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(3)
+        x = gppd.add_vars(self.model, index, lb=1.0, ub=2.0, name="x")
+        y = gppd.add_vars(self.model, index, obj=1.0, name="y")
+        self.model.ModelSense = GRB.MAXIMIZE
+
+        gppd.add_constrs(self.model, y, GRB.EQUAL, x.apply(nlfunc.log), name="log_x")
+
+        self.model.optimize()
+        self.assert_approx_equal(self.model.ObjVal, 3 * math.log(2.0))
+
+    def test_inequality(self):
+        # max  sum x_i
+        # s.t. log2(x_i^2 + 1) <= 2.0
+        #      0.0 <= x <= 1.0
+        #
+        # Formulated as
+        #
+        # max  sum x_i
+        # s.t. log2(x_i^2 + 1) == z_i
+        #      0.0 <= x <= 1.0
+        #      -GRB.INFINITY <= z_i <= 2
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(3)
+        x = gppd.add_vars(self.model, index, name="x")
+        z = gppd.add_vars(self.model, index, lb=-GRB.INFINITY, ub=2.0, name="z")
+        self.model.setObjective(x.sum(), sense=GRB.MAXIMIZE)
+
+        gppd.add_constrs(self.model, z, GRB.EQUAL, (x**2 + 1).apply(nlfunc.log))
+
+        self.model.optimize()
+        self.model.write("model.lp")
+        self.model.write("model.sol")
+
+        x_sol = x.gppd.X
+        z_sol = z.gppd.X
+        for i in range(3):
+            self.assert_approx_equal(x_sol[i], math.sqrt(math.exp(2.0) - 1))
+            self.assert_approx_equal(z_sol[i], 2.0)
+
+    def test_wrong_usage(self):
+        index = pd.RangeIndex(3)
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
+
+        with self.assertRaisesRegex(
+            gp.GurobiError, "Objective must be linear or quadratic"
+        ):
+            self.model.setObjective((x / y).sum())
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            gppd.add_constrs(self.model, y, GRB.LESS_EQUAL, x**4)
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            gppd.add_constrs(self.model, y + x**4, GRB.EQUAL, 1)
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            gppd.add_constrs(self.model, y**4, GRB.EQUAL, x)
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            x.to_frame().gppd.add_constrs(self.model, "x**3 == 1", name="bad")
+
+    def test_eval(self):
+        index = pd.RangeIndex(3)
+        df = (
+            gppd.add_vars(self.model, index, name="x")
+            .to_frame()
+            .gppd.add_vars(self.model, name="y")
+            .gppd.add_constrs(self.model, "y == x**3", name="nlconstr")
+        )
+
+        self.model.update()
+        for row in df.itertuples(index=False):
+            self.assert_nlconstr_equal(
+                row.nlconstr,
+                row.y,
+                [
+                    (GRB.OPCODE_POW, -1.0, -1),
+                    (GRB.OPCODE_VARIABLE, row.x, 0),
+                    (GRB.OPCODE_CONSTANT, 3.0, 0),
+                ],
+            )
+
+    def test_frame(self):
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(3)
+        df = (
+            gppd.add_vars(self.model, index, name="x")
+            .to_frame()
+            .gppd.add_vars(self.model, name="y")
+            .assign(exp_x=lambda df: df["x"].apply(nlfunc.exp))
+            .gppd.add_constrs(self.model, "y", GRB.EQUAL, "exp_x", name="nlconstr")
+        )
+
+        self.model.update()
+        for row in df.itertuples(index=False):
+            self.assert_nlconstr_equal(
+                row.nlconstr,
+                row.y,
+                [
+                    (GRB.OPCODE_EXP, -1.0, -1),
+                    (GRB.OPCODE_VARIABLE, row.x, 0),
+                ],
+            )
 
 
 class TestDataValidation(GurobiModelTestCase):

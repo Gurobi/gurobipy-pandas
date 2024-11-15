@@ -1,6 +1,7 @@
 import unittest
 
 import gurobipy as gp
+from gurobipy import GRB
 
 
 class GurobiModelTestCase(unittest.TestCase):
@@ -36,3 +37,18 @@ class GurobiModelTestCase(unittest.TestCase):
             self.assertTrue(expr1.getVar1(i).sameAs(expr2.getVar1(i)))
             self.assertTrue(expr1.getVar2(i).sameAs(expr2.getVar2(i)))
             self.assertEqual(expr1.getCoeff(i), expr2.getCoeff(i))
+
+    def assert_nlconstr_equal(self, genconstr, resvar_true, tree):
+        resvar, opcode_array, data_array, parent_array = self.model.getGenConstrNLAdv(
+            genconstr
+        )
+        self.assertIs(resvar, resvar_true)
+        for opcode, data, parent, (opcode_true, data_true, parent_true) in zip(
+            opcode_array, data_array, parent_array, tree
+        ):
+            self.assertEqual(opcode, opcode_true)
+            if opcode == GRB.OPCODE_VARIABLE:
+                self.assertIs(data, data_true)
+            else:
+                self.assertEqual(data, data_true)
+            self.assertEqual(parent, parent_true)
