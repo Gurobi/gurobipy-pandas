@@ -64,3 +64,44 @@ the ``sense`` argument must be ``GRB.EQUAL``.
    3    <gurobi.GenConstr 3>
    4    <gurobi.GenConstr 4>
    Name: log_x, dtype: object
+
+Nonlinear Inequality Constraints
+--------------------------------
+
+As noted above, nonlinear constraints can only be provided in the form :math:`y=
+f(x)`. To formulate inequality constraints, you must introduce bounded
+intermediate variables. The following example formulates the set of constraints
+:math:`\log(x_i^2 + 1) \le 2` by introducing intermediate variables :math:`z_i`
+with no lower bound and an upper bound of :math:`2.0`.
+
+.. doctest:: [nonlinear]
+
+   >>> z = gppd.add_vars(model, index, lb=-GRB.INFINITY, ub=2.0, name="z")
+   >>> constrs = gppd.add_constrs(model, z, GRB.EQUAL, (x**2 + 1).apply(nlfunc.log))
+
+To see the effect of this constraint, you can set a maximization objective
+:math:`\sum_{i=0}^{4} x_i` and solve the resulting model. You will find that the
+original variables :math:`x_i` are maximized to :math:`\sqrt{e^2 - 1}` in
+the optimal solution. The intermediate variables :math:`z_i` are at their upper
+bounds, indicating that the constraint is satisfied with equality.
+
+.. doctest:: [nonlinear]
+
+   >>> model.setObjective(x.sum(), sense=GRB.MAXIMIZE)
+   >>> model.optimize()  # doctest: +ELLIPSIS
+   Gurobi Optimizer ...
+   Optimal solution found ...
+   >>> x.gppd.X.round(3)
+   0    2.528
+   1    2.528
+   2    2.528
+   3    2.528
+   4    2.528
+   Name: x, dtype: float64
+   >>> z.gppd.X.round(3)
+   0    2.0
+   1    2.0
+   2    2.0
+   3    2.0
+   4    2.0
+   Name: z, dtype: float64
