@@ -4,18 +4,14 @@ import os
 
 import gurobipy_pandas
 
-# -- Project information -----------------------------------------------------
-
-
 project = "gurobipy-pandas"
 author = "Gurobi Optimization, LLC"
 copyright = "Gurobi Optimization, LLC"
-html_title = "gurobipy-pandas documentation"
 
 version = gurobipy_pandas.__version__
 release = version
 
-# -- General configuration ---------------------------------------------------
+html_title = f"gurobipy-pandas documentation v{release}"
 
 extensions = [
     "nbsphinx",
@@ -63,8 +59,7 @@ extlinks = {
     "ghsrc": ("https://github.com/Gurobi/gurobipy-pandas/tree/main/%s", "%s"),
 }
 
-# -- numpydoc magic linking
-
+# Add shorthand and keyword ignores for numpydoc
 numpydoc_xref_param_type = True
 numpydoc_xref_aliases = {
     "DataFrame": "pandas.DataFrame",
@@ -74,12 +69,7 @@ numpydoc_xref_aliases = {
 numpydoc_xref_ignore = {"optional", "or", "of"}
 numpydoc_class_members_toctree = False
 
-# -- Options for EPUB output
-
-epub_show_urls = "footnote"
-
-# -- Note pointing to notebook downloads
-
+# Add a note pointing to notebook downloads in notebook headers
 nbsphinx_prolog = """
 
 .. note::
@@ -89,22 +79,8 @@ nbsphinx_prolog = """
 
 """
 
-# Customisation for Furo/gurobi-sphinxtheme
-
-# html_sidebars = {
-#     "**": [
-#         "sidebar/brand.html",
-#         "sidebar/search.html",
-#         "sidebar/scroll-start.html",
-#         "sidebar/navigation.html",
-#         "sidebar/scroll-end.html",
-#     ],
-# }
-
-# Customisation for readthedocs
-
 if os.environ.get("READTHEDOCS", "") == "True":
-    # Date needed by Furo theme to enable icons/links/etc
+    # Data needed by Furo theme to enable icons/links/etc
     html_context = {
         "READTHEDOCS": True,
         "github_user": "Gurobi",
@@ -114,12 +90,14 @@ if os.environ.get("READTHEDOCS", "") == "True":
         "conf_py_path": "/docs/source/",
     }
 
-    # Set the canonical URL to point to the stable version docs
+    # Set the canonical URL to always point to the stable version docs
     rtd_version = os.environ.get("READTHEDOCS_VERSION")
     rtd_url = os.environ.get("READTHEDOCS_CANONICAL_URL")
     html_baseurl = rtd_url.replace(rtd_version, "stable")
 
+
 html_theme_options = {
+    # Add Gurobi and Github icons to the footer
     "footer_icons": [
         {
             "name": "GitHub",
