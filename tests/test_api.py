@@ -330,6 +330,31 @@ class TestNonlinear(GurobiModelTestCase):
             self.assert_approx_equal(x_sol[i], math.sqrt(math.exp(2.0) - 1))
             self.assert_approx_equal(z_sol[i], 2.0)
 
+    def test_wrong_usage(self):
+        index = pd.RangeIndex(3)
+        x = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="x")
+
+        with self.assertRaisesRegex(
+            gp.GurobiError, "Objective must be linear or quadratic"
+        ):
+            self.model.setObjective((x / y).sum())
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            gppd.add_constrs(self.model, y, GRB.LESS_EQUAL, x**4)
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            gppd.add_constrs(self.model, y + x**4, GRB.EQUAL, 1)
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            gppd.add_constrs(self.model, y**4, GRB.EQUAL, x)
+
 
 class TestDataValidation(GurobiModelTestCase):
     # Test that we throw some more informative errors, instead of obscure
