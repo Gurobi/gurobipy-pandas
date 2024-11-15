@@ -1,11 +1,10 @@
 Adding Specialized Constraints
 ==============================
 
-``gurobipy-pandas`` helper methods currently only cover building linear and
-quadratic constraints, i.e. those which can be expressed using pandas' built-in
-arithmetic, groupby, and aggregation methods. In some cases you may need to
-build other constraint types, such as SOS or general constraints, between
-different series of variables. This page provides some recipes for these cases.
+``gurobipy-pandas`` helper methods only cover building linear and quadratic
+constraints. In some cases you may need to build other constraint types, such as
+SOS or general constraints, using pandas series of variables or expressions.
+This page provides recipes for these cases.
 
 Indicator Constraints
 ---------------------
@@ -52,12 +51,13 @@ function of the Gurobi model.
    ...     constrs.append(constr)
    >>> indicators = pd.Series(index=df.index, data=constrs, name="ind")
 
-The resulting ``indicators`` series stores the indicator constraint objects.
+The resulting ``indicators`` series stores the newly added indicator constraint
+objects.
 
 SOS Constraints
 ---------------
 
-This example builds a set of constraints :math:`\text{SOS1}(x_i, y_i)` for each
+This example builds the constraint :math:`\text{SOS1}(x_i, y_i)` for each
 :math:`i` in the index.
 
 .. doctest:: [advanced]
@@ -94,4 +94,4 @@ rows, creating a constraint for each row. To iterate over rows efficiently, use
     ...     cs.append(c)
     >>> sos = pd.Series(index=df.index, data=cs, name="sos")
 
-The resulting ``sos`` series captures the resulting SOS constraint objects.
+The resulting ``sos`` series stores the newly added SOS constraint objects.
