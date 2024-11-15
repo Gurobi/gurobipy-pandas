@@ -333,7 +333,7 @@ class TestNonlinear(GurobiModelTestCase):
     def test_wrong_usage(self):
         index = pd.RangeIndex(3)
         x = gppd.add_vars(self.model, index, name="x")
-        y = gppd.add_vars(self.model, index, name="x")
+        y = gppd.add_vars(self.model, index, name="y")
 
         with self.assertRaisesRegex(
             gp.GurobiError, "Objective must be linear or quadratic"
@@ -354,6 +354,55 @@ class TestNonlinear(GurobiModelTestCase):
             ValueError, "Nonlinear constraints must be in the form"
         ):
             gppd.add_constrs(self.model, y**4, GRB.EQUAL, x)
+
+        with self.assertRaisesRegex(
+            ValueError, "Nonlinear constraints must be in the form"
+        ):
+            x.to_frame().gppd.add_constrs(self.model, "x**3 == 1", name="bad")
+
+    def test_eval(self):
+        index = pd.RangeIndex(3)
+        df = (
+            gppd.add_vars(self.model, index, name="x")
+            .to_frame()
+            .gppd.add_vars(self.model, name="y")
+            .gppd.add_constrs(self.model, "y == x**3", name="nlconstr")
+        )
+
+        self.model.update()
+        for row in df.itertuples(index=False):
+            self.assert_nlconstr_equal(
+                row.nlconstr,
+                row.y,
+                [
+                    (GRB.OPCODE_POW, -1.0, -1),
+                    (GRB.OPCODE_VARIABLE, row.x, 0),
+                    (GRB.OPCODE_CONSTANT, 3.0, 0),
+                ],
+            )
+
+    def test_frame(self):
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(3)
+        df = (
+            gppd.add_vars(self.model, index, name="x")
+            .to_frame()
+            .gppd.add_vars(self.model, name="y")
+            .assign(exp_x=lambda df: df["x"].apply(nlfunc.exp))
+            .gppd.add_constrs(self.model, "y", GRB.EQUAL, "exp_x", name="nlconstr")
+        )
+
+        self.model.update()
+        for row in df.itertuples(index=False):
+            self.assert_nlconstr_equal(
+                row.nlconstr,
+                row.y,
+                [
+                    (GRB.OPCODE_EXP, -1.0, -1),
+                    (GRB.OPCODE_VARIABLE, row.x, 0),
+                ],
+            )
 
 
 class TestDataValidation(GurobiModelTestCase):
