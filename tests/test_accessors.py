@@ -201,6 +201,16 @@ class TestSeriesAttributes(GurobiModelTestCase):
         with self.assertRaises(TypeError):
             x.gppd.Start = pd.DataFrame(index=index, data={"start": [1, 2, 3, 4, 5]})
 
+    def test_setattr_single_int(self):
+        index = pd.Index([0, 1])
+        x = gppd.add_vars(self.model, index)
+        x.gppd.Partition = 0
+
+    def test_setattr_series_int(self):
+        index = pd.Index([0, 1])
+        x = gppd.add_vars(self.model, index)
+        x.gppd.Partition = pd.Series(index=index, data=[0, 1])
+
 
 class TestSeriesGetAttrSetAttr(GurobiModelTestCase):
     def test_var_getattr_X(self):
@@ -224,6 +234,17 @@ class TestSeriesGetAttrSetAttr(GurobiModelTestCase):
         for i in range(5):
             self.assertEqual(result.loc[i + 5].lb, 1.0)
             self.assertEqual(result.loc[i + 5].ub, i + 2)
+
+    def test_var_setattr_bounds_fractional(self):
+        index = pd.RangeIndex(5, 10)
+        x = gppd.add_vars(self.model, index, name="x")
+        lb = 1.4
+        ub = pd.Series(index=index, data=[2.2, 3.3, 4.4, 5.5, 6.6])
+        result = x.gppd.set_attr("LB", lb).gppd.set_attr("UB", ub)
+        self.model.update()
+        for i in range(5):
+            self.assertEqual(result.loc[i + 5].lb, 1.4)
+            self.assertLess(abs(result.loc[i + 5].ub - (i + 2) * 1.1), 1e-6)
 
     def test_var_setattr_vtype(self):
         index = pd.RangeIndex(5, 10)
