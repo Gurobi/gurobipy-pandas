@@ -23,6 +23,9 @@ def _convert_single_value(value):
     """Return a numeric casted value if possible, otherwise return a string.
     If value is neither a string nor something we can cast to numeric, then
     raise a TypeError."""
+    if isinstance(value, int):
+        return value
+
     try:
         return float(value)
     except ValueError:
