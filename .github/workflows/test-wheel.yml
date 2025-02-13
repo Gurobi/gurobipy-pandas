@@ -25,12 +25,16 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python: ["3.9", "3.10", "3.11", "3.12"]
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         gurobipy: ["~=11.0", "~=12.0"]
         # gurobipy: ["~=10.0", "~=11.0", "~=12.0"]
         exclude:
           - python: "3.12"
             gurobipy: "~=10.0"
+          - python: "3.13"
+            gurobipy: "~=10.0"
+          - python: "3.13"
+            gurobipy: "~=11.0"
 
     steps:
       - name: Checkout unit tests
