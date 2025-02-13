@@ -128,7 +128,7 @@ def add_vars(
         Upper bound for created variables. Can be a single numeric value. If
         ``pandas_obj`` is an Index or Series, can be a Series aligned with
         ``pandas_obj``. If ``pandas_obj`` is a dataframe, can be a string
-        referring to a column of ``pandas_obj``. Defaults to 0.0.
+        referring to a column of ``pandas_obj``. Defaults to ``GRB.INFINITY``.
     obj : float, str, or Series, optional
         Linear objective function coefficient for created variables. Can be a
         single numeric value. If ``pandas_obj`` is an Index or Series, can be a
