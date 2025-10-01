@@ -3,7 +3,7 @@ gurobi-sphinxtheme @ git+https://github.com/Gurobi/gurobi-sphinxtheme.git@no-log
 # Pinned packages for documentation builds
 # Note: upgrading nbconvert leads to formatting issues
 ipykernel==6.29.3
-jinja2==3.1.5
+jinja2==3.1.6
 jupytext==1.14.1
 matplotlib==3.8.3
 myst-parser==0.19.2
