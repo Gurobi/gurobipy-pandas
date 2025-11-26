@@ -24,7 +24,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = [
-    "gurobipy>=9.1",
+    "gurobipy>=10.0",
     "pandas>=1.0",
 ]
 dynamic = ["version"]
