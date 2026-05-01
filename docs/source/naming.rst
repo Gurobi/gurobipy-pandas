@@ -76,13 +76,13 @@ This also works for multi-indexes.
                names=['location', 'date'])
     >>> height = gppd.add_vars(model, index, name="height")
     >>> model.update()
-    >>> height.gppd.VarName    # doctest: +NORMALIZE_WHITESPACE
+    >>> height.gppd.VarName    # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     location        date
     Mount Everest   2022-11-09     height[Mount_Everest,2022_11_09T00_00_00]
                     2022-11-10     height[Mount_Everest,2022_11_10T00_00_00]
     Mariana Trench  2022-11-09    height[Mariana_Trench,2022_11_09T00_00_00]
                     2022-11-10    height[Mariana_Trench,2022_11_10T00_00_00]
-    Name: height, dtype: object
+    Name: height, dtype: ...
 
 Notice that the variable names are formatted to avoid spaces, hyphens, and colons.
 
@@ -92,13 +92,13 @@ You can get the unadulterated, unmodified, unredacted string representations of 
 
     >>> height = gppd.add_vars(model, index, name="height", index_formatter='disable')
     >>> model.update()
-    >>> height.gppd.VarName    # doctest: +NORMALIZE_WHITESPACE
+    >>> height.gppd.VarName    # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     location        date
     Mount Everest   2022-11-09     height[Mount Everest,2022-11-09 00:00:00]
                     2022-11-10     height[Mount Everest,2022-11-10 00:00:00]
     Mariana Trench  2022-11-09    height[Mariana Trench,2022-11-09 00:00:00]
                     2022-11-10    height[Mariana Trench,2022-11-10 00:00:00]
-    Name: height, dtype: object
+    Name: height, dtype: ...
 
 Finally, you can provide custom name mappers to apply to named indexes. This is particularly useful for timestamps, when you want to keep the index as-is in your pandas data structures, but still want compact and clear variable names.
 
@@ -107,13 +107,13 @@ Finally, you can provide custom name mappers to apply to named indexes. This is 
     >>> index_formatter = {"date": lambda index: index.strftime("%y%m%d")}
     >>> height = gppd.add_vars(model, index, name="height", index_formatter=index_formatter)
     >>> model.update()
-    >>> height.gppd.VarName    # doctest: +NORMALIZE_WHITESPACE
+    >>> height.gppd.VarName    # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     location        date
     Mount Everest   2022-11-09     height[Mount_Everest,221109]
                     2022-11-10     height[Mount_Everest,221110]
     Mariana Trench  2022-11-09    height[Mariana_Trench,221109]
                     2022-11-10    height[Mariana_Trench,221110]
-    Name: height, dtype: object
+    Name: height, dtype: ...
 
 In the above example, :code:`index_formatter` is a dictionary with keys corresponding to named levels in the index. Values in the dictionary are functions applied to the index in question. Each function should return an iterable of formatted values which will subsequently be used in naming (the original index is unaffected, in this case the 'date' index level is still a DatetimeIndex). Note also that the default mapping (whitespace and special character replacement) is applied any columns with no corresponding key in the mapper.
 
