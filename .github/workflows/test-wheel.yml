@@ -35,18 +35,18 @@ jobs:
 
     steps:
       - name: Checkout unit tests
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           sparse-checkout: |
             tests
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - name: File listing
         run: ls -R
       - name: Fetch built wheel
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: wheel-artifact
           path: dist

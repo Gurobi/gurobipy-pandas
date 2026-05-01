@@ -10,9 +10,9 @@ jobs:
   publish-pypi:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install twine uploader
@@ -20,12 +20,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install twine
       - name: Fetch wheel artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: wheel-artifact
           path: dist
       - name: Fetch sdist artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: sdist-artifact
           path: dist
