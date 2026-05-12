@@ -18,3 +18,4 @@ the notebooks.
    examples/regression
    examples/unit-commitment
    examples/workforce
+   examples/netflow
