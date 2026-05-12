@@ -3,6 +3,7 @@ ipykernel>=6.15
 jupytext>=1.14
 matplotlib>=3.5
 nbconvert>=6.5
+openpyxl>=3.0
 scikit-learn>=1.0
 seaborn==0.13.2
 gurobipy>=10.0
