@@ -14,6 +14,7 @@ the notebooks.
 .. toctree::
    :maxdepth: 1
 
+   examples/portfolio
    examples/projects
    examples/regression
    examples/unit-commitment
