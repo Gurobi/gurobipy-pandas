@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.1
+    jupytext_version: 1.19.6
 ---
 
 # Project-Team Allocation
@@ -17,12 +17,12 @@ The mathematical model is defined based on two indices: the projects $i \in I$ a
 The mathematical model is formulated as
 
 $$
-\begin{alignat}{2}
+\begin{aligned}
 \max \quad        & \sum_{i \in I} \sum_{j \in J} p_{i} x_{ij} \\
 \mbox{s.t.} \quad & \sum_{i \in I} w_{i} x_{ij} \le c_{j} & \forall j \in J \\
-                  & \sum_{j \in J} x_{ij} \le 1 & \forall i \in I \\\
-                  & x_{ij} \in \lbrace 0, 1 \rbrace & \forall i \in I, j \in J \\
-\end{alignat}
+                  & \sum_{j \in J} x_{ij} \le 1 & \forall i \in I \\
+                  & x_{ij} \in \lbrace 0, 1 \rbrace & \forall i \in I, j \in J
+\end{aligned}
 $$
 
 and is more commonly known as the Multiple Knapsack Problem (MKP).
