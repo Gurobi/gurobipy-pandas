@@ -1,4 +1,4 @@
-# Run syntax checks against min python version (3.9).
+# Run syntax checks against min python version (3.11).
 # Check that commit authors ran pre-commit hooks.
 
 name: Code quality
@@ -19,7 +19,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Install tooling
         run: |
           python -m pip install --upgrade pip
