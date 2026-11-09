@@ -116,7 +116,7 @@ assigned_shifts
 Additionally, we can unstack the result and transform it to produce a roster table:
 
 ```{code-cell}
-shift_table = solution.unstack(0).fillna("-").replace({0.0: "-", 1.0: "Y"})
+shift_table = solution.unstack(0).fillna(0.0).replace({0.0: "-", 1.0: "Y"})
 pd.options.display.max_rows = 15
 shift_table
 ```
