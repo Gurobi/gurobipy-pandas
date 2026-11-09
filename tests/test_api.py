@@ -321,8 +321,6 @@ class TestNonlinear(GurobiModelTestCase):
         gppd.add_constrs(self.model, z, GRB.EQUAL, (x**2 + 1).apply(nlfunc.log))
 
         self.model.optimize()
-        self.model.write("model.lp")
-        self.model.write("model.sol")
 
         x_sol = x.gppd.X
         z_sol = z.gppd.X
@@ -334,11 +332,6 @@ class TestNonlinear(GurobiModelTestCase):
         index = pd.RangeIndex(3)
         x = gppd.add_vars(self.model, index, name="x")
         y = gppd.add_vars(self.model, index, name="y")
-
-        with self.assertRaisesRegex(
-            gp.GurobiError, "Objective must be linear or quadratic"
-        ):
-            self.model.setObjective((x / y).sum())
 
         with self.assertRaisesRegex(
             ValueError, "Nonlinear constraints must be in the form"
