@@ -140,15 +140,16 @@ def _add_constr(model, lhs, sense, rhs, name):
     if not isinstance(sense, str) or sense[0] not in CONSTRAINT_SENSES:
         raise ValueError(f"'{sense}' is not a valid constraint sense")
     if GUROBIPY_MAJOR_VERSION >= 14:
-        # Gurobi 14 supports general nonlinear constraints f(x) <= g(x), etc.
-        # addNLConstr requires a numeric right-hand side, so move everything
-        # to the left.
+        # Gurobi 14 supports general nonlinear constraints f(x) <> c. Use
+        # addNLConstr explicitly, which requires a numeric right-hand side,
+        # so move everything to the left if needed.
         if isinstance(lhs, gp.NLExpr) or isinstance(rhs, gp.NLExpr):
             if isinstance(rhs, (int, float)):
                 return model.addNLConstr(lhs, sense, rhs, name=name)
             return model.addNLConstr(lhs - rhs, sense, 0.0, name=name)
     elif GUROBIPY_MAJOR_VERSION >= 12:
-        # Gurobi 12 and 13 only accept y = f(x) (addGenConstrNL)
+        # Gurobi 12 and 13 only accept y = f(x) via addGenConstrNL, and this
+        # library does not construct implicit variables to work around it.
         if isinstance(lhs, gp.NLExpr):
             raise ValueError("Nonlinear constraints must be in the form y = f(x)")
         if isinstance(rhs, gp.NLExpr):
