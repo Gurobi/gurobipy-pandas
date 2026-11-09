@@ -31,7 +31,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Documentation = "https://gurobi-optimization-gurobipy-pandas.readthedocs-hosted.com/en/latest"
+Documentation = "https://gurobipy-pandas.readthedocs.io/en/stable"
 Issues = "https://github.com/Gurobi/gurobipy-pandas/issues"
 Source = "https://github.com/Gurobi/gurobipy-pandas"
 
