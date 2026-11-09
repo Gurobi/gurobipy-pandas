@@ -376,11 +376,49 @@ class TestNonlinear(GurobiModelTestCase):
             .gppd.add_constrs(self.model, "y >= x**3", name="nlconstr")
         )
         self.model.update()
-        for constr in df["nlconstr"]:
-            self.assertIsInstance(constr, gp.NLConstr)
-            self.assertEqual(constr.NLCSense, GRB.GREATER_EQUAL)
+        # y >= x**3 is built as y - x**3 >= 0
+        for row in df.itertuples(index=False):
+            self.assertIsInstance(row.nlconstr, gp.NLConstr)
+            self.assert_nlconstr_lhs_equal(
+                row.nlconstr,
+                GRB.GREATER_EQUAL,
+                [
+                    (GRB.OPCODE_MINUS, -1.0, -1),
+                    (GRB.OPCODE_VARIABLE, row.y, 0),
+                    (GRB.OPCODE_POW, -1.0, 0),
+                    (GRB.OPCODE_VARIABLE, row.x, 2),
+                    (GRB.OPCODE_CONSTANT, 3.0, 2),
+                ],
+            )
 
-    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 14, "Uses y = f(x) form")
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 14, "Requires Gurobi 14")
+    def test_frame_general(self):
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(3)
+        df = (
+            gppd.add_vars(self.model, index, name="x")
+            .to_frame()
+            .gppd.add_vars(self.model, name="y")
+            .assign(exp_x=lambda df: df["x"].apply(nlfunc.exp))
+            .gppd.add_constrs(self.model, "y", GRB.EQUAL, "exp_x", name="nlconstr")
+        )
+
+        self.model.update()
+        # y == exp(x) is built as y - exp(x) == 0
+        for row in df.itertuples(index=False):
+            self.assert_nlconstr_lhs_equal(
+                row.nlconstr,
+                GRB.EQUAL,
+                [
+                    (GRB.OPCODE_MINUS, -1.0, -1),
+                    (GRB.OPCODE_VARIABLE, row.y, 0),
+                    (GRB.OPCODE_EXP, -1.0, 0),
+                    (GRB.OPCODE_VARIABLE, row.x, 2),
+                ],
+            )
+
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 14, "Tests y = f(x) restriction")
     def test_wrong_usage(self):
         index = pd.RangeIndex(3)
         x = gppd.add_vars(self.model, index, name="x")
@@ -406,7 +444,7 @@ class TestNonlinear(GurobiModelTestCase):
         ):
             x.to_frame().gppd.add_constrs(self.model, "x**3 == 1", name="bad")
 
-    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 14, "Uses y = f(x) form")
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 14, "Tests GenConstrNL path")
     def test_eval(self):
         index = pd.RangeIndex(3)
         df = (
@@ -428,7 +466,7 @@ class TestNonlinear(GurobiModelTestCase):
                 ],
             )
 
-    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 14, "Uses y = f(x) form")
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 14, "Test GenConstrNL path")
     def test_frame(self):
         from gurobipy import nlfunc
 
