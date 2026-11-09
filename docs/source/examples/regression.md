@@ -21,12 +21,12 @@ $$
 To model the L1 regression loss function using linear programming, we need to introduce a number of auxiliary variables. Here $I$ is the set of data points and $J$ the set of fields. Response values $y_i$ are predicted from predictor values $x_{ij}$ by fitting coefficients $w_j$. To handle the absolute value, non-negative continuous variables $u_i$ and $v_i$ are introduced.
 
 $$
-\begin{alignat}{2}
+\begin{aligned}
 \min \quad        & \sum_i u_i + v_i \\
 \mbox{s.t.} \quad & \sum_j w_j x_{ij} + u_i - v_i = y_i \quad & \forall i \in I \\
                   & u_i, v_i \ge 0                     \quad & \forall i \in I \\
-                  & w_j \,\, \text{free}               \quad & \forall j \in J \\
-\end{alignat}
+                  & w_j \,\, \text{free}               \quad & \forall j \in J
+\end{aligned}
 $$
 
 +++
