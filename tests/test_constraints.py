@@ -320,8 +320,8 @@ class TestAddConstrsFromDataFrame(GurobiModelTestCase):
 
 
 @unittest.skipIf(
-    GUROBIPY_MAJOR_VERSION < 12,
-    "Nonlinear constraints are only supported for Gurobi 12 and later",
+    GUROBIPY_MAJOR_VERSION < 12 or GUROBIPY_MAJOR_VERSION >= 14,
+    "y = f(x) nonlinear constraints are only for Gurobi 12 and 13",
 )
 class TestNonlinearFromDataFrame(GurobiModelTestCase):
     def test_varseries_nlseries(self):
@@ -406,6 +406,72 @@ class TestNonlinearFromDataFrame(GurobiModelTestCase):
             add_constrs_from_dataframe(
                 self.model, df, "y", GRB.LESS_EQUAL, "expr", name="nonlinear"
             )
+
+
+@unittest.skipIf(
+    GUROBIPY_MAJOR_VERSION < 14,
+    "General nonlinear constraints are only supported for Gurobi 14 and later",
+)
+class TestNonlinearConstrsGurobi14(GurobiModelTestCase):
+    def setUp(self):
+        super().setUp()
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(5)
+        self.df = pd.DataFrame(
+            dict(
+                x=add_vars_from_index(self.model, index, name="x"),
+                y=add_vars_from_index(self.model, index, name="y"),
+            )
+        )
+        self.df["expr"] = self.df["x"].apply(nlfunc.exp)
+
+    def check(self, constrs, sense):
+        self.model.update()
+        self.assertEqual(self.model.NumNLConstrs, 5)
+        self.assertEqual(self.model.NumGenConstrs, 0)
+        self.assertEqual(constrs.name, "nonlinear")
+        for ind, constr in constrs.items():
+            self.assertIsInstance(constr, gp.NLConstr)
+            self.assertEqual(constr.NLCName, f"nonlinear[{ind}]")
+            self.assertEqual(constr.NLCSense, sense)
+
+    def test_equality(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "y", GRB.EQUAL, "expr", name="nonlinear"
+        )
+        self.check(constrs, GRB.EQUAL)
+
+    def test_inequality_nl_right(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "y", GRB.LESS_EQUAL, "expr", name="nonlinear"
+        )
+        self.check(constrs, GRB.LESS_EQUAL)
+
+    def test_inequality_nl_left(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "expr", GRB.GREATER_EQUAL, "y", name="nonlinear"
+        )
+        self.check(constrs, GRB.GREATER_EQUAL)
+
+    def test_nl_both_sides(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "expr", GRB.LESS_EQUAL, "expr", name="nonlinear"
+        )
+        self.check(constrs, GRB.LESS_EQUAL)
+
+    def test_constant_rhs(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "expr", GRB.LESS_EQUAL, 2.0, name="nonlinear"
+        )
+        self.check(constrs, GRB.LESS_EQUAL)
+        self.assertEqual(constrs.iloc[0].NLCRHS, 2.0)
+
+    def test_constant_lhs(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, 2.0, GRB.LESS_EQUAL, "expr", name="nonlinear"
+        )
+        self.check(constrs, GRB.LESS_EQUAL)
 
 
 class TestAddConstrsFromSeries(GurobiModelTestCase):
