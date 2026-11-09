@@ -321,8 +321,6 @@ class TestNonlinear(GurobiModelTestCase):
         gppd.add_constrs(self.model, z, GRB.EQUAL, (x**2 + 1).apply(nlfunc.log))
 
         self.model.optimize()
-        self.model.write("model.lp")
-        self.model.write("model.sol")
 
         x_sol = x.gppd.X
         z_sol = z.gppd.X
