@@ -27,7 +27,8 @@ def load_tests(loader, tests, ignore):
     here = pathlib.Path(__file__).parent
     docs = here.joinpath("../docs/source")
     for docfile in docs.rglob("*.rst"):
-        if docfile.stem == "nonlinear" and GUROBIPY_MAJOR_VERSION < 12:
+        # nonlinear.rst doctests show Gurobi 14 output
+        if docfile.stem == "nonlinear" and GUROBIPY_MAJOR_VERSION < 14:
             continue
         tests.addTests(doctest.DocFileSuite(str(docfile.relative_to(here))))
     return tests

@@ -38,13 +38,10 @@ class GurobiModelTestCase(unittest.TestCase):
             self.assertTrue(expr1.getVar2(i).sameAs(expr2.getVar2(i)))
             self.assertEqual(expr1.getCoeff(i), expr2.getCoeff(i))
 
-    def assert_nlconstr_equal(self, genconstr, resvar_true, tree):
-        resvar, opcode_array, data_array, parent_array = self.model.getGenConstrNLAdv(
-            genconstr
-        )
-        self.assertIs(resvar, resvar_true)
+    def assert_expression_tree_equal(self, opcodes, datas, parents, tree):
+        self.assertEqual(len(opcodes), len(tree))
         for opcode, data, parent, (opcode_true, data_true, parent_true) in zip(
-            opcode_array, data_array, parent_array, tree
+            opcodes, datas, parents, tree
         ):
             self.assertEqual(opcode, opcode_true)
             if opcode == GRB.OPCODE_VARIABLE:
@@ -52,3 +49,18 @@ class GurobiModelTestCase(unittest.TestCase):
             else:
                 self.assertEqual(data, data_true)
             self.assertEqual(parent, parent_true)
+
+    def assert_nlconstr_equal(self, genconstr, resvar_true, tree):
+        # Gurobi 12/13: y = f(x) general constraint
+        resvar, opcode_array, data_array, parent_array = self.model.getGenConstrNLAdv(
+            genconstr
+        )
+        self.assertIs(resvar, resvar_true)
+        self.assert_expression_tree_equal(opcode_array, data_array, parent_array, tree)
+
+    def assert_nlconstr_lhs_equal(self, nlconstr, sense, tree):
+        # Gurobi 14+: general constraint (lhs - rhs) <sense> 0
+        self.assertEqual(nlconstr.NLCSense, sense)
+        self.assertEqual(nlconstr.NLCRHS, 0.0)
+        opcode_array, data_array, parent_array = self.model.getNLConstrLHSAdv(nlconstr)
+        self.assert_expression_tree_equal(opcode_array, data_array, parent_array, tree)

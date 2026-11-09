@@ -328,6 +328,97 @@ class TestNonlinear(GurobiModelTestCase):
             self.assert_approx_equal(x_sol[i], math.sqrt(math.exp(2.0) - 1))
             self.assert_approx_equal(z_sol[i], 2.0)
 
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 14, "Requires Gurobi 14")
+    def test_inequality_general(self):
+        # max  sum x_i
+        # s.t. log(x_i^2 + 1) <= 2.0, 0 <= x <= 5
+        # Directly using a nonlinear inequality (Gurobi 14+)
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(3)
+        x = gppd.add_vars(self.model, index, ub=5.0, name="x")
+        self.model.setObjective(x.sum(), sense=GRB.MAXIMIZE)
+
+        constrs = gppd.add_constrs(
+            self.model, (x**2 + 1).apply(nlfunc.log), GRB.LESS_EQUAL, 2.0
+        )
+        self.assertIsInstance(constrs.iloc[0], gp.NLConstr)
+        self.model.optimize()
+        for value in x.gppd.X:
+            self.assert_approx_equal(value, math.sqrt(math.exp(2.0) - 1))
+
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 14, "Requires Gurobi 14")
+    def test_general_forms(self):
+        # Any side may be nonlinear in Gurobi 14+
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(3)
+        x = gppd.add_vars(self.model, index, lb=1.0, ub=2.0, name="x")
+        y = gppd.add_vars(self.model, index, lb=0.0, ub=10.0, name="y")
+
+        for constrs in [
+            gppd.add_constrs(self.model, x.apply(nlfunc.exp), GRB.LESS_EQUAL, y),
+            gppd.add_constrs(self.model, y, GRB.GREATER_EQUAL, x.apply(nlfunc.exp)),
+            gppd.add_constrs(self.model, x**3, GRB.EQUAL, 1 + y),
+        ]:
+            for constr in constrs:
+                self.assertIsInstance(constr, gp.NLConstr)
+        self.model.update()
+        self.assertEqual(self.model.NumNLConstrs, 9)
+
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 14, "Requires Gurobi 14")
+    def test_eval_general(self):
+        index = pd.RangeIndex(3)
+        df = (
+            gppd.add_vars(self.model, index, name="x")
+            .to_frame()
+            .gppd.add_vars(self.model, name="y")
+            .gppd.add_constrs(self.model, "y >= x**3", name="nlconstr")
+        )
+        self.model.update()
+        # y >= x**3 is built as y - x**3 >= 0
+        for row in df.itertuples(index=False):
+            self.assertIsInstance(row.nlconstr, gp.NLConstr)
+            self.assert_nlconstr_lhs_equal(
+                row.nlconstr,
+                GRB.GREATER_EQUAL,
+                [
+                    (GRB.OPCODE_MINUS, -1.0, -1),
+                    (GRB.OPCODE_VARIABLE, row.y, 0),
+                    (GRB.OPCODE_POW, -1.0, 0),
+                    (GRB.OPCODE_VARIABLE, row.x, 2),
+                    (GRB.OPCODE_CONSTANT, 3.0, 2),
+                ],
+            )
+
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION < 14, "Requires Gurobi 14")
+    def test_frame_general(self):
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(3)
+        df = (
+            gppd.add_vars(self.model, index, name="x")
+            .to_frame()
+            .gppd.add_vars(self.model, name="y")
+            .assign(exp_x=lambda df: df["x"].apply(nlfunc.exp))
+            .gppd.add_constrs(self.model, "y", GRB.EQUAL, "exp_x", name="nlconstr")
+        )
+
+        self.model.update()
+        # y == exp(x) is built as y - exp(x) == 0
+        for row in df.itertuples(index=False):
+            self.assert_nlconstr_lhs_equal(
+                row.nlconstr,
+                GRB.EQUAL,
+                [
+                    (GRB.OPCODE_MINUS, -1.0, -1),
+                    (GRB.OPCODE_VARIABLE, row.y, 0),
+                    (GRB.OPCODE_EXP, -1.0, 0),
+                    (GRB.OPCODE_VARIABLE, row.x, 2),
+                ],
+            )
+
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 14, "Tests y = f(x) restriction")
     def test_wrong_usage(self):
         index = pd.RangeIndex(3)
         x = gppd.add_vars(self.model, index, name="x")
@@ -353,6 +444,7 @@ class TestNonlinear(GurobiModelTestCase):
         ):
             x.to_frame().gppd.add_constrs(self.model, "x**3 == 1", name="bad")
 
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 14, "Tests GenConstrNL path")
     def test_eval(self):
         index = pd.RangeIndex(3)
         df = (
@@ -374,6 +466,7 @@ class TestNonlinear(GurobiModelTestCase):
                 ],
             )
 
+    @unittest.skipIf(GUROBIPY_MAJOR_VERSION >= 14, "Test GenConstrNL path")
     def test_frame(self):
         from gurobipy import nlfunc
 

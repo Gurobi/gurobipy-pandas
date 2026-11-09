@@ -320,8 +320,8 @@ class TestAddConstrsFromDataFrame(GurobiModelTestCase):
 
 
 @unittest.skipIf(
-    GUROBIPY_MAJOR_VERSION < 12,
-    "Nonlinear constraints are only supported for Gurobi 12 and later",
+    GUROBIPY_MAJOR_VERSION < 12 or GUROBIPY_MAJOR_VERSION >= 14,
+    "Tests GenConstrNL path",
 )
 class TestNonlinearFromDataFrame(GurobiModelTestCase):
     def test_varseries_nlseries(self):
@@ -406,6 +406,113 @@ class TestNonlinearFromDataFrame(GurobiModelTestCase):
             add_constrs_from_dataframe(
                 self.model, df, "y", GRB.LESS_EQUAL, "expr", name="nonlinear"
             )
+
+
+@unittest.skipIf(
+    GUROBIPY_MAJOR_VERSION < 14,
+    "General nonlinear constraints are only supported for Gurobi 14 and later",
+)
+class TestNonlinearConstrsGurobi14(GurobiModelTestCase):
+    def setUp(self):
+        super().setUp()
+        from gurobipy import nlfunc
+
+        index = pd.RangeIndex(5)
+        self.df = pd.DataFrame(
+            dict(
+                x=add_vars_from_index(self.model, index, name="x"),
+                y=add_vars_from_index(self.model, index, name="y"),
+            )
+        )
+        self.df["expr"] = self.df["x"].apply(nlfunc.exp)
+
+    def check(self, constrs, sense, tree=None):
+        self.model.update()
+        self.assertEqual(self.model.NumNLConstrs, 5)
+        self.assertEqual(self.model.NumGenConstrs, 0)
+        self.assertEqual(constrs.name, "nonlinear")
+        for ind, constr in constrs.items():
+            self.assertIsInstance(constr, gp.NLConstr)
+            self.assertEqual(constr.NLCName, f"nonlinear[{ind}]")
+            self.assertEqual(constr.NLCSense, sense)
+            if tree is not None:
+                row = self.df.loc[ind]
+                self.assert_nlconstr_lhs_equal(constr, sense, tree(row))
+
+    @staticmethod
+    def _tree_y_minus_exp_x(row):
+        return [
+            (GRB.OPCODE_MINUS, -1.0, -1),
+            (GRB.OPCODE_VARIABLE, row["y"], 0),
+            (GRB.OPCODE_EXP, -1.0, 0),
+            (GRB.OPCODE_VARIABLE, row["x"], 2),
+        ]
+
+    @staticmethod
+    def _tree_exp_x_minus_y(row):
+        return [
+            (GRB.OPCODE_MINUS, -1.0, -1),
+            (GRB.OPCODE_EXP, -1.0, 0),
+            (GRB.OPCODE_VARIABLE, row["x"], 1),
+            (GRB.OPCODE_VARIABLE, row["y"], 0),
+        ]
+
+    @staticmethod
+    def _tree_exp_x_minus_exp_x(row):
+        return [
+            (GRB.OPCODE_MINUS, -1.0, -1),
+            (GRB.OPCODE_EXP, -1.0, 0),
+            (GRB.OPCODE_VARIABLE, row["x"], 1),
+            (GRB.OPCODE_EXP, -1.0, 0),
+            (GRB.OPCODE_VARIABLE, row["x"], 3),
+        ]
+
+    @staticmethod
+    def _tree_2_minus_exp_x(row):
+        return [
+            (GRB.OPCODE_MINUS, -1.0, -1),
+            (GRB.OPCODE_CONSTANT, 2.0, 0),
+            (GRB.OPCODE_EXP, -1.0, 0),
+            (GRB.OPCODE_VARIABLE, row["x"], 2),
+        ]
+
+    def test_equality(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "y", GRB.EQUAL, "expr", name="nonlinear"
+        )
+        self.check(constrs, GRB.EQUAL, tree=self._tree_y_minus_exp_x)
+
+    def test_inequality_nl_right(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "y", GRB.LESS_EQUAL, "expr", name="nonlinear"
+        )
+        self.check(constrs, GRB.LESS_EQUAL, tree=self._tree_y_minus_exp_x)
+
+    def test_inequality_nl_left(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "expr", GRB.GREATER_EQUAL, "y", name="nonlinear"
+        )
+        self.check(constrs, GRB.GREATER_EQUAL, tree=self._tree_exp_x_minus_y)
+
+    def test_nl_both_sides(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "expr", GRB.LESS_EQUAL, "expr", name="nonlinear"
+        )
+        self.check(constrs, GRB.LESS_EQUAL, tree=self._tree_exp_x_minus_exp_x)
+
+    def test_constant_rhs(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, "expr", GRB.LESS_EQUAL, 2.0, name="nonlinear"
+        )
+        self.check(constrs, GRB.LESS_EQUAL)
+        self.assertEqual(constrs.iloc[0].NLCRHS, 2.0)
+
+    def test_constant_lhs(self):
+        constrs = add_constrs_from_dataframe(
+            self.model, self.df, 2.0, GRB.LESS_EQUAL, "expr", name="nonlinear"
+        )
+        # 2.0 <= exp(x) is built as 2.0 - exp(x) <= 0
+        self.check(constrs, GRB.LESS_EQUAL, tree=self._tree_2_minus_exp_x)
 
 
 class TestAddConstrsFromSeries(GurobiModelTestCase):
