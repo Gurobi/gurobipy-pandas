@@ -1,4 +1,4 @@
-# Run the example notebooks against python3.9 on ubuntu, from a direct install.
+# Run the example notebooks on ubuntu from a direct install.
 
 name: Notebook examples
 
@@ -16,8 +16,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: ["3.13"]
-        gurobipy: ["~=12.0", "~=13.0", "==14.0.0b1"]
+        python: ["3.14"]
+        gurobipy: ["~=13.0"]
 
     steps:
       - uses: actions/checkout@v7
