@@ -1,4 +1,3 @@
-import gurobipy as gp
 import pandas as pd
 from gurobipy import GRB
 from pandas.testing import assert_index_equal
@@ -6,8 +5,6 @@ from pandas.testing import assert_index_equal
 from gurobipy_pandas.variables import add_vars_from_dataframe, add_vars_from_index
 
 from .utils import GurobiModelTestCase
-
-GUROBIPY_MAJOR_VERSION, *_ = gp.gurobi.version()
 
 
 class TestAddVarsFromIndex(GurobiModelTestCase):
@@ -400,10 +397,7 @@ class TestAddVarsFromIndex(GurobiModelTestCase):
 
         self.model.update()
         self.assertEqual(self.model.NumVars, 5)
-        if GUROBIPY_MAJOR_VERSION >= 10:
-            self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
-        else:
-            self.assertEqual(list(x.gppd.VarName), [f"x[label][{i}]" for i in range(5)])
+        self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
 
 
 class TestAddVarsFromDataFrame(GurobiModelTestCase):
@@ -638,7 +632,4 @@ class TestAddVarsFromDataFrame(GurobiModelTestCase):
 
         self.model.update()
         self.assertEqual(self.model.NumVars, 5)
-        if GUROBIPY_MAJOR_VERSION >= 10:
-            self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
-        else:
-            self.assertEqual(list(x.gppd.VarName), [f"x[label][{i}]" for i in range(5)])
+        self.assertEqual(list(x.gppd.VarName), ["x[label]"] * 5)
