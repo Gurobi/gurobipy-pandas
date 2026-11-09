@@ -76,8 +76,7 @@ def add_vars(
     obj: Union[float, pd.Series] = 0.0,
     vtype: Union[str, pd.Series] = GRB.CONTINUOUS,
     index_formatter: Union[str, Callable, Mapping[str, Callable]] = "default",
-) -> pd.Series:
-    ...  # pragma: no cover
+) -> pd.Series: ...  # pragma: no cover
 
 
 # DataFrame variant (attribute arguments must be values or column names)
@@ -92,8 +91,7 @@ def add_vars(
     obj: Union[float, str] = 0.0,
     vtype: str = GRB.CONTINUOUS,
     index_formatter: Union[str, Callable, Mapping[str, Callable]] = "default",
-) -> pd.Series:
-    ...  # pragma: no cover
+) -> pd.Series: ...  # pragma: no cover
 
 
 def add_vars(
@@ -206,8 +204,7 @@ def add_constrs(
     *,
     name: Optional[str] = None,
     index_formatter: Union[str, Callable, Mapping[str, Callable]] = "default",
-) -> pd.Series:
-    ...  # pragma: no cover
+) -> pd.Series: ...  # pragma: no cover
 
 
 @overload
@@ -219,8 +216,7 @@ def add_constrs(
     *,
     name: Optional[str] = None,
     index_formatter: Union[str, Callable, Mapping[str, Callable]] = "default",
-) -> pd.Series:
-    ...  # pragma: no cover
+) -> pd.Series: ...  # pragma: no cover
 
 
 def add_constrs(

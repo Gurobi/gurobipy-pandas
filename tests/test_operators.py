@@ -1,5 +1,5 @@
-""" Tests for arithmetic operations. Intention is to verify that gurobipy
-objects correctly defer to Series for arithmetic operations. """
+"""Tests for arithmetic operations. Intention is to verify that gurobipy
+objects correctly defer to Series for arithmetic operations."""
 
 import operator
 import unittest
