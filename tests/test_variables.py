@@ -284,6 +284,12 @@ class TestAddVarsFromIndex(GurobiModelTestCase):
         for _, v in varseries.items():
             self.assertEqual(v.VType, GRB.BINARY)
 
+    def test_vtype_value_invalid(self):
+        index = pd.RangeIndex(5)
+
+        with self.assertRaisesRegex(ValueError, "'vtype' values must be one of"):
+            add_vars_from_index(self.model, index, vtype="notmytype")
+
     def test_vtype_series(self):
         index = pd.RangeIndex(5)
 
@@ -313,6 +319,13 @@ class TestAddVarsFromIndex(GurobiModelTestCase):
         # Missing values
         with self.assertRaises(ValueError):
             vtypeseries = pd.Series(index=index, data=["C", None, "I", "B", None])
+            add_vars_from_index(self.model, index, vtype=vtypeseries)
+
+    def test_vtype_series_invalid(self):
+        index = pd.RangeIndex(5)
+        vtypeseries = pd.Series(index=index, data=["C", "B", "bad", "S", "N"])
+
+        with self.assertRaisesRegex(ValueError, "got 'bad'"):
             add_vars_from_index(self.model, index, vtype=vtypeseries)
 
     def test_attribute_wrongtypes(self):
@@ -542,6 +555,10 @@ class TestAddVarsFromDataFrame(GurobiModelTestCase):
         self.model.update()
         for _, v in varseries.items():
             self.assertEqual(v.VType, GRB.BINARY)
+
+    def test_vtype_value_invalid(self):
+        with self.assertRaisesRegex(ValueError, "got 'notmytype'"):
+            add_vars_from_dataframe(self.model, self.data, vtype="notmytype")
 
     def test_attribute_series(self):
         # passing attributes as a series should fail (even if aligned)

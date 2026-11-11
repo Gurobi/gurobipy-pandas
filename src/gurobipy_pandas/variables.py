@@ -11,6 +11,10 @@ from gurobipy import GRB
 
 from gurobipy_pandas.util import align_series, create_names, gppd_global_options
 
+VALID_VTYPES = frozenset(
+    {GRB.CONTINUOUS, GRB.BINARY, GRB.INTEGER, GRB.SEMICONT, GRB.SEMIINT}
+)
+
 
 def prepare_series(series: pd.Series, index: pd.Index, err_label: str):
     """
@@ -24,6 +28,17 @@ def prepare_series(series: pd.Series, index: pd.Index, err_label: str):
     """
     aligned = align_series(series, index, err_label="...")
     return list(aligned.values)
+
+
+def validate_vtype(vtype: Union[str, list]) -> None:
+    """Raise a ValueError if any variable type is not a Gurobi type value."""
+    values = [vtype] if isinstance(vtype, str) else vtype
+    for value in values:
+        if not isinstance(value, str) or value not in VALID_VTYPES:
+            valid_values = ", ".join(sorted(VALID_VTYPES))
+            raise ValueError(
+                f"'vtype' values must be one of {valid_values}; got {value!r}"
+            )
 
 
 def add_vars_from_index(
@@ -87,6 +102,7 @@ def add_vars_from_index(
         vtype = prepare_series(vtype, index, "vtype")
     elif not isinstance(vtype, str):
         raise TypeError("'vtype' must be a string or series")
+    validate_vtype(vtype)
 
     if isinstance(name, pd.Series):
         namearg = prepare_series(name, index, "name")
@@ -162,6 +178,7 @@ def add_vars_from_dataframe(
 
     if not isinstance(vtype, str):
         raise TypeError("'vtype' must be a string")
+    validate_vtype(vtype)
 
     if not (name is None or isinstance(name, str)):
         raise TypeError("'name' must be a string or None")
