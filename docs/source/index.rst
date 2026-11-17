@@ -78,6 +78,7 @@ If you encounter issues with Gurobi or ``gurobipy`` please contact
 
    performance
    naming
+   attributes
    nonlinear
    advanced
    typing
