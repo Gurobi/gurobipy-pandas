@@ -1,4 +1,7 @@
-# Regular QA workflow for main and release branchs
+# Regular QA workflow for main and release branches
+#
+# Tests the wheel against all supported python and Gurobi versions on ubuntu.
+# Gurobi 12 tests run in a separate job that is given the GUROBI_LICENSE secret.
 
 name: Test
 
@@ -11,19 +14,73 @@ on:
 jobs:
   code-quality:
     uses: ./.github/workflows/code-quality.yml
-  unit-tests:
-    uses: ./.github/workflows/unit-tests.yml
+
+  build-wheel:
     needs: [code-quality]
+    uses: ./.github/workflows/build-wheel.yml
+
+  # Exhaustive test matrix for recent Gurobi versions
+  test-wheel:
+    needs: [build-wheel]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+        gurobipy: ["~=13.0", "~=14.0"]
+        exclude:
+          - python: "3.15"
+            gurobipy: "~=13.0"
+    steps:
+      - name: Checkout tests
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            tests
+            docs
+            .github/actions
+      - uses: ./.github/actions/test-wheel
+        with:
+          python: ${{ matrix.python }}
+          gurobipy: ${{ matrix.gurobipy }}
+
+  # Backward-compatibility tests for old Gurobi versions (expired pip license)
+  test-wheel-licensed:
+    needs: [build-wheel]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.12"]
+        gurobipy: ["~=11.0", "~=12.0"]
+    steps:
+      - name: Checkout tests
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            tests
+            docs
+            .github/actions
+      - uses: ./.github/actions/test-wheel
+        with:
+          python: ${{ matrix.python }}
+          gurobipy: ${{ matrix.gurobipy }}
+          license: ${{ secrets.GUROBI_LICENSE }}
+
   notebook-examples:
     uses: ./.github/workflows/notebook-examples.yml
-    needs: [code-quality]
+    needs: [build-wheel]
+
+  # readthedocs build needs the jupyter examples artifact
   examples-artifact:
     uses: ./.github/workflows/examples-artifact.yml
-    needs: [code-quality]
+    needs: [notebook-examples]
+
   trigger-rtd-build:
     runs-on: ubuntu-latest
-    # Job must be completed by the time RTD sees it
-    needs: [code-quality,unit-tests,notebook-examples,examples-artifact]
+    needs: [examples-artifact]
     steps:
       - name: Trigger RTD build
         env:
