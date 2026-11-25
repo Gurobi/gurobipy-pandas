@@ -115,7 +115,7 @@ standard-imghdr==3.10.14
 tabulate==0.10.0
 threadpoolctl==3.8.0
 tinycss2==1.5.1
-tornado==6.6
+tornado==6.6.1
 traitlets==5.16.1
 typing_extensions==4.16.0
 tzdata==2026.6
