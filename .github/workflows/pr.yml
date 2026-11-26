@@ -1,7 +1,7 @@
 # QA workflow for pull requests (no RTD trigger)
 #
 # Tests the wheel against min and max supported python versions with
-# Gurobi 13 and 14 only (no license file needed).
+# recent Gurobi versions (no license file needed).
 #
 # Using pull_request here. Ideally would use pull_request_target but that
 # requires some reworking of the callable workflows to make sure the right

@@ -1,6 +1,7 @@
-# Release workflow. Run basic QA, build the universal wheel and test it on many
-# platforms, then publish to pypi.
-# Gurobi 12 tests run in a separate job that is given the GUROBI_LICENSE secret.
+# Release workflow
+#
+# Build a wheel, run full QA workflow, then publish to PyPI if everything
+# passes
 
 name: Release
 

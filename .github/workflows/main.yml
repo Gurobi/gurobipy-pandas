@@ -1,7 +1,6 @@
 # Regular QA workflow for main and release branches
 #
 # Tests the wheel against all supported python and Gurobi versions on ubuntu.
-# Gurobi 12 tests run in a separate job that is given the GUROBI_LICENSE secret.
 
 name: Test
 
