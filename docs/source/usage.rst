@@ -84,7 +84,7 @@ You can also use the DataFrame ``gppd`` accessor to create variables. The distin
 Arithmetic Expressions
 ----------------------
 
-Building linear and quadratic expressions from variables is handled using standard pandas methods. For example, you can use arithmetic operations to create relationships across rows:
+Building linear and quadratic expressions from variables is handled using standard pandas methods. For example, you can use arithmetic operations to combine columns element-wise within each row:
 
 .. doctest:: [usage]
 
@@ -119,23 +119,26 @@ Note that the builtin ``.sum`` in pandas can be slow when working with a huge nu
 Adding Constraints
 ------------------
 
-Constraints are added row-wise. Similarly to adding variables, you have the option of using a free function or a dataframe accessor. The free function accepts series aligned on the same index to construct constraints, returning new constraints as a series. The following expresses the constraint :math:`x \le y` for each entry in the index:
+Constraints are added row-wise. Similarly to adding variables, you have the option of using a free function or a dataframe accessor. The free function accepts series aligned on the same index to construct constraints, returning new constraints as a series. For example, the following adds the constraint :math:`y_{ij} \le z_{ij}` for each ``(i, j)`` entry in the index:
 
 .. doctest:: [usage]
 
    >>> gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
    ...     model,
-   ...     variables.groupby("j")["y"].sum(),
+   ...     variables["y"],
    ...     GRB.LESS_EQUAL,
-   ...     variables.groupby("i")["y"].sum(),
+   ...     variables["z"],
    ...     name="c1",
    ... )
-   0    <gurobi.Constr c1[0]>
-   1    <gurobi.Constr c1[1]>
-   2    <gurobi.Constr c1[2]>
+   i  j
+   0  1    <gurobi.Constr c1[0,1]>
+      2    <gurobi.Constr c1[0,2]>
+   1  0    <gurobi.Constr c1[1,0]>
+   2  0    <gurobi.Constr c1[2,0]>
+      1    <gurobi.Constr c1[2,1]>
    Name: c1, dtype: object
 
-While the dataframe accessor takes column name references to build constraints:
+Using the dataframe accessor, you can construct the same set of constraints by passing column names:
 
 .. doctest:: [usage]
 
@@ -150,12 +153,12 @@ While the dataframe accessor takes column name references to build constraints:
    2 0  0.9  1.1  <gurobi.Var y[2,0]>  <gurobi.Var z[2,0]>  <gurobi.Constr c1[2,0]>
      1  1.2  0.9  <gurobi.Var y[2,1]>  <gurobi.Var z[2,1]>  <gurobi.Constr c1[2,1]>
 
-You can also use a string syntax similar to pandas' eval method to build the same constraint concisely:
+You can also use a string syntax similar to pandas' ``eval`` method to build these constraints more concisely:
 
 .. doctest:: [usage]
 
    >>> variables.gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
-   ...     model, "y + z <= 1", name="c1"
+   ...     model, "y <= z", name="c1"
    ... )
           u    c                    y                    z                       c1
    i j
@@ -165,7 +168,25 @@ You can also use a string syntax similar to pandas' eval method to build the sam
    2 0  0.9  1.1  <gurobi.Var y[2,0]>  <gurobi.Var z[2,0]>  <gurobi.Constr c1[2,0]>
      1  1.2  0.9  <gurobi.Var y[2,1]>  <gurobi.Var z[2,1]>  <gurobi.Constr c1[2,1]>
 
-Note that you *must* correctly align all data, and fill values when necessary, when adding constraints. Missing data is not allowed and will throw an error. This is by design, as misaligned data and variables likely indicates a bug in model building logic.
+Constraints can also be built from aggregated expressions. Here, grouping by ``i`` and summing reduces the ``(i, j)`` index to an ``i`` index, so the right-hand side must be a series on the index ``i``. Each left-hand side expression is joined with the right-hand side value at the same index entry. The following adds the constraint :math:`\sum_j y_{ij} \le r_i` for each ``i``:
+
+.. doctest:: [usage]
+
+   >>> rhs = pd.Series([1.0, 0.5, 2.0], index=pd.Index([0, 1, 2], name="i"))
+   >>> gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
+   ...     model,
+   ...     variables.groupby("i")["y"].sum(),
+   ...     GRB.LESS_EQUAL,
+   ...     rhs,
+   ...     name="c2",
+   ... )
+   i
+   0    <gurobi.Constr c2[0]>
+   1    <gurobi.Constr c2[1]>
+   2    <gurobi.Constr c2[2]>
+   Name: c2, dtype: object
+
+You must correctly align all data, and fill values when necessary, when adding constraints. Missing data is not allowed and will throw an error. This is by design, as misaligned data and variables likely indicates a bug in model building logic.
 
 ``gurobipy`` methods
 --------------------
