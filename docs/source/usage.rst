@@ -119,15 +119,15 @@ Note that the builtin ``.sum`` in pandas can be slow when working with a huge nu
 Adding Constraints
 ------------------
 
-Constraints are added row-wise. Similarly to adding variables, you have the option of using a free function or a dataframe accessor. The free function accepts series aligned on the same index to construct constraints, returning new constraints as a series. For example, summing ``y`` by ``j`` and by ``i`` gives two series that share the labels 0, 1 and 2, so they can be compared directly:
+Constraints are added row-wise. Similarly to adding variables, you have the option of using a free function or a dataframe accessor. The free function accepts series aligned on the same index to construct constraints, returning new constraints as a series. For example, this adds the constraint :math:`y_{ij} <= z_{ij}` for each ``(i, j)`` entry in the index:
 
 .. doctest:: [usage]
 
    >>> gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
    ...     model,
-   ...     variables.groupby("j")["y"].sum(),
+   ...     variables["y"].sum(),
    ...     GRB.LESS_EQUAL,
-   ...     variables.groupby("i")["y"].sum(),
+   ...     variables["z"].sum(),
    ...     name="c1",
    ... )
    0    <gurobi.Constr c1[0]>
@@ -135,37 +135,35 @@ Constraints are added row-wise. Similarly to adding variables, you have the opti
    2    <gurobi.Constr c1[2]>
    Name: c1, dtype: object
 
-This adds the constraint :math:`\sum_i y_{ik} \le \sum_j y_{kj}` for each label :math:`k`; for example, ``c1[1]`` is ``y[0,1] + y[2,1] <= y[1,0]``.
-
-The dataframe accessor, by contrast, takes column name references to build constraints:
+Using the dataframe accessor, you can construct the same set of constraints by passing column names:
 
 .. doctest:: [usage]
 
    >>> variables.gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
-   ...     model, "y", GRB.LESS_EQUAL, "z", name="c2"
+   ...     model, "y", GRB.LESS_EQUAL, "z", name="c1"
    ... )
           u    c                    y                    z                       c2
    i j
-   0 1  0.3  1.3  <gurobi.Var y[0,1]>  <gurobi.Var z[0,1]>  <gurobi.Constr c2[0,1]>
-     2  1.2  1.7  <gurobi.Var y[0,2]>  <gurobi.Var z[0,2]>  <gurobi.Constr c2[0,2]>
-   1 0  0.7  1.4  <gurobi.Var y[1,0]>  <gurobi.Var z[1,0]>  <gurobi.Constr c2[1,0]>
-   2 0  0.9  1.1  <gurobi.Var y[2,0]>  <gurobi.Var z[2,0]>  <gurobi.Constr c2[2,0]>
-     1  1.2  0.9  <gurobi.Var y[2,1]>  <gurobi.Var z[2,1]>  <gurobi.Constr c2[2,1]>
+   0 1  0.3  1.3  <gurobi.Var y[0,1]>  <gurobi.Var z[0,1]>  <gurobi.Constr c1[0,1]>
+     2  1.2  1.7  <gurobi.Var y[0,2]>  <gurobi.Var z[0,2]>  <gurobi.Constr c1[0,2]>
+   1 0  0.7  1.4  <gurobi.Var y[1,0]>  <gurobi.Var z[1,0]>  <gurobi.Constr c1[1,0]>
+   2 0  0.9  1.1  <gurobi.Var y[2,0]>  <gurobi.Var z[2,0]>  <gurobi.Constr c1[2,0]>
+     1  1.2  0.9  <gurobi.Var y[2,1]>  <gurobi.Var z[2,1]>  <gurobi.Constr c1[2,1]>
 
-You can also use a string syntax similar to pandas' eval method to build the same constraint concisely:
+You can also use a string syntax similar to pandas' ``eval`` method to build these constraints more concisely:
 
 .. doctest:: [usage]
 
    >>> variables.gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
-   ...     model, "y <= z", name="c3"
+   ...     model, "y <= z", name="c1"
    ... )
           u    c                    y                    z                       c3
    i j
-   0 1  0.3  1.3  <gurobi.Var y[0,1]>  <gurobi.Var z[0,1]>  <gurobi.Constr c3[0,1]>
-     2  1.2  1.7  <gurobi.Var y[0,2]>  <gurobi.Var z[0,2]>  <gurobi.Constr c3[0,2]>
-   1 0  0.7  1.4  <gurobi.Var y[1,0]>  <gurobi.Var z[1,0]>  <gurobi.Constr c3[1,0]>
-   2 0  0.9  1.1  <gurobi.Var y[2,0]>  <gurobi.Var z[2,0]>  <gurobi.Constr c3[2,0]>
-     1  1.2  0.9  <gurobi.Var y[2,1]>  <gurobi.Var z[2,1]>  <gurobi.Constr c3[2,1]>
+   0 1  0.3  1.3  <gurobi.Var y[0,1]>  <gurobi.Var z[0,1]>  <gurobi.Constr c1[0,1]>
+     2  1.2  1.7  <gurobi.Var y[0,2]>  <gurobi.Var z[0,2]>  <gurobi.Constr c1[0,2]>
+   1 0  0.7  1.4  <gurobi.Var y[1,0]>  <gurobi.Var z[1,0]>  <gurobi.Constr c1[1,0]>
+   2 0  0.9  1.1  <gurobi.Var y[2,0]>  <gurobi.Var z[2,0]>  <gurobi.Constr c1[2,0]>
+     1  1.2  0.9  <gurobi.Var y[2,1]>  <gurobi.Var z[2,1]>  <gurobi.Constr c1[2,1]>
 
 Note that you *must* correctly align all data, and fill values when necessary, when adding constraints. Missing data is not allowed and will throw an error. This is by design, as misaligned data and variables likely indicates a bug in model building logic.
 
