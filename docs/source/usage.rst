@@ -119,20 +119,23 @@ Note that the builtin ``.sum`` in pandas can be slow when working with a huge nu
 Adding Constraints
 ------------------
 
-Constraints are added row-wise. Similarly to adding variables, you have the option of using a free function or a dataframe accessor. The free function accepts series aligned on the same index to construct constraints, returning new constraints as a series. For example, this adds the constraint :math:`y_{ij} <= z_{ij}` for each ``(i, j)`` entry in the index:
+Constraints are added row-wise. Similarly to adding variables, you have the option of using a free function or a dataframe accessor. The free function accepts series aligned on the same index to construct constraints, returning new constraints as a series. For example, the following adds the constraint :math:`y_{ij} <= z_{ij}` for each ``(i, j)`` entry in the index:
 
 .. doctest:: [usage]
 
    >>> gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
    ...     model,
-   ...     variables["y"].sum(),
+   ...     variables["y"],
    ...     GRB.LESS_EQUAL,
-   ...     variables["z"].sum(),
+   ...     variables["z"],
    ...     name="c1",
    ... )
-   0    <gurobi.Constr c1[0]>
-   1    <gurobi.Constr c1[1]>
-   2    <gurobi.Constr c1[2]>
+   i  j
+   0  1    <gurobi.Constr c1[0,1]>
+      2    <gurobi.Constr c1[0,2]>
+   1  0    <gurobi.Constr c1[1,0]>
+   2  0    <gurobi.Constr c1[2,0]>
+      1    <gurobi.Constr c1[2,1]>
    Name: c1, dtype: object
 
 Using the dataframe accessor, you can construct the same set of constraints by passing column names:
@@ -142,7 +145,7 @@ Using the dataframe accessor, you can construct the same set of constraints by p
    >>> variables.gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
    ...     model, "y", GRB.LESS_EQUAL, "z", name="c1"
    ... )
-          u    c                    y                    z                       c2
+          u    c                    y                    z                       c1
    i j
    0 1  0.3  1.3  <gurobi.Var y[0,1]>  <gurobi.Var z[0,1]>  <gurobi.Constr c1[0,1]>
      2  1.2  1.7  <gurobi.Var y[0,2]>  <gurobi.Var z[0,2]>  <gurobi.Constr c1[0,2]>
@@ -157,7 +160,7 @@ You can also use a string syntax similar to pandas' ``eval`` method to build the
    >>> variables.gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
    ...     model, "y <= z", name="c1"
    ... )
-          u    c                    y                    z                       c3
+          u    c                    y                    z                       c1
    i j
    0 1  0.3  1.3  <gurobi.Var y[0,1]>  <gurobi.Var z[0,1]>  <gurobi.Constr c1[0,1]>
      2  1.2  1.7  <gurobi.Var y[0,2]>  <gurobi.Var z[0,2]>  <gurobi.Constr c1[0,2]>
