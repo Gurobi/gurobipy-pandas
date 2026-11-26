@@ -119,7 +119,7 @@ Note that the builtin ``.sum`` in pandas can be slow when working with a huge nu
 Adding Constraints
 ------------------
 
-Constraints are added row-wise. Similarly to adding variables, you have the option of using a free function or a dataframe accessor. The free function accepts series aligned on the same index to construct constraints, returning new constraints as a series. For example, the following adds the constraint :math:`y_{ij} <= z_{ij}` for each ``(i, j)`` entry in the index:
+Constraints are added row-wise. Similarly to adding variables, you have the option of using a free function or a dataframe accessor. The free function accepts series aligned on the same index to construct constraints, returning new constraints as a series. For example, the following adds the constraint :math:`y_{ij} \le z_{ij}` for each ``(i, j)`` entry in the index:
 
 .. doctest:: [usage]
 
@@ -168,7 +168,25 @@ You can also use a string syntax similar to pandas' ``eval`` method to build the
    2 0  0.9  1.1  <gurobi.Var y[2,0]>  <gurobi.Var z[2,0]>  <gurobi.Constr c1[2,0]>
      1  1.2  0.9  <gurobi.Var y[2,1]>  <gurobi.Var z[2,1]>  <gurobi.Constr c1[2,1]>
 
-Note that you *must* correctly align all data, and fill values when necessary, when adding constraints. Missing data is not allowed and will throw an error. This is by design, as misaligned data and variables likely indicates a bug in model building logic.
+Constraints can also be built from aggregated expressions. Here, grouping by ``i`` and summing reduces the ``(i, j)`` index to an ``i`` index, so the right-hand side must be a series on the index ``i``. Each left-hand side expression is joined with the right-hand side value at the same index entry. The following adds the constraint :math:`\sum_j y_{ij} \le r_i` for each ``i``:
+
+.. doctest:: [usage]
+
+   >>> rhs = pd.Series([1.0, 0.5, 2.0], index=pd.Index([0, 1, 2], name="i"))
+   >>> gppd.add_constrs(  # doctest: +NORMALIZE_WHITESPACE
+   ...     model,
+   ...     variables.groupby("i")["y"].sum(),
+   ...     GRB.LESS_EQUAL,
+   ...     rhs,
+   ...     name="c2",
+   ... )
+   i
+   0    <gurobi.Constr c2[0]>
+   1    <gurobi.Constr c2[1]>
+   2    <gurobi.Constr c2[2]>
+   Name: c2, dtype: object
+
+You must correctly align all data, and fill values when necessary, when adding constraints. Missing data is not allowed and will throw an error. This is by design, as misaligned data and variables likely indicates a bug in model building logic.
 
 ``gurobipy`` methods
 --------------------
