@@ -73,5 +73,4 @@ jobs:
     if: github.ref_type == 'tag'
     uses: ./.github/workflows/publish-pypi.yml
     needs: [test-wheel, test-wheel-licensed]
-    permissions:
-      id-token: write
+    secrets: inherit
